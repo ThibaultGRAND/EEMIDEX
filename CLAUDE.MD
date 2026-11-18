@@ -278,9 +278,30 @@ pour les sols et des placeholders pour les batiments.
   personnage peut apparaître plusieurs fois, n'importe où sur une case libre. Un
   alternant recruté (drapeau `cle`, inchangé : `zone_nom`) ne se balade plus. La fiche est
   posée en métadonnée `fiche` sur le nœud (`world.gd` : `_nom_de`, `_fiche_de`).
-- **Bandeau du bas** (`%Bandeau`, `%Zone`, `%Message`) : il apparaît avec chaque message et
-  à l'entrée d'une zone, puis s'efface après `DUREE_BANDEAU` (4 s), pour ne pas cacher le
-  décor ni les personnages (`world.gd` : `_montrer_bandeau`).
+- **Mini-jeux** (`scenes/minigames/`) : base commune `mini_jeu.gd` (`MiniJeu`) — écran de
+  consignes (but, touches dessinées, stat entraînée, difficulté), décompte 3-2-1, partie,
+  écran de résultat avec le gain réellement accordé. L'alternant entraîné est à l'écran
+  et joue ses animations de combat quand on réussit. Difficulté **1 à 5 selon son
+  niveau** (`GameState.niveau_minijeu`, voir `docs/regles.md`). Rythme : 4 pistes
+  colorées, flèches, Parfait/Bien/Raté, combo. Frappe : sac de frappe, barre à 3 zones
+  avec légende, la zone bouge à partir de la difficulté 4. Couleurs `MINIJEU_*` dans
+  `PaletteUi`.
+- `scenes/ui/inventaire.tscn` — **écran Équipe** (menu pause > « Équipe », remplace
+  l'ancien écran en texte ; le fichier et la classe s'appellent encore `Inventaire`). Onglets Équipe / Sac (← →) : liste à gauche
+  (`ListeMenu`), fiche à droite (portrait, `FicheCombattant`, stade et prochain palier,
+  ATT/DEF/VIT avec le bonus gagné aux mini-jeux, capacités résumées : dégâts, effets,
+  café). Nœuds construits dans `inventaire.gd` ; `world.gd` passe en `Mode.INVENTAIRE`.
+- **Parler aux PNJ** : un personnage à côté du joueur s'arrête et se tourne vers lui ;
+  le bandeau affiche « Entrée : parler à … » tant qu'il est là, et Entrée lui parle même
+  sans lui faire face (`world.gd` : `_proposer_de_parler`, `_pnj_voisin`).
+- **Mini-carte** toujours visible en haut à droite (`scenes/ui/mini_carte.gd`,
+  `MiniCarte`, créée par `world.gd`) : 48 × 30 cases centrées sur le joueur, bandes
+  recollées, personnages et repères. Cachée sous la carte du monde et l'inventaire.
+- **Encart de texte** (`%Bandeau`, `%Zone`, `%Message`) : un encart compact **dans le coin
+  bas gauche**, à la taille de son texte (60 % de l'écran au plus, retour à la ligne
+  au-delà), placé par `world.gd` (`_disposer_encart`) : les ancrages du `.tscn` sont
+  écrasés. Il apparaît avec chaque message et à l'entrée d'une zone, puis s'efface après
+  `DUREE_BANDEAU` (4 s), sauf l'invitation à parler qui reste tant qu'un PNJ est à côté.
 - **Son** : 3 musiques, 11 bruitages et 1 ambiance de zone, tous en `.ogg`, tous
   joues par `GameState` (`jouer_musique`, `jouer_son`, `jouer_ambiance`,
   `demarrer_son_texte`). Menus, dialogues, combat, boutique, pas du joueur,
@@ -391,7 +412,7 @@ pour les sols et des placeholders pour les batiments.
 | Question ouverte du cadrage | Choix provisoire |
 | --- | --- |
 | Nom des créatures | Gones |
-| Quels 2 mini-jeux | Rythme (vitesse) et Frappe chronométrée (attaque) |
+| Quels 2 mini-jeux | Rythme (vitesse) et Frappe chronométrée (attaque), difficulté selon le niveau |
 | Version de Godot | **4.7.2 stable** (installée le 18 nov. 2026, à confirmer avec l’équipe) |
 | Monnaie | **Note de Frais**, unique (les 3 ressources sont supprimees, 18 nov. 2026) |
 | Histoire et objectif final | non écrits : le MVP s'arrête au gardien de Fourvière |

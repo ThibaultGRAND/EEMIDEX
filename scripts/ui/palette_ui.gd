@@ -100,5 +100,16 @@ const REPERES_CARTE := {
 	"R": Color("d64f8a"),   # ressource
 	"1": Color("f4f1ea"), "2": Color("f4f1ea"), "3": Color("f4f1ea"),   # sorties
 }
+## Mini-jeux : une couleur par piste du Rythme (gauche, bas, haut, droite), les
+## zones de la Frappe chronometree, le curseur et le sac de frappe.
+const MINIJEU_PISTES := [Color("4a8fd6"), Color("45b89a"), Color("d68c3a"), Color("d64a7a")]
+const MINIJEU_PISTE := Color("1f2838")
+const MINIJEU_ZONE_BIEN := Color("3f7d55")
+const MINIJEU_ZONE_TRES_BIEN := Color("6cc24a")
+const MINIJEU_ZONE_PARFAIT := Color("e9c56b")
+const MINIJEU_CURSEUR := Color("f4f1ea")
+const MINIJEU_SAC := Color("8c4a32")
+const MINIJEU_CORDE := Color("c9b48a")
+
 ## Le point « vous êtes ici ».
 const CARTE_JOUEUR := Color("ff4d4d")

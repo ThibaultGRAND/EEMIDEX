@@ -1,149 +1,184 @@
-extends Node2D
-## Mini-jeu « Rythme » — entraîne la VITESSE.
-## Des flèches descendent, on appuie sur la bonne touche quand elles passent la ligne.
-## La difficulté suit le stade de l'alternant entraîné (Chômeur, Stagiaire, Alternant).
+extends MiniJeu
+## Mini-jeu « Rythme » : entraine la VITESSE.
+## Des fleches descendent dans 4 pistes ; on appuie sur la bonne fleche quand
+## elles passent sur la ligne doree. La difficulte (1 a 5, selon le niveau de
+## l'alternant) regle la vitesse de chute, l'ecart entre les notes, leur nombre
+## et la tolerance.
 
 const STAT := &"vitesse"
-## Proportions de l'ecran : le mini-jeu suit la resolution.
-const LIGNE_Y := 0.733
-const HAUT_Y := 0.156
-const COLONNE_ECART := 0.15
-const COLONNE_LARGEUR := 0.0875
-const TOLERANCE := 0.18        # tolérance en secondes autour de la ligne
-const DUREE_CHUTE := 1.6       # secondes entre l'apparition et la ligne
 const ACTIONS := ["ui_left", "ui_down", "ui_up", "ui_right"]
+const NOMS_TOUCHES := ["←", "↓", "↑", "→"]
+## Orientation de la fleche dessinee dans chaque piste (gauche, bas, haut, droite).
+const DIRECTIONS := [Vector2.LEFT, Vector2.DOWN, Vector2.UP, Vector2.RIGHT]
+## Proportions de l'ecran.
+const PISTES_CENTRE_X := 0.6
+const PISTE_ECART := 0.12
+const PISTE_LARGEUR := 0.09
+const LIGNE_Y := 0.78
+const HAUT_Y := 0.12
+const DUREE_ECLAIR := 0.15
+const COMBO_FRAPPE := 5         # l'alternant frappe tous les 5 coups reussis d'affilee
 
-var _gone: GoneInstance
-var _niveau: int = 1
-var _notes: Array = []         # [{"colonne": int, "temps": float, "jouee": bool}]
+var _notes: Array = []          # [{"colonne": int, "temps": float, "jouee": bool}]
 var _temps: float = 0.0
 var _duree: float = 0.0
 var _reussites: int = 0
+var _parfaits: int = 0
 var _total: int = 0
-var _termine: bool = false
+var _combo: int = 0
+var _eclairs: Array = [0.0, 0.0, 0.0, 0.0]
+var _duree_chute: float = 1.6
+var _tolerance: float = 0.18
 
-@onready var _titre: Label = %Titre
-@onready var _info: Label = %Info
-@onready var _resultat: Label = %Resultat
+func _consignes() -> Array:
+	return ["Rythme", "la vitesse",
+		"Des flèches descendent dans les 4 colonnes. Appuie sur la même flèche "
+		+ "au moment où elle passe sur la ligne dorée. Plus tu en réussis, plus "
+		+ gone.nom() + " gagne en vitesse."]
 
-func _ready() -> void:
-	GameState.assurer_partie()
-	if GameState.equipe.is_empty():
-		_retour()
-		return
-	var index := clampi(GameState.gone_a_entrainer, 0, GameState.equipe.size() - 1)
-	_gone = GameState.equipe[index]
-	_niveau = GameState.niveau_minijeu(_gone)
-	_generer_partition()
-	_titre.text = "Rythme — %s (difficulté %d/3)" % [_gone.nom(), _niveau]
-	_resultat.text = "Flèches : frapper la note quand elle touche la ligne."
-	_rafraichir()
+func _touches() -> Array:
+	return [[NOMS_TOUCHES, "frapper la note de la colonne"]]
 
-func _generer_partition() -> void:
+func _commencer() -> void:
+	_duree_chute = 1.9 - 0.2 * difficulte            # 1,7 s au niveau 1, 0,9 s au niveau 5
+	_tolerance = 0.21 - 0.02 * difficulte
+	var intervalle := 0.9 - 0.1 * difficulte
+	var nombre := 12 + 3 * difficulte
 	_notes.clear()
-	var intervalle := 0.85 - 0.18 * float(_niveau)   # plus le niveau est haut, plus ça va vite
-	var nombre := 10 + 4 * _niveau
-	var t := DUREE_CHUTE + 0.6
+	var t := _duree_chute + 0.4
 	for i in nombre:
 		_notes.append({"colonne": randi() % ACTIONS.size(), "temps": t, "jouee": false})
-		t += intervalle
+		t += intervalle * randf_range(0.8, 1.25)
 	_total = nombre
-	_duree = t + 0.8
+	_duree = t + 0.6
+	_titre.text = "Rythme — %s  (difficulté %d/%d)" % [gone.nom(), difficulte, GameState.DIFFICULTE_MINIJEU_MAX]
+	_rafraichir()
 
 func _rafraichir() -> void:
-	_info.text = "Notes réussies : %d / %d" % [_reussites, _total]
+	_info.text = "Réussies %d/%d     Combo %d" % [_reussites, _total, _combo]
 
-func _process(delta: float) -> void:
-	if _termine:
-		return
+func _jeu_process(delta: float) -> void:
 	_temps += delta
-	for note in _notes:
-		if not note["jouee"] and _temps > float(note["temps"]) + TOLERANCE:
-			note["jouee"] = true    # note manquée
+	for i in _eclairs.size():
+		_eclairs[i] = maxf(0.0, float(_eclairs[i]) - delta)
+	for note: Dictionary in _notes:
+		if not note["jouee"] and _temps > float(note["temps"]) + _tolerance:
+			note["jouee"] = true
+			_combo = 0
+			message("Raté", PaletteUi.JAUGE_BASSE, Vector2(_colonne_x(int(note["colonne"])), _ligne_y() - 8))
+			_rafraichir()
 	if _temps >= _duree:
-		_terminer()
-	queue_redraw()
+		terminer()
 
-func _unhandled_input(event: InputEvent) -> void:
-	if _termine:
-		if event.is_action_pressed("ui_accept") or event.is_action_pressed("ui_cancel"):
-			_retour()
-		return
+func _jeu_input(event: InputEvent) -> void:
 	for colonne in ACTIONS.size():
 		if event.is_action_pressed(ACTIONS[colonne]):
 			_frapper(colonne)
 			return
 
 func _frapper(colonne: int) -> void:
+	_eclairs[colonne] = DUREE_ECLAIR
 	var meilleure: Dictionary = {}
 	var meilleur_ecart := 999.0
-	for note in _notes:
+	for note: Dictionary in _notes:
 		if note["jouee"] or int(note["colonne"]) != colonne:
 			continue
 		var ecart: float = absf(float(note["temps"]) - _temps)
 		if ecart < meilleur_ecart:
 			meilleur_ecart = ecart
 			meilleure = note
-	if meilleure.is_empty() or meilleur_ecart > TOLERANCE:
+	var x := _colonne_x(colonne)
+	if meilleure.is_empty() or meilleur_ecart > _tolerance:
+		message("Trop tôt", PaletteUi.TEXTE_ETEINT, Vector2(x, _ligne_y() - 8))
 		return
 	meilleure["jouee"] = true
 	_reussites += 1
+	_combo += 1
+	if meilleur_ecart <= _tolerance * 0.4:
+		_parfaits += 1
+		message("Parfait !", PaletteUi.ACCENT, Vector2(x, _ligne_y() - 8))
+	else:
+		message("Bien", PaletteUi.JAUGE_HAUTE, Vector2(x, _ligne_y() - 8))
+	if _combo % COMBO_FRAPPE == 0:
+		jouer_perso(&"combat_pied" if (_combo / COMBO_FRAPPE) % 2 == 0 else &"combat_poing")
 	GameState.jouer_son(&"clic")
 	_rafraichir()
 
-func _terminer() -> void:
-	_termine = true
+## Gain : regle de docs/regles.md (90 % : 2 + difficulte, 60 % : 1 + difficulte / 2,
+## 35 % : 1), plafonne a 5 par partie.
+func _calculer_gain() -> Array:
 	var ratio := float(_reussites) / float(maxi(1, _total))
 	var gain := 0
 	if ratio >= 0.9:
-		gain = 2 + _niveau
+		gain = 2 + difficulte
 	elif ratio >= 0.6:
-		gain = 1 + _niveau / 2
+		gain = 1 + difficulte / 2
 	elif ratio >= 0.35:
 		gain = 1
-	if gain > 0:
-		gain = _gone.appliquer_entrainement(STAT, gain)
-		GameState.jouer_son(&"niveau_gagne")
-		GameState.equipe_modifiee.emit()
-		_resultat.text = "%d%% de réussite. %s gagne +%d en vitesse (VIT %d).\nEntrée pour revenir." % [
-			int(ratio * 100.0), _gone.nom(), gain, _gone.vitesse()]
-	elif _gone.marge_entrainement(STAT) <= 0:
-		_resultat.text = "%s a atteint son plafond sur cette stat.\nEntrée pour revenir." % _gone.nom()
-	else:
-		_resultat.text = "%d%% de réussite. Pas assez pour progresser.\nEntrée pour revenir." % int(ratio * 100.0)
-	queue_redraw()
+	return [STAT, mini(gain, 5), "%d%% de notes réussies (%d parfaites sur %d)." % [
+		int(ratio * 100.0), _parfaits, _total]]
 
-func _retour() -> void:
-	get_tree().change_scene_to_file(GameState.SCENE_MONDE)
+# =============================================================================
+# Dessin
+# =============================================================================
+func _ligne_y() -> float:
+	return get_viewport_rect().size.y * LIGNE_Y
 
-## Centre horizontal de chaque colonne, en pixels.
 func _colonne_x(colonne: int) -> float:
 	var ecran := get_viewport_rect().size
-	var ecart := ecran.x * COLONNE_ECART
-	var premier := ecran.x * 0.5 - ecart * (ACTIONS.size() - 1) * 0.5
-	return premier + ecart * colonne
+	var ecart := ecran.x * PISTE_ECART
+	return ecran.x * PISTES_CENTRE_X - ecart * (ACTIONS.size() - 1) * 0.5 + ecart * colonne
 
-func _draw() -> void:
+func _jeu_draw() -> void:
 	var ecran := get_viewport_rect().size
-	var ligne_y := ecran.y * LIGNE_Y
-	var haut_y := ecran.y * HAUT_Y
-	var largeur := ecran.x * COLONNE_LARGEUR
-	draw_rect(Rect2(Vector2.ZERO, ecran), Color(0.0862745, 0.105882, 0.145098))
+	var largeur := ecran.x * PISTE_LARGEUR
+	var haut := ecran.y * HAUT_Y
+	var ligne := _ligne_y()
 	for i in ACTIONS.size():
-		draw_rect(Rect2(_colonne_x(i) - largeur * 0.5, haut_y, largeur, ligne_y - haut_y + largeur * 0.2),
-			Color(0.137255, 0.164706, 0.223529))
-	var bande = _colonne_x(0) - largeur
-	draw_rect(Rect2(bande, ligne_y, _colonne_x(ACTIONS.size() - 1) + largeur - bande,
-		maxf(2.0, ecran.y / 90.0)), Color(0.913725, 0.772549, 0.419608))
-	if _termine:
+		var x := _colonne_x(i)
+		var couleur: Color = PaletteUi.MINIJEU_PISTES[i]
+		draw_rect(Rect2(x - largeur * 0.5, haut, largeur, ligne - haut + largeur * 0.6), PaletteUi.MINIJEU_PISTE)
+		if float(_eclairs[i]) > 0.0:
+			var eclat := couleur
+			eclat.a = float(_eclairs[i]) / DUREE_ECLAIR * 0.5
+			draw_rect(Rect2(x - largeur * 0.5, haut, largeur, ligne - haut), eclat)
+		# la touche, posee sur la ligne : cadre et fleche
+		var cible := Rect2(x - largeur * 0.45, ligne - largeur * 0.45, largeur * 0.9, largeur * 0.9)
+		draw_rect(cible, PaletteUi.PANNEAU)
+		draw_rect(cible, couleur, false, 1.0)
+		_fleche(Vector2(x, ligne), largeur * 0.28, DIRECTIONS[i], couleur.darkened(0.2))
+	draw_rect(Rect2(_colonne_x(0) - largeur * 0.6, ligne - 0.5, ecran.x * PISTE_ECART * 3 + largeur * 1.2, 1.0),
+		PaletteUi.ACCENT)
+	# progression du morceau
+	if etape == Etape.JEU and _duree > 0.0:
+		var barre := Rect2(_colonne_x(0) - largeur * 0.5, haut - 5, ecran.x * PISTE_ECART * 3 + largeur, 2)
+		draw_rect(barre, PaletteUi.PANNEAU)
+		draw_rect(Rect2(barre.position, Vector2(barre.size.x * clampf(_temps / _duree, 0, 1), barre.size.y)),
+			PaletteUi.TEXTE_DOUX)
+	if etape != Etape.JEU:
 		return
-	for note in _notes:
+	for note: Dictionary in _notes:
 		if note["jouee"]:
 			continue
 		var reste: float = float(note["temps"]) - _temps
-		if reste > DUREE_CHUTE or reste < -0.25:
+		if reste > _duree_chute or reste < -0.25:
 			continue
-		var y: float = ligne_y - reste / DUREE_CHUTE * (ligne_y - haut_y)
-		var x: float = _colonne_x(int(note["colonne"]))
-		draw_rect(Rect2(x - largeur * 0.36, y - largeur * 0.18, largeur * 0.72, largeur * 0.36),
-			Color(0.411765, 0.639216, 0.858824))
+		var y: float = ligne - reste / _duree_chute * (ligne - haut)
+		var c: int = note["colonne"]
+		_fleche(Vector2(_colonne_x(c), y), largeur * 0.36, DIRECTIONS[c], PaletteUi.MINIJEU_PISTES[c])
+
+## Une fleche pleine, pointe vers `vers`, avec un contour sombre.
+func _fleche(centre: Vector2, taille: float, vers: Vector2, couleur: Color) -> void:
+	var cote := Vector2(-vers.y, vers.x)
+	var points := PackedVector2Array([
+		centre + vers * taille,
+		centre + cote * taille,
+		centre + cote * taille * 0.45,
+		centre + cote * taille * 0.45 - vers * taille,
+		centre - cote * taille * 0.45 - vers * taille,
+		centre - cote * taille * 0.45,
+		centre - cote * taille,
+	])
+	draw_colored_polygon(points, couleur)
+	points.append(points[0])
+	draw_polyline(points, PaletteUi.FOND, 1.0)

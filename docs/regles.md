@@ -309,9 +309,11 @@ Le **CDI à la clé** ne se vend pas : c'est l'objet unique de la fin.
 Ajouter un article à la boutique, c'est ajouter une ligne à `BOUTIQUE` : un
 article dont la fiche `.tres` manque est simplement sauté, l'écran ne casse pas.
 
-La difficulté des mini-jeux ne dépend plus de ce qu'on possède, mais du **stade de
-l'alternant entraîné** : Chômeur → niveau 1, Stagiaire → niveau 2, Alternant →
-niveau 3.
+La difficulté des mini-jeux suit le **niveau de l'alternant entraîné**, de 1 à 5
+(`GameState.niveau_minijeu`, 18 nov. 2026, demande de Sébastien) : Niv.2-4 → 1,
+5-7 → 2, 8-10 → 3, 11-13 → 4, 14 et plus → 5. Elle règle la vitesse et la précision
+demandées : chute des notes, écart entre elles et tolérance au Rythme ; vitesse du
+curseur et largeur de la zone à la Frappe (la zone bouge à partir de 4).
 
 ---
 
@@ -322,7 +324,7 @@ Les mini-jeux montent **définitivement** une stat de l'alternant entraîné.
 | Mini-jeu | Stat | Gain |
 | --- | --- | --- |
 | Frappe chronométrée | Compétence | `score × difficulté ÷ 4`, plafonné à 3 |
-| Rythme | Vitesse de rendu | 90 % de réussite : `2 + difficulté` · 60 % : `1 + difficulté ÷ 2` · 35 % : 1 |
+| Rythme | Vitesse de rendu | 90 % de réussite : `2 + difficulté` · 60 % : `1 + difficulté ÷ 2` · 35 % : 1, plafonné à 5 |
 
 ### Le plafond
 

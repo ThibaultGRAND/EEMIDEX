@@ -6,7 +6,7 @@ extends Node2D
 ## Quand l'equipe aura dessine les vraies tuiles, il suffira de remplacer le PNG
 ## du tileset : les plans et le code ne bougent pas.
 
-enum Mode { LIBRE, MENU, CARTE, DIALOGUE }
+enum Mode { LIBRE, MENU, CARTE, DIALOGUE, INVENTAIRE }
 
 const CHANCE_RENCONTRE := 0.14
 const SCENE_PNJ: PackedScene = preload("res://scenes/world/pnj.tscn")
@@ -20,6 +20,12 @@ const DISTANCE_MIN_PNJ := 5
 ## Le bandeau du bas reste visible ce temps-la (secondes), puis s'efface.
 const DUREE_BANDEAU := 4.0
 const FONDU_BANDEAU := 0.6
+## L'encart du bas (nom de la zone, message) : dans le coin bas gauche, a la
+## taille du texte, jamais plus large que cette part de l'ecran.
+const ENCART_LARGEUR_MAX := 0.6
+const ENCART_LARGEUR_MIN := 60.0
+const ENCART_MARGE := 4.0
+const ENCART_RETRAIT := 3.0
 ## Longueur d'une promenade de PNJ, en pas d'affilee.
 ## Ce que fait un alternant sauvage quand le joueur lui marche dessus.
 ## Les trois chances se completent : le reste, il hesite et ne se passe rien.
@@ -75,9 +81,13 @@ var _interlocuteur: Pnj = null
 @onready var _pnjs: Node2D = %Pnjs
 @onready var _trams: Node2D = %Trams
 @onready var _carte: CarteMonde = %CarteMonde
+@onready var _inventaire: Inventaire = %Inventaire
 @onready var _label_zone: Label = %Zone
 @onready var _label_message: Label = %Message
 var _fondu_bandeau: Tween
+var _mini_carte: MiniCarte
+## Le personnage a cote du joueur a qui on propose de parler (null : personne).
+var _invite: Pnj = null
 @onready var _bandeau: ColorRect = %Bandeau
 @onready var _volet: ColorRect = %Volet
 @onready var _overlay: Label = %Overlay
@@ -95,6 +105,11 @@ func _ready() -> void:
 	add_child(_train)
 	_joueur.deplacement_fini.connect(_sur_case_atteinte)
 	_carte.fermee.connect(_sur_carte_fermee)
+	_inventaire.fermee.connect(_sur_carte_fermee)
+	# la mini-carte, sous les autres ecrans du Hud (carte du monde, inventaire)
+	_mini_carte = MiniCarte.new()
+	_bandeau.get_parent().add_child(_mini_carte)
+	_bandeau.get_parent().move_child(_mini_carte, 0)
 	_charger_zone(GameState.zone_courante, GameState.case_joueur)
 	if GameState.dernier_resultat_combat != "":
 		_message(GameState.dernier_resultat_combat)
@@ -189,6 +204,8 @@ func _peindre_zone() -> void:
 # =============================================================================
 func _process(_delta: float) -> void:
 	_voir_le_joueur()
+	_suivre_mini_carte()
+	_proposer_de_parler()
 	# Touche maintenue : on enchaine les pas tant qu'elle est enfoncee.
 	if _mode != Mode.LIBRE or _joueur.en_mouvement:
 		return
@@ -350,6 +367,11 @@ func _sur_envie_pnj(pnj: Pnj) -> void:
 	if _mode != Mode.LIBRE:
 		pnj.regarder(pnj.direction)
 		return
+	# A cote du joueur, il s'arrete et le regarde : on peut lui parler.
+	if _a_cote_du_joueur(pnj):
+		pnj.pas_restants = 0
+		pnj.regarder(_direction_de(_joueur.cellule - pnj.cellule))
+		return
 	var deplacement: Vector2i
 	var vers: Joueur.Direction
 	if pnj.pas_restants > 0:
@@ -460,6 +482,45 @@ func _case_devant() -> Vector2i:
 		if consigne[1] == _joueur.direction:
 			return _joueur.cellule + consigne[0]
 	return _joueur.cellule
+
+## Un personnage arrete sur une case voisine du joueur, celui d'en face d'abord.
+func _pnj_voisin() -> Pnj:
+	var devant := _pnj_sur(_case_devant())
+	if devant != null and not devant.en_mouvement:
+		return devant
+	for pnj: Pnj in _pnjs.get_children():
+		if not pnj.en_mouvement and _a_cote_du_joueur(pnj):
+			return pnj
+	return null
+
+func _a_cote_du_joueur(pnj: Pnj) -> bool:
+	var ecart: Vector2i = (pnj.cellule - _joueur.cellule).abs()
+	return ecart.x + ecart.y == 1
+
+## Quand un personnage est a cote, le bandeau propose de lui parler, et le reste
+## tant qu'il est la.
+func _proposer_de_parler() -> void:
+	var voisin: Pnj = null
+	if _mode == Mode.LIBRE and not _joueur.en_mouvement:
+		voisin = _pnj_voisin()
+	if voisin == _invite:
+		return
+	_invite = voisin
+	if voisin != null:
+		_label_message.text = "Entrée : parler à %s" % _nom_de(voisin)
+		_montrer_bandeau(true)
+	else:
+		_label_message.text = ""
+		_montrer_bandeau()
+
+func _suivre_mini_carte() -> void:
+	_mini_carte.visible = _mode != Mode.CARTE and _mode != Mode.INVENTAIRE
+	if not _mini_carte.visible:
+		return
+	var positions: Array[Vector2i] = []
+	for pnj: Pnj in _pnjs.get_children():
+		positions.append(pnj.cellule)
+	_mini_carte.suivre(zone_id, _joueur.cellule, positions)
 
 func _direction_de(deplacement: Vector2i) -> Joueur.Direction:
 	for consigne: Array in DIRECTIONS.values():
@@ -607,8 +668,8 @@ func _lancer_combat_de_fin() -> void:
 # Interaction et menus
 # =============================================================================
 func _unhandled_input(event: InputEvent) -> void:
-	if _mode == Mode.CARTE:
-		return               # la carte du monde gere ses touches
+	if _mode == Mode.CARTE or _mode == Mode.INVENTAIRE:
+		return               # la carte du monde et l'inventaire gerent leurs touches
 	if _mode == Mode.MENU:
 		_input_menu(event)
 		return
@@ -633,7 +694,12 @@ func _interagir() -> void:
 	# n'a pas son mot a dire. C'est la difference avec la rencontre subie, ou
 	# l'autre decide de se battre, de fuir ou d'ignorer.
 	var alternant := _pnj_sur(_case_devant())
+	if alternant == null:
+		alternant = _pnj_voisin()
 	if alternant != null:
+		# chacun se tourne vers l'autre, puis on parle
+		_joueur.regarder(_direction_de(alternant.cellule - _joueur.cellule))
+		alternant.regarder(_direction_de(_joueur.cellule - alternant.cellule))
 		_parler_a(alternant)
 		return
 	match _case_courante():
@@ -815,7 +881,9 @@ func _sur_carte_fermee() -> void:
 func _menu_pause(choix: String) -> void:
 	match choix:
 		"Équipe":
-			_ouvrir_menu(&"equipe", _texte_equipe(), ["Fermer"])
+			_fermer_menu()
+			_mode = Mode.INVENTAIRE
+			_inventaire.ouvrir()
 		"Carte":
 			_fermer_menu()
 			_mode = Mode.CARTE
@@ -876,25 +944,6 @@ func _lancer_minijeu(index: int) -> void:
 	var scene: String = GameState.SCENE_RYTHME if _minijeu_choisi == &"rythme" else GameState.SCENE_FRAPPE
 	get_tree().change_scene_to_file(scene)
 
-func _texte_equipe() -> String:
-	var lignes: Array = ["Équipe (%d/%d alternants)" % [GameState.equipe.size(), GameState.TAILLE_EQUIPE_MAX]]
-	for g in GameState.equipe:
-		var palier: int = g.prochain_palier()
-		lignes.append("%s  %s  Niv.%d%s  Motivation %d/%d" % [
-			g.nom(), g.nom_du_stade(), g.niveau,
-			"  (évolue au %d)" % palier if palier > 0 else "",
-			g.pv, g.pv_max()])
-		lignes.append("   ATT %d (+%d/%d)  DEF %d  VIT %d (+%d/%d)" % [
-			g.attaque(), g.bonus_de(&"attaque"), GoneInstance.BONUS_MAX,
-			g.defense(), g.vitesse(), g.bonus_de(&"vitesse"), GoneInstance.BONUS_MAX])
-	lignes.append("")
-	var sacs: Array = []
-	for objet in GameState.objets_possedes():
-		sacs.append("%s x%d" % [objet.display_name, GameState.quantite_objet(objet.id)])
-	lignes.append("Note de frais : %d" % GameState.note_de_frais)
-	lignes.append("Sac : " + (", ".join(sacs) if not sacs.is_empty() else "vide"))
-	return "\n".join(lignes)
-
 func _message(texte: String) -> void:
 	_label_message.text = texte
 	_montrer_bandeau()
@@ -902,11 +951,40 @@ func _message(texte: String) -> void:
 ## Le bandeau du bas (nom de la zone, message) ne cache pas la carte : il apparait
 ## avec un message ou a l'entree d'une zone, puis s'efface au bout de
 ## DUREE_BANDEAU secondes.
-func _montrer_bandeau() -> void:
+## Place l'encart dans le coin bas gauche, a la taille de son texte : il ne barre
+## plus tout l'ecran et cache le moins possible la carte et le joueur.
+func _disposer_encart() -> void:
+	var ecran := get_viewport_rect().size
+	var police := _label_message.get_theme_font(&"font")
+	var taille := _label_message.get_theme_font_size(&"font_size")
+	var texte_large := maxf(
+		police.get_string_size(_label_zone.text, HORIZONTAL_ALIGNMENT_LEFT, -1, taille).x,
+		police.get_string_size(_label_message.text, HORIZONTAL_ALIGNMENT_LEFT, -1, taille).x)
+	var largeur := clampf(texte_large + ENCART_RETRAIT * 2.0 + 4.0, ENCART_LARGEUR_MIN,
+		ecran.x * ENCART_LARGEUR_MAX)
+	var interieur := largeur - ENCART_RETRAIT * 2.0
+	for label: Label in [_label_zone, _label_message]:
+		label.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
+		label.custom_minimum_size = Vector2(interieur, 0)
+		label.size = Vector2(interieur, 0)
+	_label_message.visible = _label_message.text != ""
+	var haut_zone := _label_zone.get_combined_minimum_size().y
+	var haut_message := _label_message.get_combined_minimum_size().y if _label_message.visible else 0.0
+	var hauteur := haut_zone + haut_message + ENCART_RETRAIT * 2.0
+	_bandeau.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
+	_bandeau.position = Vector2(ENCART_MARGE, ecran.y - ENCART_MARGE - hauteur)
+	_bandeau.size = Vector2(largeur, hauteur)
+	_label_zone.position = _bandeau.position + Vector2(ENCART_RETRAIT, ENCART_RETRAIT)
+	_label_message.position = _label_zone.position + Vector2(0, haut_zone)
+
+func _montrer_bandeau(persistant: bool = false) -> void:
+	_disposer_encart()
 	if _fondu_bandeau != null and _fondu_bandeau.is_valid():
 		_fondu_bandeau.kill()
 	for noeud: CanvasItem in [_bandeau, _label_zone, _label_message]:
 		noeud.modulate.a = 1.0
+	if persistant:
+		return                # reste affiche jusqu'au prochain appel
 	_fondu_bandeau = create_tween()
 	_fondu_bandeau.tween_interval(DUREE_BANDEAU)
 	_fondu_bandeau.tween_property(_bandeau, "modulate:a", 0.0, FONDU_BANDEAU)
