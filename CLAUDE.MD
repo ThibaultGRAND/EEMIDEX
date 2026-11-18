@@ -127,7 +127,7 @@ METS TOUJOURS A JOUR LE CLAUDE.MD POUR LES REGLES ET LAVANCE
 ### Ce qui existe
 
 Squelette jouable de bout en bout, avec des formes de couleur en guise de graphismes.
-Aucun sprite, aucun tileset, aucun son.
+Seul le joueur a un vrai sprite ; pas encore de tileset dessiné, aucun son.
 
 - `scripts/autoload/game_state.gd` — l'autoload unique : équipe (3 max), sac, 3 ressources,
   drapeaux de progression, catalogues chargés depuis `data/`, sauvegarde JSON dans `user://`.
@@ -136,6 +136,15 @@ Aucun sprite, aucun tileset, aucun son.
 - `scenes/world/` — carte case par case, 3 zones reliées (Presqu'île, Vieux Lyon,
   Fourvière), traboules, ressources au sol, soin, boutique, salle d'entraînement,
   rencontres aléatoires dans l'herbe, menu pause et sauvegarde.
+- `assets/sprites/joueur_moustache.png` — le joueur (la Moustache), utilisé par
+  `scenes/world/player.tscn` à la place de `placeholder_joueur.png` : 2 foulées × 4
+  directions (bas, haut, gauche, droite), cases de 32×36, perso de 32 px de haut. Réduit
+  depuis la planche 8 directions fournie par l'équipe.
+- `scenes/world/pnj.tscn` + `pnj.gd` — PNJ qui se baladent case par case autour de leur
+  case de départ (rayon 3), sur les sols listés dans `Zones.SOLS_PNJ`. Le PNJ émet
+  `envie_de_bouger`, `world.gd` choisit la case ; joueur et PNJ se bloquent mutuellement.
+  Placement par zone dans `zones.gd` (clé `"pnj"`) ; sprites `assets/sprites/pnj_*.png`
+  (2 foulées × 4 directions, perso de 30 px). Pour l'instant : 4 PNJ à la Presqu'île.
 - `scenes/battle/` — combat 1 contre 1 au tour par tour : attaquer / objet / changer /
   fuir, ordre selon la vitesse, capture au Filet à Gone, combat de fin à Fourvière.
 - `scenes/minigames/rythme/` (vitesse) et `scenes/minigames/frappe/` (attaque).

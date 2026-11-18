@@ -9,6 +9,9 @@ extends Node2D
 enum Mode { LIBRE, MENU }
 
 const CHANCE_RENCONTRE := 0.14
+const SCENE_PNJ: PackedScene = preload("res://scenes/world/pnj.tscn")
+## Chance qu'un PNJ se contente de tourner la tete au lieu de faire un pas.
+const CHANCE_PNJ_REGARDE := 0.3
 
 ## action -> [deplacement, Joueur.Direction]. Les entiers suivent l'ordre de
 ## l'enum Direction de player.gd : BAS, HAUT, GAUCHE, DROITE.
@@ -32,6 +35,7 @@ var _minijeu_choisi: StringName = &""
 @onready var _sol: TileMapLayer = %Sol
 @onready var _decor: TileMapLayer = %Decor
 @onready var _joueur: Joueur = %Joueur
+@onready var _pnjs: Node2D = %Pnjs
 @onready var _label_zone: Label = %Zone
 @onready var _label_message: Label = %Message
 @onready var _volet: ColorRect = %Volet
@@ -62,6 +66,7 @@ func _charger_zone(id: StringName, case_depart: Vector2i) -> void:
 	GameState.case_joueur = depart
 
 	_peindre_zone()
+	_placer_pnj()
 	_joueur.placer(depart)
 	_joueur.borner_camera(Zones.taille_pixels(id))
 	_label_zone.text = str(zone["titre"])
@@ -115,7 +120,7 @@ func _tenter_pas(action: String) -> void:
 		return
 	var consigne: Array = DIRECTIONS[action]
 	var cible: Vector2i = _joueur.cellule + consigne[0]
-	if Zones.est_traversable(zone_id, cible):
+	if Zones.est_traversable(zone_id, cible) and _pnj_sur(cible) == null:
 		_joueur.avancer_vers(cible, consigne[1])
 	else:
 		_joueur.regarder(consigne[1])
@@ -159,6 +164,46 @@ func _indice_case(c: String) -> String:
 			return "Quelqu'un garde la colline. Entrée pour l'affronter."
 		_:
 			return ""
+
+# =============================================================================
+# PNJ qui se baladent
+# =============================================================================
+func _placer_pnj() -> void:
+	for ancien in _pnjs.get_children():
+		ancien.queue_free()
+	for fiche: Dictionary in zone.get("pnj", []):
+		var pnj: Pnj = SCENE_PNJ.instantiate()
+		pnj.name = str(fiche["nom"])
+		pnj.sprite = load(str(fiche["sprite"]))
+		_pnjs.add_child(pnj)
+		pnj.placer(fiche["case"])
+		pnj.envie_de_bouger.connect(_sur_envie_pnj)
+
+## Le PNJ demande a bouger : la carte choisit une case libre autour de lui.
+func _sur_envie_pnj(pnj: Pnj) -> void:
+	if _mode != Mode.LIBRE:
+		return
+	var consigne: Array = DIRECTIONS.values().pick_random()
+	var vers: Joueur.Direction = consigne[1]
+	if randf() < CHANCE_PNJ_REGARDE:
+		pnj.regarder(vers)
+		return
+	var cible: Vector2i = pnj.cellule + consigne[0]
+	var ecart: Vector2i = (cible - pnj.case_depart).abs()
+	if Zones.accepte_pnj(zone_id, cible) and _case_libre(cible) and maxi(ecart.x, ecart.y) <= pnj.rayon:
+		pnj.avancer_vers(cible, vers)
+	else:
+		pnj.regarder(vers)
+
+## Libre = ni le joueur (ou la case ou il va), ni un PNJ.
+func _case_libre(c: Vector2i) -> bool:
+	return c != _joueur.cellule and _pnj_sur(c) == null
+
+func _pnj_sur(c: Vector2i) -> Pnj:
+	for pnj: Pnj in _pnjs.get_children():
+		if pnj.cellule == c and not pnj.is_queued_for_deletion():
+			return pnj
+	return null
 
 # =============================================================================
 # Ressources et rencontres
