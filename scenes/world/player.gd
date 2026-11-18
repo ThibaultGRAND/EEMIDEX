@@ -26,6 +26,7 @@ var _temps_arret: float = 0.0
 @onready var _camera: Camera2D = %Camera
 
 func _ready() -> void:
+	_poser_heros()
 	_caler_pieds()
 	# Un cycle de marche (4 images) couvre deux pas.
 	var fps_marche: float = _sprite.sprite_frames.get_animation_speed(&"walk_down")
@@ -40,6 +41,15 @@ func _process(delta: float) -> void:
 	if _temps_arret >= DELAI_IDLE:
 		_rafraichir_image()
 
+
+## Le heros choisi au prologue (Moustache ou Moustachette) : sa planche et sa
+## teinte viennent de GameState.HEROS, pas de la scene.
+func _poser_heros() -> void:
+	var fiche: Dictionary = GameState.fiche_heros()
+	var planche: SpriteFrames = load(str(fiche.get("frames", "")))
+	if planche != null and planche.has_animation(&"walk_down"):
+		_sprite.sprite_frames = planche
+	_sprite.modulate = fiche.get("teinte", Color.WHITE)
 
 ## Position en pixels du centre d'une case.
 static func centre_de(c: Vector2i) -> Vector2:

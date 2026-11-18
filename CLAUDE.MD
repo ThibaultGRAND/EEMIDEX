@@ -302,6 +302,10 @@ pour les sols et des placeholders pour les batiments.
   au-delà), placé par `world.gd` (`_disposer_encart`) : les ancrages du `.tscn` sont
   écrasés. Il apparaît avec chaque message et à l'entrée d'une zone, puis s'efface après
   `DUREE_BANDEAU` (4 s), sauf l'invitation à parler qui reste tant qu'un PNJ est à côté.
+  Texte en petit : titre de zone en 7, message en 6 (`world.tscn`).
+- **Héros joué** : `player.gd` (`_poser_heros`) prend la planche et la teinte du héros
+  choisi au prologue dans `GameState.HEROS` : on contrôle bien Moustachette si on la
+  choisit (la planche de `player.tscn` n'est que la valeur par défaut).
 - **Son** : 3 musiques, 11 bruitages et 1 ambiance de zone, tous en `.ogg`, tous
   joues par `GameState` (`jouer_musique`, `jouer_son`, `jouer_ambiance`,
   `demarrer_son_texte`). Menus, dialogues, combat, boutique, pas du joueur,
