@@ -221,7 +221,7 @@ ressources actuelles sont un héritage de la version précédente du jeu : à re
 
 ---
 
-## 7. L'entraînement **[à valider]**
+## 7. L'entraînement **[en jeu]**
 
 Les mini-jeux montent **définitivement** une stat de l'alternant entraîné.
 
@@ -230,10 +230,23 @@ Les mini-jeux montent **définitivement** une stat de l'alternant entraîné.
 | Frappe chronométrée | Compétence | `score × difficulté ÷ 4`, plafonné à 3 |
 | Rythme | Vitesse de rendu | 90 % de réussite : `2 + difficulté` · 60 % : `1 + difficulté ÷ 2` · 35 % : 1 |
 
-**Ce point demande une décision.** Un gain permanent et répétable n'a aucun plafond :
-rien n'empêche de rejouer le mini-jeu vingt fois et d'obtenir un alternant
-invincible. Il faut choisir entre plafonner le bonus total, rendre l'entraînement
-payant, ou le limiter en nombre.
+### Le plafond
+
+**Le bonus permanent est plafonné à +10 par stat.** Sans lui, rejouer vingt fois le
+même mini-jeu donnerait un alternant invincible et viderait les combats de leur
+intérêt.
+
+Dix points, c'est à peu près le double d'une stat de base : un entraînement assidu
+transforme vraiment un alternant, mais il ne le rend jamais intouchable. Le plafond
+s'applique stat par stat, donc un alternant lent le reste — l'entraînement corrige à
+la marge, il ne refait pas le personnage.
+
+Le mini-jeu annonce le gain **réellement accordé**, pas celui qu'on aurait eu sans
+plafond, et prévient quand il n'y a plus rien à gagner. La fiche d'équipe affiche la
+marge restante : `ATT 18 (+6/10)`.
+
+Les modificateurs temporaires du combat ne sont pas concernés : ils passent par un
+autre chemin, sans plafond, et sont annulés à la fin du combat.
 
 ---
 

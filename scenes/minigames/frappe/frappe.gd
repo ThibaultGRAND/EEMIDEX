@@ -91,11 +91,13 @@ func _terminer() -> void:
 	_termine = true
 	var gain := clampi(int(floor(float(_score) * float(_niveau) / 4.0)), 0, 3)
 	if gain > 0:
-		_gone.appliquer_entrainement(STAT, gain)
+		gain = _gone.appliquer_entrainement(STAT, gain)
 		GameState.equipe_modifiee.emit()
 	_info.text = "Score : %d / %d" % [_score, COUPS * 3]
 	if gain > 0:
 		_resultat.text = "%s gagne +%d en attaque (ATT %d).\nEntrée pour revenir." % [_gone.nom(), gain, _gone.attaque()]
+	elif _gone.marge_entrainement(STAT) <= 0:
+		_resultat.text = "%s a atteint son plafond sur cette stat.\nEntrée pour revenir." % _gone.nom()
 	else:
 		_resultat.text = "Aucun gain cette fois.\nEntrée pour revenir."
 	queue_redraw()

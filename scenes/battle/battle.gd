@@ -244,12 +244,12 @@ func _degats(attaquant: GoneInstance, cible: GoneInstance, attaque: MoveData,
 	return maxi(1, int(base * affinite * randf_range(0.85, 1.0)))
 
 func _appliquer_modificateur(sur: GoneInstance, stat: StringName, valeur: int) -> void:
-	sur.appliquer_entrainement(stat, valeur)
+	sur.modifier_stat(stat, valeur)
 	_modificateurs.append({"gone": sur, "stat": stat, "valeur": valeur})
 
 func _retirer_modificateurs() -> void:
 	for m in _modificateurs:
-		m["gone"].appliquer_entrainement(m["stat"], -int(m["valeur"]))
+		m["gone"].modifier_stat(m["stat"], -int(m["valeur"]))
 	_modificateurs.clear()
 
 func _apres_tour() -> void:

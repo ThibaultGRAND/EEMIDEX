@@ -530,7 +530,9 @@ func _texte_equipe() -> String:
 	var lignes: Array = ["Équipe (%d/%d alternants)" % [GameState.equipe.size(), GameState.TAILLE_EQUIPE_MAX]]
 	for g in GameState.equipe:
 		lignes.append("%s  Niv.%d  Motivation %d/%d" % [g.nom(), g.niveau, g.pv, g.pv_max()])
-		lignes.append("   ATT %d  DEF %d  VIT %d" % [g.attaque(), g.defense(), g.vitesse()])
+		lignes.append("   ATT %d (+%d/%d)  DEF %d  VIT %d (+%d/%d)" % [
+			g.attaque(), g.bonus_de(&"attaque"), GoneInstance.BONUS_MAX,
+			g.defense(), g.vitesse(), g.bonus_de(&"vitesse"), GoneInstance.BONUS_MAX])
 	lignes.append("")
 	var sacs: Array = []
 	for objet in GameState.objets_possedes():

@@ -82,8 +82,38 @@ func attaques() -> Array:
 		liste.append(data.pouvoir_signature)
 	return liste
 
-## Applique le score d'un mini-jeu à une stat. Renvoie le gain réellement accordé.
+## Plafond du bonus permanent, par stat. Sans lui, rejouer un mini-jeu vingt
+## fois donnerait un alternant invincible. Voir docs/regles.md.
+const BONUS_MAX := 10
+
+## Le bonus permanent deja acquis sur une stat.
+func bonus_de(stat: StringName) -> int:
+	match stat:
+		&"pv":
+			return bonus_pv
+		&"attaque":
+			return bonus_attaque
+		&"defense":
+			return bonus_defense
+		&"vitesse":
+			return bonus_vitesse
+	return 0
+
+## Ce qu'un entrainement peut encore rapporter sur cette stat.
+func marge_entrainement(stat: StringName) -> int:
+	return maxi(0, BONUS_MAX - bonus_de(stat))
+
+## Applique le score d'un mini-jeu. Le gain est rogne par le plafond, et c'est
+## le gain reellement accorde qui est renvoye : le mini-jeu annonce la verite.
 func appliquer_entrainement(stat: StringName, gain: int) -> int:
+	var accorde := mini(gain, marge_entrainement(stat))
+	if accorde <= 0:
+		return 0
+	return modifier_stat(stat, accorde)
+
+## Modificateur brut, sans plafond : sert aux bonus temporaires du combat, qui
+## sont annules a la fin et doivent pouvoir redescendre exactement.
+func modifier_stat(stat: StringName, gain: int) -> int:
 	match stat:
 		&"pv":
 			bonus_pv += gain
