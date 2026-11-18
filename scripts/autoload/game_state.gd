@@ -48,10 +48,8 @@ const HEROS := {
 		"titre": "Madame la Présidente",
 		"bonus": "+1 niveau de progression",
 		"replique": "Je ne les exploite pas. Je les fais monter en compétences.",
-		# Placeholder : elle n'a pas encore de planche, elle emprunte celle de
-		# Moustache avec une teinte, en attendant que l'equipe la dessine.
-		"frames": "res://assets/characters/joueur_moustache/joueur_moustache_frames.tres",
-		"teinte": Color(1.0, 0.72, 0.86),
+		"frames": "res://assets/characters/joueur_moustachette/joueur_moustachette_frames.tres",
+		"teinte": Color(1, 1, 1),
 	},
 }
 

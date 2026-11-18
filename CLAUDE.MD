@@ -258,8 +258,8 @@ pour les sols et des placeholders pour les batiments.
   --fond vert|magenta|transparent` (options `--face-en-premier`, `--unique` : voir l'aide
   du script ; il demande Pillow, numpy et scipy).
   Si deux poses se touchent presque, le script réessaie seul avec une marge plus fine.
-  **Planches découpées le 18 nov. 2026** : `joueur_moustachette` (pas encore jouable : il
-  n'y a pas d'écran de choix Moustache / Moustachette), `pnj_julian` et `pnj_guillaume`
+  **Planches découpées le 18 nov. 2026** : `joueur_moustachette` (branchée dans
+  `GameState.HEROS`, choisie au prologue), `pnj_julian` et `pnj_guillaume`
   refaits, et `pnj_celia`, `pnj_gabriel`, `pnj_matheo`. Ces trois derniers ne sont **pas
   encore placés sur la carte** : il faut d'abord les inscrire dans `docs/consentement.md`.
 - `scripts/ui/` + `scenes/ui/composants/` — le socle d'interface : palette,
