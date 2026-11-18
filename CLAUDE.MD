@@ -272,8 +272,15 @@ pour les sols et des placeholders pour les batiments.
   `sainte_blandine`, `darse`, `pointe`. Deux `TileMapLayer` (sol et decor trie en Y),
   camera qui suit le joueur et bornee a la zone, deplacement glisse d'une case a
   l'autre. Les plans sont en texte dans `zones.gd`.
-- `scenes/world/pnj.tscn` — 8 PNJ qui se baladent, deux par zone, sans case imposee :
-  la carte leur trouve une place libre au demarrage.
+- `scenes/world/pnj.tscn` — **personnages tirés au hasard** : `Zones.NOMBRE_PNJ` (6) par
+  zone, pris parmi tous ceux du jeu (`Zones.tous_les_pnj()` : les PNJ des zones avec leur
+  Gone, plus les `FIGURANTS` sans Gone, qui prennent un Gone sauvage en combat). Un même
+  personnage peut apparaître plusieurs fois, n'importe où sur une case libre. Un
+  alternant recruté (drapeau `cle`, inchangé : `zone_nom`) ne se balade plus. La fiche est
+  posée en métadonnée `fiche` sur le nœud (`world.gd` : `_nom_de`, `_fiche_de`).
+- **Bandeau du bas** (`%Bandeau`, `%Zone`, `%Message`) : il apparaît avec chaque message et
+  à l'entrée d'une zone, puis s'efface après `DUREE_BANDEAU` (4 s), pour ne pas cacher le
+  décor ni les personnages (`world.gd` : `_montrer_bandeau`).
 - **Son** : 3 musiques, 11 bruitages et 1 ambiance de zone, tous en `.ogg`, tous
   joues par `GameState` (`jouer_musique`, `jouer_son`, `jouer_ambiance`,
   `demarrer_son_texte`). Menus, dialogues, combat, boutique, pas du joueur,
