@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cc00jx3grbms7"
-path="res://.godot/imported/player_sheet.png-6bc0a7b7dee95dc238754ff108bbc6ee.ctex"
+uid="uid://bbndo6mi52ct"
+path="res://.godot/imported/pnj_paloma_sheet.png-2e4f308b234dccce64e7b38165d3a35f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/characters/player/player_sheet.png"
-dest_files=["res://.godot/imported/player_sheet.png-6bc0a7b7dee95dc238754ff108bbc6ee.ctex"]
+source_file="res://assets/characters/pnj_paloma/pnj_paloma_sheet.png"
+dest_files=["res://.godot/imported/pnj_paloma_sheet.png-2e4f308b234dccce64e7b38165d3a35f.ctex"]
 
 [params]
 
