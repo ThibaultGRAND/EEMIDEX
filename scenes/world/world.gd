@@ -529,7 +529,11 @@ func _lancer_minijeu(index: int) -> void:
 func _texte_equipe() -> String:
 	var lignes: Array = ["Équipe (%d/%d alternants)" % [GameState.equipe.size(), GameState.TAILLE_EQUIPE_MAX]]
 	for g in GameState.equipe:
-		lignes.append("%s  Niv.%d  Motivation %d/%d" % [g.nom(), g.niveau, g.pv, g.pv_max()])
+		var palier: int = g.prochain_palier()
+		lignes.append("%s  %s  Niv.%d%s  Motivation %d/%d" % [
+			g.nom(), g.nom_du_stade(), g.niveau,
+			"  (évolue au %d)" % palier if palier > 0 else "",
+			g.pv, g.pv_max()])
 		lignes.append("   ATT %d (+%d/%d)  DEF %d  VIT %d (+%d/%d)" % [
 			g.attaque(), g.bonus_de(&"attaque"), GoneInstance.BONUS_MAX,
 			g.defense(), g.vitesse(), g.bonus_de(&"vitesse"), GoneInstance.BONUS_MAX])

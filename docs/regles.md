@@ -250,12 +250,43 @@ autre chemin, sans plafond, et sont annulés à la fin du combat.
 
 ---
 
-## 8. L'évolution **[à valider]**
+## 8. L'évolution **[en jeu]**
 
-`Chômeur → Stagiaire → Alternant`, en finissant son année.
+`Chômeur → Stagiaire → Alternant`, déclenchée par le **niveau atteint**.
 
-**Rien n'est décidé** : ni le déclencheur — niveau atteint, nombre de combats, objet —
-ni ce que l'évolution change dans les stats, ni si elle modifie le type ou les attaques.
+| Stade | À partir du niveau |
+| --- | --- |
+| Chômeur | 1 |
+| Stagiaire | **8** |
+| Alternant | **14** |
+
+Chaque stade franchi ajoute, en plus du gain de niveau ordinaire :
+**+4 Motivation** et **+2** sur la Compétence, la Défense et la Vitesse.
+L'alternant est entièrement remotivé au passage. Son type et ses attaques ne changent
+pas.
+
+### La courbe
+
+```
+niveau  stade        Motivation  COMP  DEF  VIT
+   5    Chômeur          40     18   14   11
+   7    Chômeur          44     20   16   13
+   8    Stagiaire        50     23   19   16   <-- évolution
+  13    Stagiaire        60     28   24   21
+  14    Alternant        66     31   27   24   <-- évolution
+```
+
+**Pourquoi 8 et 14.** Un alternant démarre au niveau 5 et plafonne vers 15, puisqu'il
+ne monte que s'il reste sous le niveau du vaincu + 3. Les deux paliers sont donc
+atteignables en jouant normalement, et le second tombe juste avant le combat final.
+Plus haut, l'évolution serait décorative ; plus bas, elle arriverait avant que le
+joueur ait compris la mécanique.
+
+Le gain est volontairement modeste — un palier vaut environ trois niveaux d'un coup.
+L'évolution est une récompense lisible, pas un raccourci qui périme l'entraînement.
+
+La fiche d'équipe annonce le stade et le prochain palier : `Thigoat Chômeur Niv.5
+(évolue au 8)`.
 
 ---
 

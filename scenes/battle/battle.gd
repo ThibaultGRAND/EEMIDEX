@@ -352,9 +352,15 @@ func _fuir() -> void:
 func _victoire() -> void:
 	await _dire("%s est hors de combat !" % _ennemi.nom())
 	if _actif.niveau < _ennemi.niveau + 3:
+		var stade_avant := _actif.stade()
 		_actif.niveau += 1
 		_actif.soigner(2)
 		await _dire("%s passe au niveau %d !" % [_actif.nom(), _actif.niveau])
+		if _actif.stade() > stade_avant:
+			_actif.soigner_tout()
+			_rafraichir()
+			await _dire("%s finit son année : il devient %s !"
+				% [_actif.nom(), _actif.nom_du_stade()])
 	if GameState.combat_est_boss:
 		GameState.lever_drapeau(&"gardien_battu")
 		await _dire("La pointe est à vous. Fin du MVP : merci d'avoir joué.")

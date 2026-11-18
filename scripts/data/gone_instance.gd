@@ -18,13 +18,39 @@ func _init(p_data: GoneData = null, p_niveau: int = 5) -> void:
 	pv = pv_max()
 	cafe = cafe_max()
 
+## Les trois stades d'une carriere, et le niveau qui les declenche.
+## Le palier est volontairement a portee : un alternant part au niveau 5 et
+## plafonne vers 15, donc les deux evolutions sont atteignables en jouant.
+const PALIERS: Array[int] = [1, 8, 14]
+const STADES: Array[String] = ["Chômeur", "Stagiaire", "Alternant"]
+
+## Chaque stade franchi ajoute ceci, en plus du gain de niveau ordinaire.
+const EVOLUTION_MOTIVATION := 4
+const EVOLUTION_AUTRES := 2
+
 func nom() -> String:
 	return data.display_name if data != null else "???"
+
+## 0 chomeur, 1 stagiaire, 2 alternant.
+func stade() -> int:
+	var atteint := 0
+	for i in PALIERS.size():
+		if niveau >= PALIERS[i]:
+			atteint = i
+	return atteint
+
+func nom_du_stade() -> String:
+	return STADES[stade()]
+
+## Le niveau qui declenche l'evolution suivante, 0 s'il n'y en a plus.
+func prochain_palier() -> int:
+	var prochain := stade() + 1
+	return PALIERS[prochain] if prochain < PALIERS.size() else 0
 
 func pv_max() -> int:
 	if data == null:
 		return 1
-	return data.base_pv + bonus_pv + (niveau - 1) * 2
+	return data.base_pv + bonus_pv + (niveau - 1) * 2 + stade() * EVOLUTION_MOTIVATION
 
 ## L'energie disponible pour attaquer.
 func cafe_max() -> int:
@@ -46,17 +72,17 @@ func peut_lancer(attaque: MoveData) -> bool:
 func attaque() -> int:
 	if data == null:
 		return 1
-	return data.base_attaque + bonus_attaque + (niveau - 1)
+	return data.base_attaque + bonus_attaque + (niveau - 1) + stade() * EVOLUTION_AUTRES
 
 func defense() -> int:
 	if data == null:
 		return 1
-	return data.base_defense + bonus_defense + (niveau - 1)
+	return data.base_defense + bonus_defense + (niveau - 1) + stade() * EVOLUTION_AUTRES
 
 func vitesse() -> int:
 	if data == null:
 		return 1
-	return data.base_vitesse + bonus_vitesse + (niveau - 1)
+	return data.base_vitesse + bonus_vitesse + (niveau - 1) + stade() * EVOLUTION_AUTRES
 
 func est_ko() -> bool:
 	return pv <= 0
