@@ -1,0 +1,18 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/world/pnj.gd" id="1_pnj"]
+[ext_resource type="Texture2D" path="res://assets/sprites/pnj_seb.png" id="2_sprite"]
+
+[node name="Pnj" type="Node2D"]
+y_sort_enabled = true
+script = ExtResource("1_pnj")
+
+[node name="Sprite" type="Sprite2D" parent="."]
+unique_name_in_owner = true
+texture = ExtResource("2_sprite")
+hframes = 2
+vframes = 4
+
+[node name="Minuteur" type="Timer" parent="."]
+unique_name_in_owner = true
+one_shot = true

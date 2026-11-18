@@ -19,6 +19,10 @@ const TAILLE_CASE := 16
 ## Cases que le joueur ne peut pas traverser.
 const BLOQUANTS := "#wt"
 
+## Sols simples ou les PNJ ont le droit de se balader (pas d'herbe haute,
+## de traboule, de sortie ni de lieu special).
+const SOLS_PNJ := ".,qhsd"
+
 ## Sol pose sur la couche du bas, pour chaque caractere.
 const SOLS := {
 	"#": Vector2i(3, 0), ".": Vector2i(0, 0), ",": Vector2i(1, 0),
@@ -73,6 +77,13 @@ const ZONES := {
 			"################################",
 		],
 		"sorties": {"2": ["vieux_lyon", 30, 7]},
+		## PNJ qui se baladent : sprite 2 foulees x 4 directions, case de depart.
+		"pnj": [
+			{"nom": "PnjSeb", "sprite": "res://assets/sprites/pnj_seb.png", "case": Vector2i(8, 5)},
+			{"nom": "PnjThomas", "sprite": "res://assets/sprites/pnj_thomas.png", "case": Vector2i(22, 9)},
+			{"nom": "PnjJulian", "sprite": "res://assets/sprites/pnj_julian.png", "case": Vector2i(10, 12)},
+			{"nom": "PnjPaloma", "sprite": "res://assets/sprites/pnj_paloma.png", "case": Vector2i(17, 16)},
+		],
 	},
 	&"vieux_lyon": {
 		"titre": "Vieux Lyon — les traboules",
@@ -152,6 +163,9 @@ static func case_a(id: StringName, position: Vector2i) -> String:
 
 static func est_traversable(id: StringName, position: Vector2i) -> bool:
 	return not BLOQUANTS.contains(case_a(id, position))
+
+static func accepte_pnj(id: StringName, position: Vector2i) -> bool:
+	return SOLS_PNJ.contains(case_a(id, position))
 
 ## Les deux bouts d'une traboule : on sort par l'autre.
 static func autre_traboule(id: StringName, depuis: Vector2i) -> Vector2i:
