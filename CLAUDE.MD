@@ -217,20 +217,25 @@ pour les sols et des placeholders pour les batiments.
   unique de `GameState` (`jouer_musique()`), avec fondu entre deux pistes.
   Exploration sur la carte et l'ecran titre, combat a l'ecran de combat, boutique
   dans le menu du magasin. Voir « Musique » plus haut.
-- **Carte : une seule carte d'après OpenStreetMap, nord en haut** (18 nov. 2026, demande
-  de Sébastien, d'après une capture Google Maps du quartier). `tools/osm_vers_zones.py
-  --ecrire` dessine la Confluence de la gare de Perrache à la rue Paul-Montrochet, de la
-  Saône au Rhône (119 × 140 cases, 10 m par case), puis la coupe en **4 bandes collées**
-  de 35 lignes : `perrache`, `sainte_blandine`, `darse` (avec l'EEMI) et `pointe` (titre
-  « Montrochet »). Les ids sont gardés pour ne casser ni la sauvegarde ni l'histoire.
+- **Carte : une seule carte simplifiée d'après OpenStreetMap** (18 nov. 2026, demandes de
+  Sébastien). `tools/osm_vers_zones.py --ecrire` dessine la Confluence de la gare de
+  Perrache à la rue Paul-Montrochet, de la Saône au Rhône : **60 × 92 cases de 16 m**,
+  coupées en **4 bandes collées** de 23 lignes : `perrache`, `sainte_blandine`, `darse`
+  (titre « Charlemagne », avec l'EEMI) et `pointe` (titre « La Darse », Montrochet). Les
+  ids sont gardés pour ne casser ni la sauvegarde ni l'histoire.
+  - **Simplifiée exprès** : seulement les rues principales (1 case, 2 pour les grands
+    axes), **chaque îlot est un seul bloc de bâti plein**, une seule voie ferrée (la ligne
+    Perrache-Moret, 2 cases au plus) et le tram sur 1 case. Passage à niveau seulement là
+    où une rue traverse la voie.
+  - **Tournée de 31° (`ANGLE`)** pour que le quadrillage des rues tombe droit. Avec le nord
+    en haut, chaque rue en biais faisait des escaliers de toits. La Saône reste à gauche,
+    le Rhône à droite et Perrache en haut.
   - **Pas de case de sortie** : `Zones.ORDRE` donne l'ordre nord-sud. Sortir par le haut ou
     le bas d'une bande mène à la bande voisine, sur la même colonne
     (`world.gd` : `_passer_dans_la_bande_voisine`).
-  - L'EEMI est au **Monolithe, au nord de la darse** (`EEMI` dans le script) : le nœud
+  - **L'arène finale est l'EEMI**, au **Monolithe** (`EEMI` dans le script). Le nœud
     « EEMI » d'OSM pointe vers une ancienne adresse, ne pas le reprendre. Le combat final
-    `X` est devant.
-  - Les rues sont dessinées par-dessus le bâti, avec au moins une case de large : sinon
-    elles disparaissent à 10 m par case.
+    `X` est devant le bâtiment.
   - `--apercu plan.png` dessine le résultat, `--reference ref.png` les données OSM brutes.
     Relancer `tools/verifier_plans.py` après : il contrôle qu'on atteint tout **à travers
     les bandes**. Les retouches à la main dans `zones.gd` sont perdues si on relance le
