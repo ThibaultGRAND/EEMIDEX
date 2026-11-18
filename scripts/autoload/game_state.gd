@@ -488,10 +488,15 @@ func depenser_note_de_frais(montant: int) -> bool:
 func prix(id: StringName) -> int:
 	return int(BOUTIQUE.get(id, 0))
 
-## La difficulte d'un mini-jeu suit le stade de l'alternant entraine : un
-## Chomeur s'entraine doucement, un Alternant encaisse le niveau 3.
+## Difficulte maximale d'un mini-jeu.
+const DIFFICULTE_MINIJEU_MAX := 5
+
+## La difficulte d'un mini-jeu suit le niveau de l'alternant entraine, de 1 a 5 :
+## Niv.2-4 -> 1, 5-7 -> 2, 8-10 -> 3, 11-13 -> 4, 14 et plus -> 5.
 func niveau_minijeu(alternant: GoneInstance) -> int:
-	return clampi(alternant.stade() + 1, 1, 3) if alternant != null else 1
+	if alternant == null:
+		return 1
+	return clampi(1 + (alternant.niveau - 2) / 3, 1, DIFFICULTE_MINIJEU_MAX)
 
 # =============================================================================
 # Drapeaux de progression

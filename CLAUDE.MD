@@ -278,6 +278,14 @@ pour les sols et des placeholders pour les batiments.
   personnage peut apparaître plusieurs fois, n'importe où sur une case libre. Un
   alternant recruté (drapeau `cle`, inchangé : `zone_nom`) ne se balade plus. La fiche est
   posée en métadonnée `fiche` sur le nœud (`world.gd` : `_nom_de`, `_fiche_de`).
+- **Mini-jeux** (`scenes/minigames/`) : base commune `mini_jeu.gd` (`MiniJeu`) — écran de
+  consignes (but, touches dessinées, stat entraînée, difficulté), décompte 3-2-1, partie,
+  écran de résultat avec le gain réellement accordé. L'alternant entraîné est à l'écran
+  et joue ses animations de combat quand on réussit. Difficulté **1 à 5 selon son
+  niveau** (`GameState.niveau_minijeu`, voir `docs/regles.md`). Rythme : 4 pistes
+  colorées, flèches, Parfait/Bien/Raté, combo. Frappe : sac de frappe, barre à 3 zones
+  avec légende, la zone bouge à partir de la difficulté 4. Couleurs `MINIJEU_*` dans
+  `PaletteUi`.
 - `scenes/ui/inventaire.tscn` — **inventaire** (menu pause > « Inventaire », remplace
   l'ancien écran « Équipe » en texte). Onglets Équipe / Sac (← →) : liste à gauche
   (`ListeMenu`), fiche à droite (portrait, `FicheCombattant`, stade et prochain palier,
@@ -396,7 +404,7 @@ pour les sols et des placeholders pour les batiments.
 | Question ouverte du cadrage | Choix provisoire |
 | --- | --- |
 | Nom des créatures | Gones |
-| Quels 2 mini-jeux | Rythme (vitesse) et Frappe chronométrée (attaque) |
+| Quels 2 mini-jeux | Rythme (vitesse) et Frappe chronométrée (attaque), difficulté selon le niveau |
 | Version de Godot | **4.7.2 stable** (installée le 18 nov. 2026, à confirmer avec l’équipe) |
 | Monnaie | **Note de Frais**, unique (les 3 ressources sont supprimees, 18 nov. 2026) |
 | Histoire et objectif final | non écrits : le MVP s'arrête au gardien de Fourvière |
