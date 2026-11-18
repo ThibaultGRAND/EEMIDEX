@@ -70,18 +70,29 @@ Le personnage non choisi devient **le Rival**.
 
 ### Les types
 
-Six types en cycle fermé : chacun bat le suivant et perd contre le précédent.
+**Com et Marketing sont le même métier**, donc le même type : « Com » est un autre nom
+de « Marketing ». Il reste **cinq types en cycle fermé**, chacun battant le suivant et
+perdant contre le précédent.
 
 | Type | Fort contre | Faible contre |
 | --- | --- | --- |
 | Dev | Data | Design |
-| Design | Dev | Marketing |
-| Marketing | Design | Com |
-| Com | Marketing | Product |
-| Product | Com | Data |
 | Data | Product | Dev |
+| Product | Marketing | Data |
+| Marketing *(= Com)* | Design | Product |
+| Design | Dev | Marketing |
 
-Soit la boucle : **Dev → Data → Product → Com → Marketing → Design → Dev**.
+Soit la boucle : **Dev → Data → Product → Marketing → Design → Dev**.
+
+Un cycle impair est plus propre qu'un cycle pair : aucune paire de types ne s'annule
+mutuellement, et la règle tient en une phrase.
+
+### Les types hors cycle
+
+| Type | Qui | Effet |
+| --- | --- | --- |
+| **Staff** | Nael, Tristan — l'encadrement de l'école | Ni avantage ni désavantage, dans les deux sens. Ce ne sont pas des étudiants : on les bat sur les stats, pas sur le type. |
+| **Neutre** | un alternant sans spécialité | Idem |
 
 ---
 
@@ -105,7 +116,7 @@ système que le combat n'a pas encore.
 - **Attaque Bre-Som** : 12 dégâts, 50 % de chances de faire rater la prochaine attaque adverse.
 - **BKtaque** : 28 dégâts lourds.
 
-### Palou — Com
+### Palou — Com *(= Marketing)*
 - **La Vilainerie** : 18 dégâts, ignore 20 % de la défense.
 - **aquababe** *(Passive)* : +25 % de risque que l'adversaire rate ou soit inefficace.
 
@@ -119,13 +130,13 @@ système que le combat n'a pas encore.
 - **Noyade** : empêche d'attaquer pendant 1 tour. Recharge : 4 tours.
 - **BTC attaque** : 30 à 40 dégâts massifs, coûte 5 PV à Thomasu.
 
-### 👑 Nael — Product — BOSS
+### 👑 Nael — Staff — BOSS
 *Multiplicateur de dégâts global +35 %, 200 PV.*
 - **La FAWALISATION** : l'adversaire passe son tour. Chance de fuite réduite à 5 %.
 - **RH attack** : 40 de base, soit ~54 dégâts réels.
 - **EDUSIGN** : 32 dégâts, bloque les bonus adverses pendant 2 tours.
 
-### 👑 Tristan — Data — BOSS
+### 👑 Tristan — Staff — BOSS
 *Multiplicateur de dégâts global +35 %, 200 PV.*
 - **Invisibilité** : 15 dégâts, esquive les 2 prochaines attaques.
 - **Alt attack** : force la fuite (réduite à 8 %). Si ça échoue, 30 dégâts.
