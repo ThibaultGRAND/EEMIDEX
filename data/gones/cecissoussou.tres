@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="GoneData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/gone_data.gd" id="1_script"]
+[ext_resource type="Resource" path="res://data/moves/cecissoussou_1.tres" id="2_base"]
+[ext_resource type="Resource" path="res://data/moves/cecissoussou_2.tres" id="3_signature"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"cecissoussou"
+display_name = "CeCissoussou"
+description = "CeCissoussou, alternant marketing de la promo."
+type = &"marketing"
+couleur = Color(0.95, 0.68, 0.25, 1)
+base_pv = 26
+base_attaque = 11
+base_defense = 11
+base_vitesse = 11
+taux_capture = 45
+sauvage = true
+consentement_recu = true
+note_consentement = "Accord note dans docs/consentement.md."
+attaque_de_base = ExtResource("2_base")
+pouvoir_signature = ExtResource("3_signature")

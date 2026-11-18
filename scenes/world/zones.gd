@@ -108,7 +108,7 @@ const ZONES := {
 		"ressource": &"praline",
 		"tuile_ressource": Vector2i(3, 13),
 		## Pas d'herbe haute a Perrache : on ne croise rien sur le parvis.
-		"rencontres": [],
+		"rencontres": [&"thigoat", &"seb", &"thibouclier"],
 		"niveau_min": 3,
 		"niveau_max": 5,
 		"depart": Vector2i(12, 10),
@@ -144,8 +144,8 @@ const ZONES := {
 		## (distance max a sa case de depart, sinon aucune limite) et "gone"
 		## (sa fiche dans data/gones, sinon un sauvage au hasard).
 		"pnj": [
-			{"nom": "PnjSeb", "sprite": "res://assets/sprites/pnj_seb.png"},
-			{"nom": "PnjThibaut", "sprite": "res://assets/sprites/pnj_thibaut.png"},
+			{"nom": "Thigoat", "sprite": "res://assets/sprites/pnj_thibaut.png", "gone": &"thigoat"},
+			{"nom": "Seb", "sprite": "res://assets/sprites/pnj_seb.png", "gone": &"seb"},
 		],
 	},
 
@@ -153,7 +153,7 @@ const ZONES := {
 		"titre": "Sainte-Blandine — le faubourg et le quai Rambaud",
 		"ressource": &"cocon",
 		"tuile_ressource": Vector2i(4, 13),
-		"rencontres": [&"generique_gone", &"generique_traboulin"],
+		"rencontres": [&"roulian", &"matiti", &"e1000"],
 		"niveau_min": 4,
 		"niveau_max": 7,
 		"depart": Vector2i(12, 1),
@@ -191,8 +191,8 @@ const ZONES := {
 		## (distance max a sa case de depart, sinon aucune limite) et "gone"
 		## (sa fiche dans data/gones, sinon un sauvage au hasard).
 		"pnj": [
-			{"nom": "PnjThomas", "sprite": "res://assets/sprites/pnj_thomas.png"},
-			{"nom": "PnjTheophile", "sprite": "res://assets/sprites/pnj_theophile.png"},
+			{"nom": "Roulian", "sprite": "res://assets/sprites/pnj_julian.png", "gone": &"roulian"},
+			{"nom": "E1000", "sprite": "res://assets/sprites/pnj_emile.png", "gone": &"e1000"},
 		],
 	},
 
@@ -200,7 +200,7 @@ const ZONES := {
 		"titre": "La Darse — le bassin de la Confluence",
 		"ressource": &"quenelle",
 		"tuile_ressource": Vector2i(5, 13),
-		"rencontres": [&"generique_quenellon", &"generique_gone"],
+		"rencontres": [&"palou", &"tortheo", &"cecissoussou"],
 		"niveau_min": 7,
 		"niveau_max": 10,
 		"depart": Vector2i(12, 1),
@@ -240,8 +240,8 @@ const ZONES := {
 		## (distance max a sa case de depart, sinon aucune limite) et "gone"
 		## (sa fiche dans data/gones, sinon un sauvage au hasard).
 		"pnj": [
-			{"nom": "PnjJulian", "sprite": "res://assets/sprites/pnj_julian.png"},
-			{"nom": "PnjEmile", "sprite": "res://assets/sprites/pnj_emile.png"},
+			{"nom": "Palou", "sprite": "res://assets/sprites/pnj_paloma.png", "gone": &"palou"},
+			{"nom": "Tortheo", "sprite": "res://assets/sprites/pnj_theophile.png", "gone": &"tortheo"},
 		],
 	},
 
@@ -249,7 +249,7 @@ const ZONES := {
 		"titre": "La Pointe — le musée et le confluent",
 		"ressource": &"cocon",
 		"tuile_ressource": Vector2i(4, 13),
-		"rencontres": [&"generique_traboulin", &"generique_quenellon"],
+		"rencontres": [&"thomasu", &"paguera", &"guignome"],
 		"niveau_min": 10,
 		"niveau_max": 13,
 		"depart": Vector2i(12, 1),
@@ -287,8 +287,8 @@ const ZONES := {
 		## (distance max a sa case de depart, sinon aucune limite) et "gone"
 		## (sa fiche dans data/gones, sinon un sauvage au hasard).
 		"pnj": [
-			{"nom": "PnjPaloma", "sprite": "res://assets/sprites/pnj_paloma.png"},
-			{"nom": "PnjGuillaume", "sprite": "res://assets/sprites/pnj_guillaume.png"},
+			{"nom": "Thomasu", "sprite": "res://assets/sprites/pnj_thomas.png", "gone": &"thomasu"},
+			{"nom": "Guignome", "sprite": "res://assets/sprites/pnj_guillaume.png", "gone": &"guignome"},
 		],
 	},
 }

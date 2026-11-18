@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="MoveData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/move_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"palou_2"
+display_name = "aquababe"
+description = "passive transformee en attaque de soutien"
+type = &"marketing"
+cible = 1
+puissance = 0
+precision = 100
+stat_modifiee = &"defense"
+modificateur = 2
+soin = 0

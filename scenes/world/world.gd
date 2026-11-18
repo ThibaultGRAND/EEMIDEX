@@ -253,15 +253,24 @@ func _sur_envie_pnj(pnj: Pnj) -> void:
 ## Le joueur marche sur un alternant. Il ne decide pas de ce qui suit : l'autre
 ## se bat, s'enfuit, ou ne fait rien. C'est son humeur, pas un menu.
 func _aborder(alternant: Pnj) -> void:
-	var sort := randf()
-	if sort < CHANCE_ALTERNANT_SE_BAT:
-		_message("%s ne compte pas se laisser recruter !" % alternant.name)
-		_combattre(alternant)
-	elif sort < CHANCE_ALTERNANT_SE_BAT + CHANCE_ALTERNANT_FUIT:
-		_message("%s file sans demander son reste." % alternant.name)
-		_faire_fuir(alternant)
-	else:
-		_message("%s vous ignore poliment." % alternant.name)
+	match reaction(randf()):
+		&"combat":
+			_message("%s ne compte pas se laisser recruter !" % alternant.name)
+			_combattre(alternant)
+		&"fuite":
+			_message("%s file sans demander son reste." % alternant.name)
+			_faire_fuir(alternant)
+		_:
+			_message("%s vous ignore poliment." % alternant.name)
+
+## Ce que decide un alternant aborde, pour un tirage entre 0 et 1. Sortie a part
+## du reste pour pouvoir la verifier sans lancer le jeu.
+static func reaction(hasard: float) -> StringName:
+	if hasard < CHANCE_ALTERNANT_SE_BAT:
+		return &"combat"
+	if hasard < CHANCE_ALTERNANT_SE_BAT + CHANCE_ALTERNANT_FUIT:
+		return &"fuite"
+	return &"ignore"
 
 ## Il s'ecarte du joueur et continue sur sa lancee.
 func _faire_fuir(alternant: Pnj) -> void:
@@ -369,9 +378,9 @@ func _lancer_combat_de_fin() -> void:
 	if GameState.drapeau(&"gardien_battu"):
 		_message("La pointe est calme. Fin du MVP : merci d'avoir joué.")
 		return
-	var gardien: GoneData = GameState.catalogue_gones.get(&"generique_gardien_fourviere")
+	var gardien: GoneData = GameState.catalogue_gones.get(&"nael")
 	if gardien == null:
-		_message("Le gardien est introuvable (data/gones manquant).")
+		_message("Nael est introuvable (data/gones manquant).")
 		return
 	GameState.rencontre_en_attente = gardien
 	GameState.niveau_rencontre = 12

@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="MoveData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/move_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"guignome_1"
+display_name = "Mario Karttaque"
+description = "l'attaque est inevitable, donc precision 100"
+type = &"product"
+cible = 0
+puissance = 30
+precision = 100
+stat_modifiee = &""
+modificateur = 0
+soin = 0

@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="MoveData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/move_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"paguera_2"
+display_name = "Insensible a la douleur"
+description = "Attaque de Paguera."
+type = &"dev"
+cible = 1
+puissance = 0
+precision = 100
+stat_modifiee = &"defense"
+modificateur = 3
+soin = 0
