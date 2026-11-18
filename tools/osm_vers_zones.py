@@ -214,22 +214,17 @@ def quatre_connexe(m):
 
 # Faisceau de Perrache : des voies paralleles, au sud de la gare seulement.
 VOIES = 4               # nombre de voies
-DEBUT_FAISCEAU = 9      # le faisceau commence ce nombre de lignes au-dessus de la gare
-FIN_FAISCEAU = 3        # lignes laissees libres avant le bas de la premiere bande
 
 
 def faisceau_perrache():
-    """VOIES voies verticales paralleles, une case sur deux, centrees sur la gare :
-    elles traversent le quartier de la gare et s'arretent FIN_FAISCEAU lignes avant
-    le bas de la premiere bande. Nulle part ailleurs il n'y a de rails."""
+    """VOIES voies horizontales paralleles, une ligne sur deux, centrees sur la gare :
+    elles traversent la presqu'ile de gauche a droite, comme le faisceau de Perrache.
+    Nulle part ailleurs il n'y a de rails."""
     m = np.zeros((HAUTEUR, LARGEUR), bool)
-    gx, gy = grille(*GARE)
-    centre = int(round(gx))
-    haut = max(2, int(gy) - DEBUT_FAISCEAU)
-    bas = HAUTEUR // len(ZONES) - FIN_FAISCEAU
+    _, gy = grille(*GARE)
+    centre = int(round(gy))
     for k in range(VOIES):
-        x = centre - (VOIES - 1) + 2 * k
-        m[haut:bas, x] = True
+        m[centre - (VOIES - 1) + 2 * k, :] = True
     return m
 
 
@@ -307,22 +302,21 @@ def dessiner(elements):
     g[rue] = ","
     # ballast entre les voies du faisceau (sauf sur les rues)
     lignes = np.nonzero(rail.any(axis=1))[0]
-    colonnes = np.nonzero(rail.any(axis=0))[0]
     if len(lignes):
         zone = np.zeros_like(rail)
-        zone[lignes[0]:lignes[-1] + 1, colonnes[0] - 1:colonnes[-1] + 2] = True
-        g[zone & ~rue] = "b"
+        zone[lignes[0] - 1:lignes[-1] + 2, :] = True
+        g[zone & ~rue & ~eau] = "b"
     g[rail] = "v"
-    # passage a niveau seulement la ou une rue traverse la voie (rue des deux cotes) ;
-    # une rue qui longe la voie s'efface sous les rails
+    # passage a niveau la ou une rue traverse les voies (rue au-dessus ou au-dessous) ;
+    # une rue qui longe les voies s'efface sous les rails
     for y, x in zip(*np.nonzero(rail & rue)):
-        gauche = x > 0 and rue[y, x - 1] and not rail[y, x - 1]
-        droite = x < LARGEUR - 1 and rue[y, x + 1] and not rail[y, x + 1]
-        g[y, x] = "=" if gauche or droite else "v"
-    # une case de rail prise entre deux cases de passage a niveau en devient une aussi
+        dessus = y > 0 and rue[y - 1, x] and not rail[y - 1, x]
+        dessous = y < HAUTEUR - 1 and rue[y + 1, x] and not rail[y + 1, x]
+        g[y, x] = "=" if dessus or dessous else "v"
+    # une voie prise entre deux passages a niveau (au-dessus et au-dessous) en devient un
     for y, x in zip(*np.nonzero(g == "v")):
-        if 0 < x < LARGEUR - 1 and g[y, x - 1] in "=," and g[y, x + 1] in "=," and \
-                ("=" in (g[y, x - 1], g[y, x + 1])):
+        if 0 < y < HAUTEUR - 1 and g[y - 1, x] in "=," and g[y + 1, x] in "=," and \
+                ("=" in (g[y - 1, x], g[y + 1, x])):
             g[y, x] = "="
     g[tram & (g != "v") & (g != "=")] = "r"
 
@@ -497,14 +491,14 @@ def placer_elements(g, eemi_bati):
                     z[y, x] = c
                     pris.add((x, y))
                     n -= 1
-        # --- passages sous les voies : un de chaque cote du faisceau de rails
+        # --- passages sous les voies : un au nord et un au sud du faisceau de rails
         rails = np.argwhere(z == "v")
         if len(rails) > 8:
-            cx = int(np.median(rails[:, 1]))
-            ouest = [(x, y) for x, y in proche_du_centre(libres(z, ".,q")) if x < cx - 3]
-            est = [(x, y) for x, y in proche_du_centre(libres(z, ".,q")) if x > cx + 3]
-            if ouest and est:
-                for x, y in (ouest[0], est[0]):
+            haut, bas = int(rails[:, 0].min()), int(rails[:, 0].max())
+            nord = [(x, y) for x, y in proche_du_centre(libres(z, ".,q")) if y < haut - 1]
+            sud = [(x, y) for x, y in proche_du_centre(libres(z, ".,q")) if y > bas + 1]
+            if nord and sud:
+                for x, y in (nord[0], sud[0]):
                     z[y, x] = "T"
         # --- herbe haute : des taches dans les parcs
         herbe = np.argwhere(z == "h")

@@ -229,9 +229,10 @@ pour les sols et des placeholders pour les batiments.
     axes**), **chaque îlot est un seul bloc de bâti plein**. Le tram est sur 1 case, avec
     une voie de chaque côté : **la rue du tram fait 3 cases**.
   - **Rails seulement à Perrache, tous parallèles** : les voies ne viennent pas d'OSM.
-    `faisceau_perrache()` dessine `VOIES` (4) voies verticales au sud de la gare, sur
-    ballast, dans la première bande uniquement. Passage à niveau là où une rue les
-    traverse. Il n'y a de rails nulle part ailleurs.
+    `faisceau_perrache()` dessine `VOIES` (4) voies **horizontales**, de gauche à droite
+    d'un quai à l'autre, centrées sur la gare, sur ballast. Passage à niveau là où une rue
+    les traverse, passages sous les voies au nord et au sud. Il n'y a de rails nulle part
+    ailleurs.
   - **Tournée de 31° (`ANGLE`)** pour que le quadrillage des rues tombe droit. Avec le nord
     en haut, chaque rue en biais faisait des escaliers de toits. La Saône reste à gauche,
     le Rhône à droite et Perrache en haut.
