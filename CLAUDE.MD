@@ -296,8 +296,9 @@ pour les sols et des placeholders pour les batiments.
   - **Rails seulement à Perrache, tous parallèles** : les voies ne viennent pas d'OSM.
     `faisceau_perrache()` dessine `VOIES` (4) voies **horizontales**, de gauche à droite
     d'un quai à l'autre, centrées sur la gare, sur ballast. Passage à niveau là où une rue
-    les traverse, passages sous les voies au nord et au sud. Il n'y a de rails nulle part
-    ailleurs.
+    les traverse (surtout aux deux bouts). **Tunnel piéton** devant la gare : deux cases
+    `T` sur la même colonne, juste au nord et juste au sud du faisceau. Le joueur démarre
+    devant la gare, côté nord. Il n'y a de rails nulle part ailleurs.
   - **Tournée de 31° (`ANGLE`)** pour que le quadrillage des rues tombe droit. Avec le nord
     en haut, chaque rue en biais faisait des escaliers de toits. La Saône reste à gauche,
     le Rhône à droite et Perrache en haut.
@@ -344,6 +345,18 @@ pour les sols et des placeholders pour les batiments.
   --fond vert|magenta|transparent` (options `--face-en-premier`, `--unique` : voir l'aide
   du script ; il demande Pillow, numpy et scipy).
   Si deux poses se touchent presque, le script réessaie seul avec une marge plus fine.
+  **Planches de combat** (18 nov. 2026) : 7 poses sur les lignes 1 à 3 (marche à gauche,
+  coup de poing / coup de pied / touché à droite). Le script les reconnaît seul et ajoute
+  `combat_poing`, `combat_pied` et `combat_touche` au `_frames.tres` (de profil, tournés
+  vers la droite). `--combat tools/planches/<id>_combat.jpg` garde la marche de la
+  planche principale et ne prend que le combat. Le combat (`battle.gd`, `_jouer_combat`)
+  les joue : l'attaquant frappe (poing ou pied au hasard), la cible encaisse, l'ennemi
+  est retourné en miroir. L'image est calée sur la hauteur du cadre (`_afficher_image`).
+  Faits : Gabriel, Émile, Julian, Mathéo, Paloma (marche d'origine + combat), Thibaut
+  (refait entièrement depuis sa planche de combat). **`pnj_generique_1` à `_5`** : planches
+  reçues sans nom (pull olive, t-shirt marine, pull rayé, polo vert, polo noir sans
+  combat), à renommer quand on saura qui c'est. Leur marche gauche/droite/haut reprend
+  bas-gauche/bas-droite/haut-gauche (la planche de combat n'en a pas).
   **Planches découpées le 18 nov. 2026** : `joueur_moustachette` (branchée dans
   `GameState.HEROS`, choisie au prologue), `pnj_julian` et `pnj_guillaume`
   refaits, et `pnj_celia`, `pnj_gabriel`, `pnj_matheo`. Ces trois derniers ne sont **pas

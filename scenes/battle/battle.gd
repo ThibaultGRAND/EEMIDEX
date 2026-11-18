@@ -93,13 +93,40 @@ func _poser_portrait(portrait: TextureRect, fond: ColorRect,
 	var planche: SpriteFrames = alternant.data.frames if alternant.data != null else null
 	if planche != null and planche.has_animation(animation) \
 			and planche.get_frame_count(animation) > 0:
-		portrait.texture = planche.get_frame_texture(animation, 0)
+		_afficher_image(portrait, fond, planche.get_frame_texture(animation, 0))
+		portrait.flip_h = false
 		portrait.visible = true
 		fond.color = Color(0, 0, 0, 0)
 		return
 	portrait.visible = false
 	if alternant.data != null:
 		fond.color = alternant.data.couleur
+
+## Cale l'image sur la hauteur du cadre, centree : les cases de combat sont plus
+## larges (jambe tendue) et ne doivent pas rapetisser le personnage.
+func _afficher_image(portrait: TextureRect, fond: ColorRect, image: Texture2D) -> void:
+	portrait.texture = image
+	portrait.stretch_mode = TextureRect.STRETCH_SCALE
+	portrait.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	var echelle: float = fond.size.y / maxf(image.get_height(), 1.0)
+	portrait.size = Vector2(image.get_width(), image.get_height()) * echelle
+	portrait.position = Vector2((fond.size.x - portrait.size.x) / 2.0, 0.0)
+
+## Joue une animation de combat (combat_poing, combat_pied, combat_touche) sur
+## l'image d'un alternant, puis le remet dans sa pose. Les poses de combat sont de
+## profil, tournees vers la droite : l'adversaire, en haut a droite, est retourne.
+func _jouer_combat(alternant: GoneInstance, animation: StringName) -> void:
+	var planche: SpriteFrames = alternant.data.frames if alternant.data != null else null
+	if planche == null or not planche.has_animation(animation):
+		return
+	var portrait := _portrait_ennemi if alternant == _ennemi else _portrait_joueur
+	var fond := _ennemi_sprite if alternant == _ennemi else _joueur_sprite
+	var duree := 1.0 / maxf(planche.get_animation_speed(animation), 1.0)
+	portrait.flip_h = alternant == _ennemi
+	for i in planche.get_frame_count(animation):
+		_afficher_image(portrait, fond, planche.get_frame_texture(animation, i))
+		await get_tree().create_timer(duree).timeout
+	_rafraichir()
 
 func _type_de(g: GoneInstance) -> StringName:
 	return g.data.type if g.data != null else &"neutre"
@@ -288,9 +315,11 @@ func _executer(attaquant: GoneInstance, cible: GoneInstance, attaque: MoveData) 
 		var critique := attaque.chance_critique > 0 and randi() % 100 < attaque.chance_critique
 		if critique:
 			degats = int(degats * 1.5)
+		await _jouer_combat(attaquant, &"combat_pied" if randi() % 2 == 0 else &"combat_poing")
 		GameState.jouer_son(&"attaque")
 		cible.subir(degats)
 		_rafraichir()
+		await _jouer_combat(cible, &"combat_touche")
 		var commentaire := Affinites.commentaire(affinite)
 		if critique:
 			commentaire = "Coup critique ! " + commentaire

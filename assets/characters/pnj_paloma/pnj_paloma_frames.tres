@@ -1,126 +1,174 @@
-[gd_resource type="SpriteFrames" load_steps=32 format=3]
+[gd_resource type="SpriteFrames" load_steps=44 format=3]
 
 [ext_resource type="Texture2D" path="res://assets/characters/pnj_paloma/pnj_paloma_sheet.png" id="1_sheet"]
 
 [sub_resource type="AtlasTexture" id="atlas_0_0"]
 atlas = ExtResource("1_sheet")
-region = Rect2(0, 0, 32, 56)
+region = Rect2(0, 0, 56, 57)
 
 [sub_resource type="AtlasTexture" id="atlas_0_1"]
 atlas = ExtResource("1_sheet")
-region = Rect2(32, 0, 32, 56)
+region = Rect2(56, 0, 56, 57)
 
 [sub_resource type="AtlasTexture" id="atlas_0_2"]
 atlas = ExtResource("1_sheet")
-region = Rect2(64, 0, 32, 56)
+region = Rect2(112, 0, 56, 57)
 
 [sub_resource type="AtlasTexture" id="atlas_0_3"]
 atlas = ExtResource("1_sheet")
-region = Rect2(96, 0, 32, 56)
+region = Rect2(168, 0, 56, 57)
 
 [sub_resource type="AtlasTexture" id="atlas_0_4"]
 atlas = ExtResource("1_sheet")
-region = Rect2(128, 0, 32, 56)
+region = Rect2(224, 0, 56, 57)
 
 [sub_resource type="AtlasTexture" id="atlas_0_7"]
 atlas = ExtResource("1_sheet")
-region = Rect2(224, 0, 32, 56)
+region = Rect2(392, 0, 56, 57)
 
 [sub_resource type="AtlasTexture" id="atlas_1_0"]
 atlas = ExtResource("1_sheet")
-region = Rect2(0, 56, 32, 56)
+region = Rect2(0, 57, 56, 57)
 
 [sub_resource type="AtlasTexture" id="atlas_1_1"]
 atlas = ExtResource("1_sheet")
-region = Rect2(32, 56, 32, 56)
+region = Rect2(56, 57, 56, 57)
 
 [sub_resource type="AtlasTexture" id="atlas_1_2"]
 atlas = ExtResource("1_sheet")
-region = Rect2(64, 56, 32, 56)
+region = Rect2(112, 57, 56, 57)
 
 [sub_resource type="AtlasTexture" id="atlas_1_3"]
 atlas = ExtResource("1_sheet")
-region = Rect2(96, 56, 32, 56)
+region = Rect2(168, 57, 56, 57)
 
 [sub_resource type="AtlasTexture" id="atlas_1_4"]
 atlas = ExtResource("1_sheet")
-region = Rect2(128, 56, 32, 56)
+region = Rect2(224, 57, 56, 57)
 
 [sub_resource type="AtlasTexture" id="atlas_1_5"]
 atlas = ExtResource("1_sheet")
-region = Rect2(160, 56, 32, 56)
+region = Rect2(280, 57, 56, 57)
 
 [sub_resource type="AtlasTexture" id="atlas_2_0"]
 atlas = ExtResource("1_sheet")
-region = Rect2(0, 112, 32, 56)
+region = Rect2(0, 114, 56, 57)
 
 [sub_resource type="AtlasTexture" id="atlas_2_1"]
 atlas = ExtResource("1_sheet")
-region = Rect2(32, 112, 32, 56)
+region = Rect2(56, 114, 56, 57)
 
 [sub_resource type="AtlasTexture" id="atlas_2_2"]
 atlas = ExtResource("1_sheet")
-region = Rect2(64, 112, 32, 56)
+region = Rect2(112, 114, 56, 57)
 
 [sub_resource type="AtlasTexture" id="atlas_2_3"]
 atlas = ExtResource("1_sheet")
-region = Rect2(96, 112, 32, 56)
+region = Rect2(168, 114, 56, 57)
 
 [sub_resource type="AtlasTexture" id="atlas_2_4"]
 atlas = ExtResource("1_sheet")
-region = Rect2(128, 112, 32, 56)
+region = Rect2(224, 114, 56, 57)
 
 [sub_resource type="AtlasTexture" id="atlas_2_5"]
 atlas = ExtResource("1_sheet")
-region = Rect2(160, 112, 32, 56)
+region = Rect2(280, 114, 56, 57)
 
 [sub_resource type="AtlasTexture" id="atlas_3_0"]
 atlas = ExtResource("1_sheet")
-region = Rect2(0, 168, 32, 56)
+region = Rect2(0, 171, 56, 57)
 
 [sub_resource type="AtlasTexture" id="atlas_3_1"]
 atlas = ExtResource("1_sheet")
-region = Rect2(32, 168, 32, 56)
+region = Rect2(56, 171, 56, 57)
 
 [sub_resource type="AtlasTexture" id="atlas_3_2"]
 atlas = ExtResource("1_sheet")
-region = Rect2(64, 168, 32, 56)
+region = Rect2(112, 171, 56, 57)
 
 [sub_resource type="AtlasTexture" id="atlas_3_3"]
 atlas = ExtResource("1_sheet")
-region = Rect2(96, 168, 32, 56)
+region = Rect2(168, 171, 56, 57)
 
 [sub_resource type="AtlasTexture" id="atlas_3_4"]
 atlas = ExtResource("1_sheet")
-region = Rect2(128, 168, 32, 56)
+region = Rect2(224, 171, 56, 57)
 
 [sub_resource type="AtlasTexture" id="atlas_3_5"]
 atlas = ExtResource("1_sheet")
-region = Rect2(160, 168, 32, 56)
+region = Rect2(280, 171, 56, 57)
 
 [sub_resource type="AtlasTexture" id="atlas_4_0"]
 atlas = ExtResource("1_sheet")
-region = Rect2(0, 224, 32, 56)
+region = Rect2(0, 228, 56, 57)
 
 [sub_resource type="AtlasTexture" id="atlas_4_1"]
 atlas = ExtResource("1_sheet")
-region = Rect2(32, 224, 32, 56)
+region = Rect2(56, 228, 56, 57)
 
 [sub_resource type="AtlasTexture" id="atlas_4_2"]
 atlas = ExtResource("1_sheet")
-region = Rect2(64, 224, 32, 56)
+region = Rect2(112, 228, 56, 57)
 
 [sub_resource type="AtlasTexture" id="atlas_4_3"]
 atlas = ExtResource("1_sheet")
-region = Rect2(96, 224, 32, 56)
+region = Rect2(168, 228, 56, 57)
 
 [sub_resource type="AtlasTexture" id="atlas_4_4"]
 atlas = ExtResource("1_sheet")
-region = Rect2(128, 224, 32, 56)
+region = Rect2(224, 228, 56, 57)
 
 [sub_resource type="AtlasTexture" id="atlas_4_5"]
 atlas = ExtResource("1_sheet")
-region = Rect2(160, 224, 32, 56)
+region = Rect2(280, 228, 56, 57)
+
+[sub_resource type="AtlasTexture" id="atlas_5_3"]
+atlas = ExtResource("1_sheet")
+region = Rect2(168, 285, 56, 57)
+
+[sub_resource type="AtlasTexture" id="atlas_5_4"]
+atlas = ExtResource("1_sheet")
+region = Rect2(224, 285, 56, 57)
+
+[sub_resource type="AtlasTexture" id="atlas_5_5"]
+atlas = ExtResource("1_sheet")
+region = Rect2(280, 285, 56, 57)
+
+[sub_resource type="AtlasTexture" id="atlas_5_6"]
+atlas = ExtResource("1_sheet")
+region = Rect2(336, 285, 56, 57)
+
+[sub_resource type="AtlasTexture" id="atlas_6_3"]
+atlas = ExtResource("1_sheet")
+region = Rect2(168, 342, 56, 57)
+
+[sub_resource type="AtlasTexture" id="atlas_6_4"]
+atlas = ExtResource("1_sheet")
+region = Rect2(224, 342, 56, 57)
+
+[sub_resource type="AtlasTexture" id="atlas_6_5"]
+atlas = ExtResource("1_sheet")
+region = Rect2(280, 342, 56, 57)
+
+[sub_resource type="AtlasTexture" id="atlas_6_6"]
+atlas = ExtResource("1_sheet")
+region = Rect2(336, 342, 56, 57)
+
+[sub_resource type="AtlasTexture" id="atlas_7_3"]
+atlas = ExtResource("1_sheet")
+region = Rect2(168, 399, 56, 57)
+
+[sub_resource type="AtlasTexture" id="atlas_7_4"]
+atlas = ExtResource("1_sheet")
+region = Rect2(224, 399, 56, 57)
+
+[sub_resource type="AtlasTexture" id="atlas_7_5"]
+atlas = ExtResource("1_sheet")
+region = Rect2(280, 399, 56, 57)
+
+[sub_resource type="AtlasTexture" id="atlas_7_6"]
+atlas = ExtResource("1_sheet")
+region = Rect2(336, 399, 56, 57)
 
 [resource]
 animations = [{
@@ -323,4 +371,55 @@ animations = [{
 "loop": true,
 "name": &"walk_down_right",
 "speed": 7.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("atlas_5_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("atlas_5_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("atlas_5_5")
+}, {
+"duration": 1.0,
+"texture": SubResource("atlas_5_6")
+}],
+"loop": false,
+"name": &"combat_poing",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("atlas_6_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("atlas_6_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("atlas_6_5")
+}, {
+"duration": 1.0,
+"texture": SubResource("atlas_6_6")
+}],
+"loop": false,
+"name": &"combat_pied",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("atlas_7_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("atlas_7_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("atlas_7_5")
+}, {
+"duration": 1.0,
+"texture": SubResource("atlas_7_6")
+}],
+"loop": false,
+"name": &"combat_touche",
+"speed": 8.0
 }]
