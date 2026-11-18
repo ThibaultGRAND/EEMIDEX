@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bkvxn1oux654a"
-path="res://.godot/imported/player3_sheet.png-a318276aedcb9bded216457119763bd7.ctex"
+uid="uid://vw78ae12wtah"
+path="res://.godot/imported/pnj_thomas_sheet.png-8399ebe40d66f03882f5a21d06d387de.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/characters/player3/player3_sheet.png"
-dest_files=["res://.godot/imported/player3_sheet.png-a318276aedcb9bded216457119763bd7.ctex"]
+source_file="res://assets/characters/pnj_thomas/pnj_thomas_sheet.png"
+dest_files=["res://.godot/imported/pnj_thomas_sheet.png-8399ebe40d66f03882f5a21d06d387de.ctex"]
 
 [params]
 
