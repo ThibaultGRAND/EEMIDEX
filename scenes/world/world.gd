@@ -13,6 +13,8 @@ const CHANCE_RENCONTRE := 0.14
 const SCENE_PNJ: PackedScene = preload("res://scenes/world/pnj.tscn")
 ## Chance qu'un PNJ se contente de tourner la tete au lieu de faire un pas.
 const CHANCE_PNJ_REGARDE := 0.3
+## Un PNJ place au hasard n'apparait pas a moins de cette distance du joueur.
+const DISTANCE_MIN_PNJ := 5
 
 ## action -> [deplacement, Joueur.Direction]. Les entiers suivent l'ordre de
 ## l'enum Direction de player.gd : BAS, HAUT, GAUCHE, DROITE.
@@ -67,8 +69,8 @@ func _charger_zone(id: StringName, case_depart: Vector2i) -> void:
 	GameState.case_joueur = depart
 
 	_peindre_zone()
-	_placer_pnj()
 	_joueur.placer(depart)
+	_placer_pnj()
 	_joueur.borner_camera(Zones.taille_pixels(id))
 	_label_zone.text = str(zone["titre"])
 
@@ -165,14 +167,37 @@ func _indice_case(c: String) -> String:
 # =============================================================================
 func _placer_pnj() -> void:
 	for ancien in _pnjs.get_children():
+		_pnjs.remove_child(ancien)
 		ancien.queue_free()
 	for fiche: Dictionary in zone.get("pnj", []):
+		var depart: Vector2i
+		if fiche.has("case"):
+			depart = fiche["case"]
+		else:
+			depart = _case_au_hasard_pour_pnj()
+			if depart == Vector2i(-1, -1):
+				continue          # zone pleine : on n'insiste pas
 		var pnj: Pnj = SCENE_PNJ.instantiate()
 		pnj.name = str(fiche["nom"])
 		pnj.sprite = load(str(fiche["sprite"]))
+		pnj.rayon = int(fiche.get("rayon", -1))
 		_pnjs.add_child(pnj)
-		pnj.placer(fiche["case"])
+		pnj.placer(depart)
 		pnj.envie_de_bouger.connect(_sur_envie_pnj)
+
+## Une case de sol autorise, libre et pas trop pres du joueur ; (-1, -1) si aucune.
+func _case_au_hasard_pour_pnj() -> Vector2i:
+	var candidates: Array[Vector2i] = []
+	var plan: Array = zone["plan"]
+	for y in plan.size():
+		for x in str(plan[y]).length():
+			var c := Vector2i(x, y)
+			var ecart: Vector2i = (c - _joueur.cellule).abs()
+			if Zones.accepte_pnj(zone_id, c) and _case_libre(c) and ecart.x + ecart.y >= DISTANCE_MIN_PNJ:
+				candidates.append(c)
+	if candidates.is_empty():
+		return Vector2i(-1, -1)
+	return candidates.pick_random()
 
 ## Le PNJ demande a bouger : la carte choisit une case libre autour de lui.
 func _sur_envie_pnj(pnj: Pnj) -> void:
@@ -185,7 +210,8 @@ func _sur_envie_pnj(pnj: Pnj) -> void:
 		return
 	var cible: Vector2i = pnj.cellule + consigne[0]
 	var ecart: Vector2i = (cible - pnj.case_depart).abs()
-	if Zones.accepte_pnj(zone_id, cible) and _case_libre(cible) and maxi(ecart.x, ecart.y) <= pnj.rayon:
+	var dans_le_rayon: bool = pnj.rayon < 0 or maxi(ecart.x, ecart.y) <= pnj.rayon
+	if Zones.accepte_pnj(zone_id, cible) and _case_libre(cible) and dans_le_rayon:
 		pnj.avancer_vers(cible, vers)
 	else:
 		pnj.regarder(vers)

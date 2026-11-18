@@ -13,8 +13,8 @@ const PAUSE_MAX := 2.6
 ## Planche 2 foulees x 4 directions (meme ordre que Joueur.Direction),
 ## pieds sur la derniere ligne de chaque case.
 @export var sprite: Texture2D
-## Distance maximale (en cases) a laquelle il s'eloigne de sa case de depart.
-@export var rayon: int = 3
+## Distance maximale (en cases) a sa case de depart ; negatif = toute la zone.
+@export var rayon: int = -1
 
 var cellule: Vector2i = Vector2i.ZERO
 var case_depart: Vector2i = Vector2i.ZERO
