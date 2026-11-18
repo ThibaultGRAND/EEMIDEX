@@ -46,8 +46,17 @@ PLANCHES = {
 
 
 def est_magenta(p):
+    """Vrai pour le fond magenta, meme abime par la compression JPEG.
+
+    Le magenta pur est #FF00FF. Le JPEG l'etale en un halo rose-violet : on
+    accepte donc tout ce qui est franchement rouge ET bleu sans etre vert.
+    Le rose d'une praline, lui, a nettement moins de bleu que de rouge, il
+    n'est pas attrape.
+    """
     r, v, b, a = p
-    return a > 0 and r > 180 and v < 90 and b > 180
+    if a == 0:
+        return True
+    return r > 140 and b > 140 and (r - v) > 60 and (b - v) > 60
 
 
 def charger(chemin):
@@ -60,34 +69,30 @@ def charger(chemin):
     return lire_png(tmp)
 
 
-def taille_du_pixel(cellule):
+def taille_du_pixel(cellule, tolerance=26):
     """Estime la taille d'un pixel de jeu dans la planche.
 
-    Cherche le plus grand bloc carre a l'interieur duquel la couleur ne change
-    jamais. Si la planche est dessinee a la bonne echelle, ce bloc vaut
-    largeur / 16.
+    Parcourt des lignes horizontales et mesure la longueur des plages de
+    couleur a peu pres constante. La longueur mediane vaut la taille d'un
+    pixel dessine. La tolerance absorbe le bruit de la compression JPEG, qui
+    rend deux pixels voisins jamais exactement identiques.
     """
-    for k in range(min(cellule.l, cellule.h) // 4, 0, -1):
-        if cellule.l % k or cellule.h % k:
-            continue
-        uniforme = True
-        for by in range(0, cellule.h, k):
-            for bx in range(0, cellule.l, k):
-                ref = cellule.lire(bx, by)
-                for y in range(by, by + k):
-                    for x in range(bx, bx + k):
-                        if cellule.lire(x, y) != ref:
-                            uniforme = False
-                            break
-                    if not uniforme:
-                        break
-                if not uniforme:
-                    break
-            if not uniforme:
-                break
-        if uniforme:
-            return k
-    return 1
+    plages = []
+    for y in range(cellule.h // 8, cellule.h, max(1, cellule.h // 12)):
+        debut = 0
+        ref = cellule.lire(0, y)
+        for x in range(1, cellule.l):
+            p = cellule.lire(x, y)
+            ecart = max(abs(p[0] - ref[0]), abs(p[1] - ref[1]), abs(p[2] - ref[2]))
+            if ecart > tolerance:
+                if x - debut > 1:
+                    plages.append(x - debut)
+                debut = x
+                ref = p
+    if not plages:
+        return 1
+    plages.sort()
+    return max(1, plages[len(plages) // 2])
 
 
 def reduire(cellule, cote=TUILE):
@@ -131,11 +136,24 @@ def main(dossier):
         print("Aucune planche dans %s" % dossier)
         return 1
 
+    # Une planche refaite ("11 bis") remplace la premiere version.
+    par_numero = {}
+    for chemin in chemins:
+        m = re.search(r"(\d+)", os.path.basename(chemin))
+        numero = int(m.group(1)) if m else 0
+        if numero in par_numero and "bis" not in os.path.basename(chemin).lower():
+            continue
+        if numero in par_numero:
+            print("  %s remplace %s" % (os.path.basename(chemin),
+                                        os.path.basename(par_numero[numero])))
+        par_numero[numero] = chemin
+    chemins = [par_numero[n] for n in sorted(par_numero)]
+
     tuiles = []        # [(nom, Image)]
     volumes = []       # index des tuiles qui depassent du sol
     for chemin in chemins:
         nom_fichier = os.path.basename(chemin)
-        m = re.match(r"(\d+)", nom_fichier)
+        m = re.search(r"(\d+)", nom_fichier)
         numero = int(m.group(1)) if m else 0
         nom, c_def, l_def, magenta_attendu, volume = PLANCHES.get(
             numero, ("Planche %s" % nom_fichier, 4, 2, True, True))
