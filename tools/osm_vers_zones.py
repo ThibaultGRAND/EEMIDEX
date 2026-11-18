@@ -491,15 +491,21 @@ def placer_elements(g, eemi_bati):
                     z[y, x] = c
                     pris.add((x, y))
                     n -= 1
-        # --- passages sous les voies : un au nord et un au sud du faisceau de rails
+        # --- tunnel pieton sous les voies de la gare : une entree juste au nord du
+        # faisceau, une juste au sud, sur la meme colonne, au plus pres de la gare
         rails = np.argwhere(z == "v")
         if len(rails) > 8:
-            haut, bas = int(rails[:, 0].min()), int(rails[:, 0].max())
-            nord = [(x, y) for x, y in proche_du_centre(libres(z, ".,q")) if y < haut - 1]
-            sud = [(x, y) for x, y in proche_du_centre(libres(z, ".,q")) if y > bas + 1]
-            if nord and sud:
-                for x, y in (nord[0], sud[0]):
-                    z[y, x] = "T"
+            haut = int(rails[:, 0].min()) - 2       # au-dessus du ballast
+            bas = int(rails[:, 0].max()) + 2        # au-dessous du ballast
+            gx, _ = grille(*GARE)
+            colonnes = sorted(range(1, LARGEUR - 1), key=lambda x: abs(x - gx))
+            for x in colonnes:
+                if 0 <= haut and bas < h and z[haut, x] in ".,q" and z[bas, x] in ".,q" \
+                        and (bas + 1 >= h or z[bas + 1, x] not in "#t") \
+                        and z[haut + 1, x] not in "#t":
+                    z[haut, x] = "T"
+                    z[bas, x] = "T"
+                    break
         # --- herbe haute : des taches dans les parcs
         herbe = np.argwhere(z == "h")
         if len(herbe) < 12:          # pas de parc : on en cree un petit
@@ -531,7 +537,11 @@ def placer_elements(g, eemi_bati):
         # --- depart : devant la gare pour la premiere bande, pres du centre sinon
         if nom == ZONES[0]:
             gx, gy = grille(*GARE)
-            departs[nom] = sorted(libres(z, ".,"), key=lambda c: (c[0] - gx) ** 2 + (c[1] - gy) ** 2)[0]
+            # devant la gare, cote nord du faisceau : pas au milieu des voies
+            rails = np.argwhere(z == "v")
+            limite = int(rails[:, 0].min()) - 1 if len(rails) else h
+            devant = [c for c in libres(z, ".,") if c[1] < limite and z[c[1], c[0]] != "T"]
+            departs[nom] = sorted(devant, key=lambda c: (c[0] - gx) ** 2 + (c[1] - gy) ** 2)[0]
         else:
             departs[nom] = proche_du_centre(libres(z, ".,"))[0]
         x, y = departs[nom]

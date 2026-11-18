@@ -296,8 +296,9 @@ pour les sols et des placeholders pour les batiments.
   - **Rails seulement à Perrache, tous parallèles** : les voies ne viennent pas d'OSM.
     `faisceau_perrache()` dessine `VOIES` (4) voies **horizontales**, de gauche à droite
     d'un quai à l'autre, centrées sur la gare, sur ballast. Passage à niveau là où une rue
-    les traverse, passages sous les voies au nord et au sud. Il n'y a de rails nulle part
-    ailleurs.
+    les traverse (surtout aux deux bouts). **Tunnel piéton** devant la gare : deux cases
+    `T` sur la même colonne, juste au nord et juste au sud du faisceau. Le joueur démarre
+    devant la gare, côté nord. Il n'y a de rails nulle part ailleurs.
   - **Tournée de 31° (`ANGLE`)** pour que le quadrillage des rues tombe droit. Avec le nord
     en haut, chaque rue en biais faisait des escaliers de toits. La Saône reste à gauche,
     le Rhône à droite et Perrache en haut.
