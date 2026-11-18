@@ -38,7 +38,19 @@ Le document de référence est la page de cadrage. En cas de doute sur le périm
 - Les `.tscn` et `.tres` : modifications minimales et ciblées. Pour une nouvelle scène complexe, propose la structure de nœuds et laisse l'équipe la construire dans l'éditeur. Après toute édition d'un `.tscn`, signale qu'il faut l'ouvrir dans l'éditeur pour vérifier.
 
 ### Pixel art
-- Résolution de base : 320×180, stretch mode `viewport`, scale `integer`.
+- **Résolution de base : 320×180. Tuiles de 16×16. Décidé le 18 nov. 2026, ne pas y revenir
+  sans l'accord de l'équipe.** Stretch mode `viewport`, scale `integer`.
+- Tailles imposées, valables pour tout le monde :
+
+  | Élément | Taille |
+  | --- | --- |
+  | Écran | 320 × 180 pixels |
+  | Tuile | 16 × 16 |
+  | Personnage | 16 à 20 de large, 24 à 32 de haut |
+  | Objet posé au sol | 16 × 16 |
+  | Bâtiment | multiple de 16, 2 à 3 cases de haut |
+
+  Un asset livré à une autre échelle est à refaire : réduire du pixel art le détruit.
 - **Vue de dessus en 3/4** (style Pokémon DS), pas vue de dessus à plat. Voir
   `docs/direction-artistique.md` : Y-sort obligatoire, caméra qui suit le joueur,
   personnages de 24 à 32 px de haut, origine des sprites aux pieds.
@@ -173,8 +185,9 @@ Reste à faire avant de les brancher au jeu :
 
 - [x] Figer la version de Godot : **4.7.2 stable** (`project.godot` et la CI sont alignés)
 - [ ] Collecter les consentements (voir `docs/consentement.md`), puis créer les 8 à 12 Gones
-- [ ] Dessiner sprites et tilesets, passer la carte en `TileMapLayer` (avec Y-sort)
-- [ ] Adapter le code à la vue 3/4 : caméra qui suit, tri par profondeur, déplacement animé
+- [x] Passer la carte en `TileMapLayer` avec Y-sort, caméra qui suit, déplacement glissé
+- [ ] Dessiner les vraies tuiles **à 16 px** et remplacer les placeholders
+- [ ] Redessiner les personnages **à 24-32 px de haut** (ceux de la démo font 176 px)
 - [ ] Écrire le script de découpage des planches de sprites
 - [ ] Décider le script de conversion des données ouvertes et remplir `assets/maps/SOURCES.md`
 - [ ] Équilibrer stats, niveaux, taux de capture

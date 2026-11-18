@@ -20,6 +20,27 @@ Les autres marqueurs du style visé :
 - ombre portée sous chaque personnage, posée au sol ;
 - la carte défile, elle ne se lit pas écran par écran.
 
+## L'échelle, tranchée le 18 nov. 2026
+
+**320 × 180, tuiles de 16 px.** La question s'est posée parce que trois chantiers
+avançaient à trois échelles différentes :
+
+| Ce qui a été produit | Taille réelle | Taille attendue | Écart |
+| --- | --- | --- | --- |
+| Personnages de la démo 8 directions | 176 px de haut | 24 à 32 | ×6 à ×7 |
+| Planches de tuiles générées | ~48 px par tuile | 16 | ×3 |
+| Le projet | 320 × 180, tuiles de 16 | — | — |
+
+C'est 320 × 180 qui l'emporte, pour deux raisons. C'est la densité des écrans DS, donc
+le style que l'équipe a elle-même choisi en montrant ses références. Et surtout, une
+grille de 16 px s'affiche parfaitement sur n'importe quel écran grâce à la mise à
+l'échelle entière, alors qu'un sprite dessiné trop grand ne se rattrape jamais : le
+réduire écrase les détails en bouillie.
+
+**Conséquence concrète :** les personnages de la démo et les planches de tuiles déjà
+générées servent de référence visuelle, pas d'assets. Ils sont à refaire à la bonne
+taille.
+
 ## Ce que ça implique, chiffré
 
 La DS affiche 256×192 par écran. Nos 320×180 donnent une densité de pixels équivalente,

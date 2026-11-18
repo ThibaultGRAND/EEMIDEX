@@ -32,9 +32,14 @@ FORMAT
 - Les tuiles se touchent bord à bord : aucun trait de séparation, aucune marge, aucun
   espace entre les cases.
 - Chaque case représente une tuile de 16 x 16 pixels de jeu.
-- Rends l'image en grand, avec des pixels carrés parfaitement nets : chaque pixel du jeu
-  doit apparaître comme un bloc d'au moins 16 sur 16 pixels dans ton image. Aucun
-  anti-aliasing, aucun flou, aucun dégradé lissé, aucune ombre douce.
+- Chaque tuile fait 16 x 16 pixels de jeu, pas un de plus. Toute la planche represente
+  donc une image minuscule, agrandie.
+- Rends l'image en grand, avec des pixels carres parfaitement nets : un pixel de jeu
+  apparait comme un bloc carre d'au moins 16 sur 16 pixels dans ton image, et tous les
+  blocs sont alignes sur la meme grille.
+- Ne dessine aucun detail plus fin qu'un pixel de jeu. Si un motif ne tient pas en
+  16 x 16, simplifie-le : moins de details, jamais des details plus fins.
+- Aucun anti-aliasing, aucun flou, aucun degrade lisse, aucune ombre douce.
 - Pas de transparence : ce sont des sols, chaque case est remplie bord à bord.
 - Pas de contour sombre : un sol plat n'a pas de contour.
 
@@ -93,9 +98,14 @@ FORMAT
 - Les tuiles se touchent bord à bord : aucun trait de séparation, aucune marge, aucun
   espace entre les cases.
 - Chaque case représente une tuile de 16 x 16 pixels de jeu.
-- Rends l'image en grand, avec des pixels carrés parfaitement nets : chaque pixel du jeu
-  doit apparaître comme un bloc d'au moins 16 sur 16 pixels dans ton image. Aucun
-  anti-aliasing, aucun flou, aucun dégradé lissé, aucune ombre douce.
+- Chaque tuile fait 16 x 16 pixels de jeu, pas un de plus. Toute la planche represente
+  donc une image minuscule, agrandie.
+- Rends l'image en grand, avec des pixels carres parfaitement nets : un pixel de jeu
+  apparait comme un bloc carre d'au moins 16 sur 16 pixels dans ton image, et tous les
+  blocs sont alignes sur la meme grille.
+- Ne dessine aucun detail plus fin qu'un pixel de jeu. Si un motif ne tient pas en
+  16 x 16, simplifie-le : moins de details, jamais des details plus fins.
+- Aucun anti-aliasing, aucun flou, aucun degrade lisse, aucune ombre douce.
 - Pas de transparence : ce sont des sols, chaque case est remplie bord à bord.
 - Pas de contour sombre : un sol plat n'a pas de contour.
 
@@ -154,9 +164,14 @@ FORMAT
 - Les tuiles se touchent bord à bord : aucun trait de séparation, aucune marge, aucun
   espace entre les cases.
 - Chaque case représente une tuile de 16 x 16 pixels de jeu.
-- Rends l'image en grand, avec des pixels carrés parfaitement nets : chaque pixel du jeu
-  doit apparaître comme un bloc d'au moins 16 sur 16 pixels dans ton image. Aucun
-  anti-aliasing, aucun flou, aucun dégradé lissé, aucune ombre douce.
+- Chaque tuile fait 16 x 16 pixels de jeu, pas un de plus. Toute la planche represente
+  donc une image minuscule, agrandie.
+- Rends l'image en grand, avec des pixels carres parfaitement nets : un pixel de jeu
+  apparait comme un bloc carre d'au moins 16 sur 16 pixels dans ton image, et tous les
+  blocs sont alignes sur la meme grille.
+- Ne dessine aucun detail plus fin qu'un pixel de jeu. Si un motif ne tient pas en
+  16 x 16, simplifie-le : moins de details, jamais des details plus fins.
+- Aucun anti-aliasing, aucun flou, aucun degrade lisse, aucune ombre douce.
 - Pas de transparence : ce sont des sols, chaque case est remplie bord à bord.
 - Pas de contour sombre : un sol plat n'a pas de contour.
 
@@ -215,9 +230,14 @@ FORMAT
 - Les tuiles se touchent bord à bord : aucun trait de séparation, aucune marge, aucun
   espace entre les cases.
 - Chaque case représente une tuile de 16 x 16 pixels de jeu.
-- Rends l'image en grand, avec des pixels carrés parfaitement nets : chaque pixel du jeu
-  doit apparaître comme un bloc d'au moins 16 sur 16 pixels dans ton image. Aucun
-  anti-aliasing, aucun flou, aucun dégradé lissé, aucune ombre douce.
+- Chaque tuile fait 16 x 16 pixels de jeu, pas un de plus. Toute la planche represente
+  donc une image minuscule, agrandie.
+- Rends l'image en grand, avec des pixels carres parfaitement nets : un pixel de jeu
+  apparait comme un bloc carre d'au moins 16 sur 16 pixels dans ton image, et tous les
+  blocs sont alignes sur la meme grille.
+- Ne dessine aucun detail plus fin qu'un pixel de jeu. Si un motif ne tient pas en
+  16 x 16, simplifie-le : moins de details, jamais des details plus fins.
+- Aucun anti-aliasing, aucun flou, aucun degrade lisse, aucune ombre douce.
 - Fond magenta pur #FF00FF partout où la tuile doit être transparente. Jamais de
   damier gris, jamais de blanc, jamais d'ombre portée sur le fond magenta.
 - Contour sombre #2a2420 autour de chaque volume.
@@ -276,9 +296,14 @@ FORMAT
 - Les tuiles se touchent bord à bord : aucun trait de séparation, aucune marge, aucun
   espace entre les cases.
 - Chaque case représente une tuile de 16 x 16 pixels de jeu.
-- Rends l'image en grand, avec des pixels carrés parfaitement nets : chaque pixel du jeu
-  doit apparaître comme un bloc d'au moins 16 sur 16 pixels dans ton image. Aucun
-  anti-aliasing, aucun flou, aucun dégradé lissé, aucune ombre douce.
+- Chaque tuile fait 16 x 16 pixels de jeu, pas un de plus. Toute la planche represente
+  donc une image minuscule, agrandie.
+- Rends l'image en grand, avec des pixels carres parfaitement nets : un pixel de jeu
+  apparait comme un bloc carre d'au moins 16 sur 16 pixels dans ton image, et tous les
+  blocs sont alignes sur la meme grille.
+- Ne dessine aucun detail plus fin qu'un pixel de jeu. Si un motif ne tient pas en
+  16 x 16, simplifie-le : moins de details, jamais des details plus fins.
+- Aucun anti-aliasing, aucun flou, aucun degrade lisse, aucune ombre douce.
 - Fond magenta pur #FF00FF partout où la tuile doit être transparente. Jamais de
   damier gris, jamais de blanc, jamais d'ombre portée sur le fond magenta.
 - Contour sombre #2a2420 autour de chaque volume.
@@ -337,9 +362,14 @@ FORMAT
 - Les tuiles se touchent bord à bord : aucun trait de séparation, aucune marge, aucun
   espace entre les cases.
 - Chaque case représente une tuile de 16 x 16 pixels de jeu.
-- Rends l'image en grand, avec des pixels carrés parfaitement nets : chaque pixel du jeu
-  doit apparaître comme un bloc d'au moins 16 sur 16 pixels dans ton image. Aucun
-  anti-aliasing, aucun flou, aucun dégradé lissé, aucune ombre douce.
+- Chaque tuile fait 16 x 16 pixels de jeu, pas un de plus. Toute la planche represente
+  donc une image minuscule, agrandie.
+- Rends l'image en grand, avec des pixels carres parfaitement nets : un pixel de jeu
+  apparait comme un bloc carre d'au moins 16 sur 16 pixels dans ton image, et tous les
+  blocs sont alignes sur la meme grille.
+- Ne dessine aucun detail plus fin qu'un pixel de jeu. Si un motif ne tient pas en
+  16 x 16, simplifie-le : moins de details, jamais des details plus fins.
+- Aucun anti-aliasing, aucun flou, aucun degrade lisse, aucune ombre douce.
 - Fond magenta pur #FF00FF partout où la tuile doit être transparente. Jamais de
   damier gris, jamais de blanc, jamais d'ombre portée sur le fond magenta.
 - Contour sombre #2a2420 autour de chaque volume.
@@ -402,9 +432,14 @@ FORMAT
 - Les tuiles se touchent bord à bord : aucun trait de séparation, aucune marge, aucun
   espace entre les cases.
 - Chaque case représente une tuile de 16 x 16 pixels de jeu.
-- Rends l'image en grand, avec des pixels carrés parfaitement nets : chaque pixel du jeu
-  doit apparaître comme un bloc d'au moins 16 sur 16 pixels dans ton image. Aucun
-  anti-aliasing, aucun flou, aucun dégradé lissé, aucune ombre douce.
+- Chaque tuile fait 16 x 16 pixels de jeu, pas un de plus. Toute la planche represente
+  donc une image minuscule, agrandie.
+- Rends l'image en grand, avec des pixels carres parfaitement nets : un pixel de jeu
+  apparait comme un bloc carre d'au moins 16 sur 16 pixels dans ton image, et tous les
+  blocs sont alignes sur la meme grille.
+- Ne dessine aucun detail plus fin qu'un pixel de jeu. Si un motif ne tient pas en
+  16 x 16, simplifie-le : moins de details, jamais des details plus fins.
+- Aucun anti-aliasing, aucun flou, aucun degrade lisse, aucune ombre douce.
 - Fond magenta pur #FF00FF partout où la tuile doit être transparente. Jamais de
   damier gris, jamais de blanc, jamais d'ombre portée sur le fond magenta.
 - Contour sombre #2a2420 autour de chaque volume.
@@ -464,9 +499,14 @@ FORMAT
 - Les tuiles se touchent bord à bord : aucun trait de séparation, aucune marge, aucun
   espace entre les cases.
 - Chaque case représente une tuile de 16 x 16 pixels de jeu.
-- Rends l'image en grand, avec des pixels carrés parfaitement nets : chaque pixel du jeu
-  doit apparaître comme un bloc d'au moins 16 sur 16 pixels dans ton image. Aucun
-  anti-aliasing, aucun flou, aucun dégradé lissé, aucune ombre douce.
+- Chaque tuile fait 16 x 16 pixels de jeu, pas un de plus. Toute la planche represente
+  donc une image minuscule, agrandie.
+- Rends l'image en grand, avec des pixels carres parfaitement nets : un pixel de jeu
+  apparait comme un bloc carre d'au moins 16 sur 16 pixels dans ton image, et tous les
+  blocs sont alignes sur la meme grille.
+- Ne dessine aucun detail plus fin qu'un pixel de jeu. Si un motif ne tient pas en
+  16 x 16, simplifie-le : moins de details, jamais des details plus fins.
+- Aucun anti-aliasing, aucun flou, aucun degrade lisse, aucune ombre douce.
 - Fond magenta pur #FF00FF partout où la tuile doit être transparente. Jamais de
   damier gris, jamais de blanc, jamais d'ombre portée sur le fond magenta.
 - Contour sombre #2a2420 autour de chaque volume.
@@ -529,9 +569,14 @@ FORMAT
 - Les tuiles se touchent bord à bord : aucun trait de séparation, aucune marge, aucun
   espace entre les cases.
 - Chaque case représente une tuile de 16 x 16 pixels de jeu.
-- Rends l'image en grand, avec des pixels carrés parfaitement nets : chaque pixel du jeu
-  doit apparaître comme un bloc d'au moins 16 sur 16 pixels dans ton image. Aucun
-  anti-aliasing, aucun flou, aucun dégradé lissé, aucune ombre douce.
+- Chaque tuile fait 16 x 16 pixels de jeu, pas un de plus. Toute la planche represente
+  donc une image minuscule, agrandie.
+- Rends l'image en grand, avec des pixels carres parfaitement nets : un pixel de jeu
+  apparait comme un bloc carre d'au moins 16 sur 16 pixels dans ton image, et tous les
+  blocs sont alignes sur la meme grille.
+- Ne dessine aucun detail plus fin qu'un pixel de jeu. Si un motif ne tient pas en
+  16 x 16, simplifie-le : moins de details, jamais des details plus fins.
+- Aucun anti-aliasing, aucun flou, aucun degrade lisse, aucune ombre douce.
 - Fond magenta pur #FF00FF partout où la tuile doit être transparente. Jamais de
   damier gris, jamais de blanc, jamais d'ombre portée sur le fond magenta.
 - Contour sombre #2a2420 autour de chaque volume.
@@ -594,9 +639,14 @@ FORMAT
 - Les tuiles se touchent bord à bord : aucun trait de séparation, aucune marge, aucun
   espace entre les cases.
 - Chaque case représente une tuile de 16 x 16 pixels de jeu.
-- Rends l'image en grand, avec des pixels carrés parfaitement nets : chaque pixel du jeu
-  doit apparaître comme un bloc d'au moins 16 sur 16 pixels dans ton image. Aucun
-  anti-aliasing, aucun flou, aucun dégradé lissé, aucune ombre douce.
+- Chaque tuile fait 16 x 16 pixels de jeu, pas un de plus. Toute la planche represente
+  donc une image minuscule, agrandie.
+- Rends l'image en grand, avec des pixels carres parfaitement nets : un pixel de jeu
+  apparait comme un bloc carre d'au moins 16 sur 16 pixels dans ton image, et tous les
+  blocs sont alignes sur la meme grille.
+- Ne dessine aucun detail plus fin qu'un pixel de jeu. Si un motif ne tient pas en
+  16 x 16, simplifie-le : moins de details, jamais des details plus fins.
+- Aucun anti-aliasing, aucun flou, aucun degrade lisse, aucune ombre douce.
 - Fond magenta pur #FF00FF partout où la tuile doit être transparente. Jamais de
   damier gris, jamais de blanc, jamais d'ombre portée sur le fond magenta.
 - Contour sombre #2a2420 autour de chaque volume.
@@ -655,9 +705,14 @@ FORMAT
 - Les tuiles se touchent bord à bord : aucun trait de séparation, aucune marge, aucun
   espace entre les cases.
 - Chaque case représente une tuile de 16 x 16 pixels de jeu.
-- Rends l'image en grand, avec des pixels carrés parfaitement nets : chaque pixel du jeu
-  doit apparaître comme un bloc d'au moins 16 sur 16 pixels dans ton image. Aucun
-  anti-aliasing, aucun flou, aucun dégradé lissé, aucune ombre douce.
+- Chaque tuile fait 16 x 16 pixels de jeu, pas un de plus. Toute la planche represente
+  donc une image minuscule, agrandie.
+- Rends l'image en grand, avec des pixels carres parfaitement nets : un pixel de jeu
+  apparait comme un bloc carre d'au moins 16 sur 16 pixels dans ton image, et tous les
+  blocs sont alignes sur la meme grille.
+- Ne dessine aucun detail plus fin qu'un pixel de jeu. Si un motif ne tient pas en
+  16 x 16, simplifie-le : moins de details, jamais des details plus fins.
+- Aucun anti-aliasing, aucun flou, aucun degrade lisse, aucune ombre douce.
 - Fond magenta pur #FF00FF partout où la tuile doit être transparente. Jamais de
   damier gris, jamais de blanc, jamais d'ombre portée sur le fond magenta.
 - Contour sombre #2a2420 autour de chaque volume.
@@ -720,9 +775,14 @@ FORMAT
 - Les tuiles se touchent bord à bord : aucun trait de séparation, aucune marge, aucun
   espace entre les cases.
 - Chaque case représente une tuile de 16 x 16 pixels de jeu.
-- Rends l'image en grand, avec des pixels carrés parfaitement nets : chaque pixel du jeu
-  doit apparaître comme un bloc d'au moins 16 sur 16 pixels dans ton image. Aucun
-  anti-aliasing, aucun flou, aucun dégradé lissé, aucune ombre douce.
+- Chaque tuile fait 16 x 16 pixels de jeu, pas un de plus. Toute la planche represente
+  donc une image minuscule, agrandie.
+- Rends l'image en grand, avec des pixels carres parfaitement nets : un pixel de jeu
+  apparait comme un bloc carre d'au moins 16 sur 16 pixels dans ton image, et tous les
+  blocs sont alignes sur la meme grille.
+- Ne dessine aucun detail plus fin qu'un pixel de jeu. Si un motif ne tient pas en
+  16 x 16, simplifie-le : moins de details, jamais des details plus fins.
+- Aucun anti-aliasing, aucun flou, aucun degrade lisse, aucune ombre douce.
 - Fond magenta pur #FF00FF partout où la tuile doit être transparente. Jamais de
   damier gris, jamais de blanc, jamais d'ombre portée sur le fond magenta.
 - Contour sombre #2a2420 autour de chaque volume.
@@ -785,9 +845,14 @@ FORMAT
 - Les tuiles se touchent bord à bord : aucun trait de séparation, aucune marge, aucun
   espace entre les cases.
 - Chaque case représente une tuile de 16 x 16 pixels de jeu.
-- Rends l'image en grand, avec des pixels carrés parfaitement nets : chaque pixel du jeu
-  doit apparaître comme un bloc d'au moins 16 sur 16 pixels dans ton image. Aucun
-  anti-aliasing, aucun flou, aucun dégradé lissé, aucune ombre douce.
+- Chaque tuile fait 16 x 16 pixels de jeu, pas un de plus. Toute la planche represente
+  donc une image minuscule, agrandie.
+- Rends l'image en grand, avec des pixels carres parfaitement nets : un pixel de jeu
+  apparait comme un bloc carre d'au moins 16 sur 16 pixels dans ton image, et tous les
+  blocs sont alignes sur la meme grille.
+- Ne dessine aucun detail plus fin qu'un pixel de jeu. Si un motif ne tient pas en
+  16 x 16, simplifie-le : moins de details, jamais des details plus fins.
+- Aucun anti-aliasing, aucun flou, aucun degrade lisse, aucune ombre douce.
 - Fond magenta pur #FF00FF partout où la tuile doit être transparente. Jamais de
   damier gris, jamais de blanc, jamais d'ombre portée sur le fond magenta.
 - Contour sombre #2a2420 autour de chaque volume.
