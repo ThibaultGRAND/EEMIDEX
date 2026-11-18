@@ -39,21 +39,40 @@ Le document de référence est la page de cadrage. En cas de doute sur le périm
 
 ### Pixel art
 - **Résolution de base : 320×180. Tuiles de 16×16. Décidé le 18 nov. 2026, ne pas y revenir
-  sans l'accord de l'équipe.** Stretch mode `viewport`, scale `integer`.
+  sans l'accord de l'équipe.** Stretch mode `canvas_items`, scale `integer`.
+- **⚠ Rendu des personnages — NE PAS DÉFAIRE (choix de Sébastien, 18 nov. 2026).**
+  La logique du jeu reste en 320×180 (carte, caméra, cases de 16), mais le rendu se fait
+  à la résolution de la fenêtre pour que les personnages soient nets. Concrètement :
+  - `project.godot` : `window/stretch/mode="canvas_items"`. **Ne jamais le remettre en
+    `viewport`**, même pour « respecter le pixel-perfect » ou suivre un ancien document.
+  - Les sprites de personnages (`assets/sprites/joueur_*.png`, `assets/sprites/pnj_*.png`)
+    sont fournis **en 4× (~120 px de haut)** et affichés avec **`scale = 0.25`** dans
+    `scenes/world/player.tscn` et `scenes/world/pnj.tscn`. **Ne pas les réduire** à
+    24-32 px réels, **ne pas retirer le `scale`**, ne pas « corriger » leur taille :
+    ils font déjà 30 à 32 px dans le monde.
+  - L'offset des pieds tient compte de ce `scale` (`pnj.gd`, `player.tscn`) : ne pas le
+    recalculer comme si le sprite était à l'échelle 1.
+  - Les tuiles, elles, restent en vrai 16×16, sans `scale`.
+  - Si une consigne (ici ou dans `docs/`) semble dire le contraire, c'est qu'elle date
+    d'avant ce choix : **demander à l'équipe avant de toucher** à ces réglages.
+  - Si l'éditeur Godot est ouvert pendant une modification de `project.godot`, il peut la
+    réécrire avec ses anciens réglages : recharger le projet avant de lancer, et vérifier
+    que le mode est toujours `canvas_items`.
 - Tailles imposées, valables pour tout le monde :
 
   | Élément | Taille |
   | --- | --- |
   | Écran | 320 × 180 pixels |
   | Tuile | 16 × 16 |
-  | Personnage | 16 à 20 de large, 24 à 32 de haut |
+  | Personnage | 16 à 20 de large, 24 à 32 de haut **dans le monde** (sprite fourni en 4×, `scale = 0.25`) |
   | Objet posé au sol | 16 × 16 |
   | Bâtiment | multiple de 16, 2 à 3 cases de haut |
 
   Un asset livré à une autre échelle est à refaire : réduire du pixel art le détruit.
+  **Exception : les personnages**, fournis en 4× exprès (voir ci-dessus).
 - **Vue de dessus en 3/4** (style Pokémon DS), pas vue de dessus à plat. Voir
   `docs/direction-artistique.md` : Y-sort obligatoire, caméra qui suit le joueur,
-  personnages de 24 à 32 px de haut, origine des sprites aux pieds.
+  personnages de 24 à 32 px de haut dans le monde, origine des sprites aux pieds.
 - Filtre de texture par défaut : `Nearest`. Pas de mipmaps.
 - Tuiles de 16×16 px. Carte construite avec `TileMapLayer` (pas l'ancien nœud `TileMap`, déprécié).
 
@@ -129,31 +148,32 @@ METS TOUJOURS A JOUR LE CLAUDE.MD POUR LES REGLES ET LAVANCE
 
 ### Ce qui existe
 
-Squelette jouable de bout en bout, avec des formes de couleur en guise de graphismes.
-Seul le joueur a un vrai sprite ; pas encore de tileset dessiné, aucun son.
+Jeu jouable de bout en bout dans le navigateur, avec les vraies tuiles de l'equipe
+pour les sols et des placeholders pour les batiments.
 
-- `scripts/autoload/game_state.gd` — l'autoload unique : équipe (3 max), sac, 3 ressources,
-  drapeaux de progression, catalogues chargés depuis `data/`, sauvegarde JSON dans `user://`.
-- `scripts/data/` — `GoneData`, `MoveData`, `ItemData` (Resources) et `GoneInstance`
-  (le Gone en cours de partie : niveau, PV, bonus gagnés aux mini-jeux).
-- `scenes/world/` — carte case par case, 3 zones reliées (Presqu'île, Vieux Lyon,
-  Fourvière), traboules, ressources au sol, soin, boutique, salle d'entraînement,
-  rencontres aléatoires dans l'herbe, menu pause et sauvegarde.
-- `assets/sprites/joueur_moustache.png` — le joueur (la Moustache), utilisé par
-  `scenes/world/player.tscn` à la place de `placeholder_joueur.png` : 2 foulées × 4
-  directions (bas, haut, gauche, droite), cases de 32×36, perso de 32 px de haut. Réduit
-  depuis la planche 8 directions fournie par l'équipe.
-- `scenes/world/pnj.tscn` + `pnj.gd` — PNJ qui se baladent case par case autour de leur
-  case de départ (rayon 3), sur les sols listés dans `Zones.SOLS_PNJ`. Le PNJ émet
-  `envie_de_bouger`, `world.gd` choisit la case ; joueur et PNJ se bloquent mutuellement.
-  Placement par zone dans `zones.gd` (clé `"pnj"`) ; sprites `assets/sprites/pnj_*.png`
-  (2 foulées × 4 directions, perso de 30 px). Pour l'instant : 4 PNJ à la Presqu'île.
-- `scenes/battle/` — combat 1 contre 1 au tour par tour : attaquer / objet / changer /
-  fuir, ordre selon la vitesse, capture au Filet à Gone, combat de fin à Fourvière.
-- `scenes/minigames/rythme/` (vitesse) et `scenes/minigames/frappe/` (attaque).
-- `data/` — 5 Gones génériques, 7 attaques, 3 objets, plus `_modele_etudiant.tres`.
+- `scripts/autoload/game_state.gd` — l'autoload unique : equipe (3 max), sac, 3
+  ressources, drapeaux de progression, catalogues charges depuis `data/`, sauvegarde
+  JSON dans `user://`, plus `sauvegarde_auto()` appele apres un combat, au changement
+  de zone et au poste de soin.
+- `scenes/world/` — la **Confluence en 4 zones** reliees du nord au sud : `perrache`,
+  `sainte_blandine`, `darse`, `pointe`. Deux `TileMapLayer` (sol et decor trie en Y),
+  camera qui suit le joueur et bornee a la zone, deplacement glisse d'une case a
+  l'autre. Les plans sont en texte dans `zones.gd`.
+- `scenes/world/pnj.tscn` — 8 PNJ qui se baladent, deux par zone, sans case imposee :
+  la carte leur trouve une place libre au demarrage.
+- `scenes/battle/`, `scenes/minigames/`, `scenes/ui/` — combat au tour par tour,
+  Rythme et Frappe chronometree, ecran titre. Toute l'interface est en **ancrages
+  proportionnels** : elle suit la resolution sans retouche.
+- `assets/tilesets/lyon.png` — 113 tuiles importees des planches de l'equipe. Les
+  sols, l'eau, les berges, les buissons, le ferroviaire, le mobilier et les tuiles de
+  jeu sont exploitables ; murs, facades, toits et falaise restent en placeholder.
+- `data/` — 5 Gones generiques, 7 attaques, 3 objets, plus `_modele_etudiant.tres`.
+- `tools/` — `importer_tuiles.py` (planche -> atlas + TileSet), `generer_placeholders.py`,
+  `creer_gone.py` (reponses du formulaire -> fiches .tres), `verifier_plans.py`
+  (controle les cartes), `changer_resolution.py`, `png_simple.py` (lecture/ecriture PNG
+  sans dependance).
 - `export_presets.cfg` — preset `Web`, **sans threads**. `.github/workflows/export-web.yml`
-  exporte et publie sur GitHub Pages à chaque push sur `main`.
+  publie sur GitHub Pages a chaque push sur `main`.
 
 ### Décisions provisoires, à confirmer en équipe
 
@@ -170,10 +190,6 @@ Le cocon n'a pas encore de mini-jeu : il ne sert qu'à la boutique, en attendant
 
 ### Écarts assumés aux règles ci-dessus
 
-- **Pas de `TileMapLayer`** : sans tileset dessiné, les 3 zones sont des plans en texte
-  dans `scenes/world/zones.gd`, rendus par `_draw()`. C'est un placeholder explicite.
-  Quand les tuiles 16×16 existeront, remplacer `_draw()` par une `TileMapLayer` ;
-  les plans texte restent une bonne base de travail.
 - **Pas de script de conversion des données de carte** : le langage n'est pas décidé.
   `tools/map_data/README.md` dit ce qu'il doit faire.
 - **`placeholder_icon.svg`** est le seul asset graphique généré, marqué comme tel.
@@ -186,7 +202,8 @@ Le cocon n'a pas encore de mini-jeu : il ne sert qu'à la boutique, en attendant
 Prototype isolé, **non branché au jeu** : `scenes/main.tscn` (+ `scenes/pnj_*.tscn`,
 `scripts/main.gd`, `scripts/pnj.gd`, `assets/characters/`). Quatre PNJ (PnjSeb, PnjThomas, PnjJulian, PnjPaloma) en
 8 directions, découpés depuis des planches fournies par l'équipe (fond vert ou magenta détouré).
-Les sprites font environ 176 px de haut : leur taille n'est pas encore calée sur l'échelle du jeu.
+Ses sprites restent en grand format (~176 px) : c'est une démo à part. Les versions du jeu
+sont dans `assets/sprites/` (en 4×, `scale = 0.25`, voir « Pixel art »).
 Reste à faire avant de les brancher au jeu :
 
 - pas encore de suivi de consentement pour les personnes représentées ;
@@ -198,8 +215,12 @@ Reste à faire avant de les brancher au jeu :
 - [x] Figer la version de Godot : **4.7.2 stable** (`project.godot` et la CI sont alignés)
 - [ ] Collecter les consentements (voir `docs/consentement.md`), puis créer les 8 à 12 Gones
 - [x] Passer la carte en `TileMapLayer` avec Y-sort, caméra qui suit, déplacement glissé
-- [ ] Dessiner les vraies tuiles **à 16 px** et remplacer les placeholders
-- [ ] Redessiner les personnages **à 24-32 px de haut** (ceux de la démo font 176 px)
+- [ ] Refaire les planches 4 a 8 (quai, murs, facades, toits, falaise) : Gemini a
+      dessine un grand objet continu au lieu de cases independantes, les tuiles
+      decoupees ne sont que des fragments. Planche 9 (arbres) jamais recue.
+- [ ] Calculer les tuiles de transition entre sols a partir des tuiles de base
+- [x] Personnages à la bonne taille dans le monde : sprites en 4× affichés à `scale = 0.25`
+  (rendu `canvas_items`). **Ne pas les redessiner en 24-32 px réels.**
 - [ ] Écrire le script de découpage des planches de sprites
 - [ ] Décider le script de conversion des données ouvertes et remplir `assets/maps/SOURCES.md`
 - [ ] Équilibrer stats, niveaux, taux de capture

@@ -21,17 +21,8 @@ var _tween: Tween
 @onready var _camera: Camera2D = %Camera
 
 func _ready() -> void:
-	_caler_sprite()
 	_rafraichir_image()
 
-## Pose les pieds du sprite sur le bas de la case, quelle que soit la taille de
-## l'image. Un decalage fige se faussait des qu'on changeait de resolution ou
-## qu'on remplacait la planche du personnage.
-func _caler_sprite() -> void:
-	if _sprite.texture == null:
-		return
-	var image := _sprite.texture.get_size() / Vector2(_sprite.hframes, _sprite.vframes)
-	_sprite.offset = Vector2(0.0, Zones.TAILLE_CASE / 2.0 - image.y / 2.0)
 
 ## Position en pixels du centre d'une case.
 static func centre_de(c: Vector2i) -> Vector2:

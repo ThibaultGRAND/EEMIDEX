@@ -41,6 +41,14 @@ réduire écrase les détails en bouillie.
 générées servent de référence visuelle, pas d'assets. Ils sont à refaire à la bonne
 taille.
 
+> **Mise à jour du 18 nov. 2026 (Sébastien) — rendu des personnages.** Le projet est
+> passé en stretch mode `canvas_items`. La logique reste en 320 × 180 et les tuiles en
+> 16 px, mais les **personnages** sont fournis en 4× (~120 px) et affichés à
+> `scale = 0.25` : ils font bien 24 à 32 px dans le monde, tout en restant nets.
+> Les tailles de personnage de ce document s'entendent donc **dans le monde**, pas en
+> pixels du fichier. Ne pas réduire ces sprites ni remettre le mode `viewport` : voir
+> la section « Pixel art » de `CLAUDE.MD`.
+
 ## Ce que ça implique, chiffré
 
 La DS affiche 256×192 par écran. Nos 320×180 donnent une densité de pixels équivalente,

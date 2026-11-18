@@ -10,6 +10,8 @@ script = ExtResource("1_joueur")
 [node name="Sprite" type="Sprite2D" parent="."]
 unique_name_in_owner = true
 texture = ExtResource("2_sprite")
+scale = Vector2(0.25, 0.25)
+offset = Vector2(0, -37.5)
 hframes = 2
 vframes = 4
 

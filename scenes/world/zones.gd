@@ -32,7 +32,7 @@ const BLOQUANTS := "#wtvjLn"
 
 ## Sols simples ou les PNJ ont le droit de se balader (pas d'herbe haute,
 ## de passage sous les voies, de sortie ni de lieu special).
-const SOLS_PNJ := ".,qhsd"
+const SOLS_PNJ := ".,mqhsd"
 
 ## Les deux sources du TileSet assets/tilesets/lyon.tres.
 const IMPORT := 0        # les tuiles dessinees par l'equipe
@@ -139,12 +139,12 @@ const ZONES := {
 			"www#########22###vvvv########www",
 		],
 		"sorties": {"2": ["sainte_blandine", 12, 1]},
-		## PNJ qui se baladent : sprite 2 foulees x 4 directions, case de depart.
+		## PNJ qui se baladent dans toute la zone. Cles optionnelles :
+		## "case" (depart fixe, sinon une case libre au hasard) et "rayon"
+		## (distance max a sa case de depart, sinon aucune limite).
 		"pnj": [
-			{"nom": "PnjSeb", "sprite": "res://assets/sprites/pnj_seb.png", "case": Vector2i(8, 2)},
-			{"nom": "PnjThomas", "sprite": "res://assets/sprites/pnj_thomas.png", "case": Vector2i(16, 10)},
-			{"nom": "PnjJulian", "sprite": "res://assets/sprites/pnj_julian.png", "case": Vector2i(9, 16)},
-			{"nom": "PnjPaloma", "sprite": "res://assets/sprites/pnj_paloma.png", "case": Vector2i(9, 20)},
+			{"nom": "PnjSeb", "sprite": "res://assets/sprites/pnj_seb.png"},
+			{"nom": "PnjThibaut", "sprite": "res://assets/sprites/pnj_thibaut.png"},
 		],
 	},
 
@@ -185,6 +185,13 @@ const ZONES := {
 			"www#########22###vvvv########www",
 		],
 		"sorties": {"1": ["perrache", 12, 22], "2": ["darse", 12, 1]},
+		## PNJ qui se baladent dans toute la zone. Cles optionnelles :
+		## "case" (depart fixe, sinon une case libre au hasard) et "rayon"
+		## (distance max a sa case de depart, sinon aucune limite).
+		"pnj": [
+			{"nom": "PnjThomas", "sprite": "res://assets/sprites/pnj_thomas.png"},
+			{"nom": "PnjTheophile", "sprite": "res://assets/sprites/pnj_theophile.png"},
+		],
 	},
 
 	&"darse": {
@@ -226,6 +233,13 @@ const ZONES := {
 			"www#########22###vvvv########www",
 		],
 		"sorties": {"1": ["sainte_blandine", 12, 24], "2": ["pointe", 12, 1]},
+		## PNJ qui se baladent dans toute la zone. Cles optionnelles :
+		## "case" (depart fixe, sinon une case libre au hasard) et "rayon"
+		## (distance max a sa case de depart, sinon aucune limite).
+		"pnj": [
+			{"nom": "PnjJulian", "sprite": "res://assets/sprites/pnj_julian.png"},
+			{"nom": "PnjEmile", "sprite": "res://assets/sprites/pnj_emile.png"},
+		],
 	},
 
 	&"pointe": {
@@ -265,6 +279,13 @@ const ZONES := {
 			"wwwwwwwwwwwwwwsssswwwwwwwwwwwwww",
 		],
 		"sorties": {"1": ["darse", 12, 26]},
+		## PNJ qui se baladent dans toute la zone. Cles optionnelles :
+		## "case" (depart fixe, sinon une case libre au hasard) et "rayon"
+		## (distance max a sa case de depart, sinon aucune limite).
+		"pnj": [
+			{"nom": "PnjPaloma", "sprite": "res://assets/sprites/pnj_paloma.png"},
+			{"nom": "PnjGuillaume", "sprite": "res://assets/sprites/pnj_guillaume.png"},
+		],
 	},
 }
 

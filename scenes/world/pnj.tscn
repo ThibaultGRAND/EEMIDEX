@@ -10,7 +10,8 @@ script = ExtResource("1_pnj")
 [node name="Sprite" type="Sprite2D" parent="."]
 unique_name_in_owner = true
 texture = ExtResource("2_sprite")
-hframes = 2
+scale = Vector2(0.25, 0.25)
+hframes = 3
 vframes = 4
 
 [node name="Minuteur" type="Timer" parent="."]
