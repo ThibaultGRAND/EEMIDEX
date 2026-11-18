@@ -467,7 +467,7 @@ func _victoire() -> void:
 		GameState.sauvegarde_auto()
 		get_tree().change_scene_to_file(GameState.SCENE_FIN)
 		return
-		await _dire("La pointe est à vous. Fin du MVP : merci d'avoir joué.")
+		await _dire("L'EEMI est à vous. Fin du MVP : merci d'avoir joué.")
 		_quitter("Vous avez battu le gardien du confluent.")
 		return
 	_quitter("%s a été battu." % _ennemi.nom())

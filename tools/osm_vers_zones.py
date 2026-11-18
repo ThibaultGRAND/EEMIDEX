@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 """Construit les plans des 4 zones de la Confluence depuis OpenStreetMap.
 
+Une seule carte continue, nord en haut (comme Google Maps), de la gare de Perrache
+au nord a la rue Paul-Montrochet au sud, de la Saone au Rhone. Elle est coupee en
+4 bandes horizontales collees : on passe de l'une a l'autre n'importe ou sur la
+limite (Zones.ORDRE dans zones.gd), sans case de sortie.
+
     python3 tools/osm_vers_zones.py --apercu apercu.png     # dessine, n'ecrit rien
     python3 tools/osm_vers_zones.py --ecrire                 # met a jour zones.gd
 
@@ -9,15 +14,15 @@ du quartier : batiments, voirie, voies ferrees et de tram, eau, parcs, arbres.
 Donnees © les contributeurs d'OpenStreetMap, licence ODbL (voir assets/maps/SOURCES.md).
 
 Ce que fait le script :
-  1. tourne la carte pour que la presqu'ile soit verticale (Perrache en haut, la
-     Pointe en bas, la Saone a gauche, le Rhone a droite) ;
+  1. projette l'emprise nord en haut (Perrache en haut, Montrochet en bas, la Saone
+     a gauche, le Rhone a droite) ;
   2. dessine chaque element dans une grille de LARGEUR cases (un caractere par case,
      meme legende que zones.gd) ;
   3. relie toutes les parties praticables a la plus grande (passage a niveau, passerelle,
      passage entre deux batiments) : aucun recoin inaccessible ;
-  4. coupe la grille en 4 zones et y place les elements de jeu : sorties, soins,
-     boutique, entrainement, passages sous les voies, ressources, herbe haute, et le
-     combat final devant l'EEMI.
+  4. coupe la grille en 4 bandes et y place les elements de jeu : soins, boutique,
+     entrainement, passages sous les voies, ressources, herbe haute, et le combat
+     final devant l'EEMI (au Monolithe, au nord de la darse).
 
 Avec --ecrire, seules les cles "depart", "plan" et "sorties" de chaque zone et la
 constante LARGEUR sont remplacees dans zones.gd : le reste (titres, rencontres, PNJ...)
@@ -43,17 +48,22 @@ DONNEES = os.path.join(RACINE, "tools/map_data/confluence_osm.json")
 RIVIERES = os.path.join(RACINE, "tools/map_data/confluence_rivieres.json")
 ZONES_GD = os.path.join(RACINE, "scenes/world/zones.gd")
 
-LARGEUR = 128           # cases par ligne
-METRES = 9.0            # metres par case
+METRES = 10.0           # metres par case
 SUR = 4                 # sur-echantillonnage du dessin
 ZONES = ["perrache", "sainte_blandine", "darse", "pointe"]
 
-# Axe de la presqu'ile, a mi-chemin entre la Saone et le Rhone : du nord de Perrache
-# a la pointe du confluent.
-NORD = (45.7500, 4.8246)
-SUD = (45.7312, 4.8172)
-MARGE_NORD, MARGE_SUD = 60.0, 40.0     # metres en plus aux deux bouts
-EEMI = (45.7385446, 4.8215140)
+# Emprise de la carte (nord en haut) : la capture Google Maps de reference, plus
+# la gare de Perrache au nord.
+LAT_NORD, LAT_SUD = 45.7512, 45.7383
+LON_OUEST, LON_EST = 4.8132, 4.8285
+NORD = (LAT_NORD, (LON_OUEST + LON_EST) / 2)
+SUD = (LAT_SUD, (LON_OUEST + LON_EST) / 2)
+MARGE_NORD, MARGE_SUD = 0.0, 0.0
+# L'EEMI est au Monolithe, au nord de la darse. Le noeud « EEMI » d'OSM (45.7385,
+# 4.8215) est une ancienne adresse : on ne s'en sert pas.
+EEMI = (45.7431, 4.8182)
+# La gare : le depart du jeu (le prologue commence a Perrache).
+GARE = (45.7482, 4.8255)
 
 BLOQUANTS = set("#wtvjn")
 
@@ -84,6 +94,7 @@ SX, SY = metres(*SUD)
 _long = math.hypot(SX - NX, SY - NY)
 BAS = ((SX - NX) / _long, (SY - NY) / _long)        # unitaire, du nord vers le sud
 DROITE = (BAS[1], -BAS[0])                           # perpendiculaire, vers l'est
+LARGEUR = int(round((LON_EST - LON_OUEST) * KX / METRES))
 HAUTEUR = int(math.ceil((_long + MARGE_NORD + MARGE_SUD) / METRES))
 HAUTEUR -= HAUTEUR % len(ZONES)
 
@@ -167,7 +178,9 @@ LARGEUR_ROUTE_M = {   # largeur de chaussee, en metres
     "secondary": 14, "tertiary": 12, "residential": 9, "unclassified": 9,
     "living_street": 7, "service": 5, "pedestrian": 8, "footway": 3, "cycleway": 3, "path": 3,
 }
-LARGEUR_ROUTE = {k: v / METRES for k, v in LARGEUR_ROUTE_M.items()}
+# Au moins une case de large pour une rue (sinon elle disparait sous le bati a 10 m
+# par case), un peu moins pour un chemin pieton.
+LARGEUR_ROUTE = {k: max(v / METRES, 1.3 if v >= 7 else 1.0) for k, v in LARGEUR_ROUTE_M.items()}
 
 
 def dessiner(elements):
@@ -227,7 +240,8 @@ def dessiner(elements):
     m["bati"] = t["bati"].cases(0.45)
     m["rail"] = t["rail"].cases(0.25)
     m["tram"] = t["tram"].cases(0.3)
-    m["route"] = t["route"].cases(0.4)
+    m["route"] = t["route"].cases(0.3)
+    m["pieton"] = t["pieton"].cases(0.4)
 
     g = np.full((HAUTEUR, LARGEUR), ".", dtype="<U1")
     g[m["parc"]] = "h"
@@ -235,9 +249,10 @@ def dessiner(elements):
     g[m["emprise_fer"]] = "b"
     g[m["eau"]] = "w"
     g[m["ponton"]] = "p"
-    g[m["route"] & ~m["eau"]] = ","
-    g[m["pieton"] & ~m["eau"]] = "."
     g[m["bati"] & ~m["eau"]] = "#"
+    # les rues passent devant le bati : le quadrillage reste lisible
+    g[m["pieton"] & ~m["eau"]] = "."
+    g[m["route"] & ~m["eau"]] = ","
     g[m["quai_fer"]] = "q"
     # ballast autour des rails, puis les rails par-dessus tout le reste (sauf l'eau)
     autour = np.zeros_like(m["rail"])
@@ -381,38 +396,8 @@ def placer_elements(g, eemi_bati):
     sorties = {nom: {} for nom in ZONES}
     departs = {}
 
-    # --- sorties entre zones voisines : la route la plus large qui traverse la limite
-    for i in range(len(ZONES) - 1):
-        a, b = zones[ZONES[i]], zones[ZONES[i + 1]]
-        candidats = [x for x in range(LARGEUR) if praticable(a[-1, x]) and praticable(b[0, x])
-                     and a[-1, x] != "r" and b[0, x] != "r"]
-        if not candidats:
-            raise SystemExit("aucun passage entre %s et %s" % (ZONES[i], ZONES[i + 1]))
-        # prefere une chaussee, au plus pres du milieu
-        candidats.sort(key=lambda x: (a[-1, x] != ",", abs(x - LARGEUR // 2)))
-        x0 = candidats[0]
-        largeur = [x for x in (x0 - 1, x0, x0 + 1) if x in candidats]
-        for x in largeur:
-            a[-1, x] = "2"
-            b[0, x] = "1"
-            # devant chaque case de sortie, une case normale : on n'atteint pas une
-            # sortie en passant par une autre (on serait teleporte avant)
-            for z, y in ((a, h - 2), (b, 1)):
-                if not praticable(z[y, x]) or z[y, x] in "123":
-                    z[y, x] = "."
-        # cases d'arrivee : juste a l'interieur, jamais coiffees par un volume
-        for z, y_arr, y_dessous in ((b, 1, 2), (a, h - 2, h - 1)):
-            if not praticable(z[y_arr, x0]) or z[y_arr, x0] in "123":
-                z[y_arr, x0] = "."
-            if z[y_dessous, x0] in "#t":
-                z[y_dessous, x0] = "."
-        sorties[ZONES[i]]["2"] = [ZONES[i + 1], x0, 1]
-        sorties[ZONES[i + 1]]["1"] = [ZONES[i], x0, h - 2]
-        departs.setdefault(ZONES[i + 1], (x0, 1))
-
-    # --- chaque zone doit etre praticable d'un seul tenant (on n'y passe pas par une autre)
-    for nom in ZONES:
-        zones[nom] = relier(zones[nom])
+    # Pas de sortie : les bandes sont collees, on passe de l'une a l'autre sur toute
+    # la limite. La grille entiere a deja ete reliee d'un seul tenant (relier).
 
     def libres(z, sols=".,qhd", devant_batiment=False):
         out = []
@@ -491,8 +476,11 @@ def placer_elements(g, eemi_bati):
                     z[y, x] = "L"
                 elif z[y, x] == "." and "h" in z[y - 1:y + 2, x - 1:x + 2] and (x * 11 + y * 5) % 4 == 0:
                     z[y, x] = "m"
-        # --- depart de la premiere zone : pres du centre
-        if nom not in departs:
+        # --- depart : devant la gare pour la premiere bande, pres du centre sinon
+        if nom == ZONES[0]:
+            gx, gy = grille(*GARE)
+            departs[nom] = sorted(libres(z, ".,"), key=lambda c: (c[0] - gx) ** 2 + (c[1] - gy) ** 2)[0]
+        else:
             departs[nom] = proche_du_centre(libres(z, ".,"))[0]
         x, y = departs[nom]
         if not praticable(z[y, x]) or z[y, x] in "123":
@@ -535,7 +523,6 @@ def apercu(zones, chemin, echelle=4):
     lignes = []
     for nom in ZONES:
         lignes.extend(zones[nom])
-        lignes.append(["@"] * LARGEUR)
     im = Image.new("RGB", (LARGEUR * echelle, len(lignes) * echelle), (0, 0, 0))
     d = ImageDraw.Draw(im)
     for y, l in enumerate(lignes):

@@ -203,41 +203,51 @@ pour les sols et des placeholders pour les batiments.
   ressources, drapeaux de progression, catalogues charges depuis `data/`, sauvegarde
   JSON dans `user://`, plus `sauvegarde_auto()` appele apres un combat, au changement
   de zone et au poste de soin.
-- `scenes/world/` — la **Confluence en 4 zones** reliees du nord au sud : `perrache`,
+- `scenes/world/` — la **Confluence en 4 bandes collées** du nord au sud : `perrache`,
   `sainte_blandine`, `darse`, `pointe`. Deux `TileMapLayer` (sol et decor trie en Y),
   camera qui suit le joueur et bornee a la zone, deplacement glisse d'une case a
   l'autre. Les plans sont en texte dans `zones.gd`.
 - `scenes/world/pnj.tscn` — 8 PNJ qui se baladent, deux par zone, sans case imposee :
   la carte leur trouve une place libre au demarrage.
+- **Collisions entre personnages** : deux personnages ne s'arrêtent jamais sur la même
+  case, mais ils ne se bloquent plus. Quand le joueur avance vers un PNJ arrêté, ou un PNJ
+  vers un autre, ils **échangent leurs cases** et se croisent (`world.gd` : `_tenter_pas`,
+  `_sur_envie_pnj`).
 - **Musique de fond** : 3 pistes `.ogg` dans `assets/audio/`, jouees par le lecteur
   unique de `GameState` (`jouer_musique()`), avec fondu entre deux pistes.
   Exploration sur la carte et l'ecran titre, combat a l'ecran de combat, boutique
   dans le menu du magasin. Voir « Musique » plus haut.
-- **Carte : retour aux 4 zones dessinées à la main** (18 nov. 2026, demande de Sébastien).
-  Les plans de `zones.gd` sont revenus à 32 cases de large (perrache 24 lignes,
-  sainte_blandine 26, darse 28, pointe 26). La version générée depuis OpenStreetMap
-  (128 × 62 cases) a été abandonnée : jugée buggée et illisible. **Ne pas relancer
-  `tools/osm_vers_zones.py --ecrire`** sans l'accord de l'équipe : il écraserait ces plans
-  (il ne touche qu'à `LARGEUR`, `depart`, `plan` et `sorties`). Le script et les données
-  `tools/map_data/confluence_*.json` restent dans le dépôt comme base de travail.
-  Relancer `tools/verifier_plans.py` après toute retouche des plans.
-- **Tramways** : `r` = rails de tram (on marche dessus). **Aucun `r` dans les plans actuels : pas de tram en jeu pour l’instant.** `scenes/world/tram.tscn` : une rame
+- **Carte : une seule carte d'après OpenStreetMap, nord en haut** (18 nov. 2026, demande
+  de Sébastien, d'après une capture Google Maps du quartier). `tools/osm_vers_zones.py
+  --ecrire` dessine la Confluence de la gare de Perrache à la rue Paul-Montrochet, de la
+  Saône au Rhône (119 × 140 cases, 10 m par case), puis la coupe en **4 bandes collées**
+  de 35 lignes : `perrache`, `sainte_blandine`, `darse` (avec l'EEMI) et `pointe` (titre
+  « Montrochet »). Les ids sont gardés pour ne casser ni la sauvegarde ni l'histoire.
+  - **Pas de case de sortie** : `Zones.ORDRE` donne l'ordre nord-sud. Sortir par le haut ou
+    le bas d'une bande mène à la bande voisine, sur la même colonne
+    (`world.gd` : `_passer_dans_la_bande_voisine`).
+  - L'EEMI est au **Monolithe, au nord de la darse** (`EEMI` dans le script) : le nœud
+    « EEMI » d'OSM pointe vers une ancienne adresse, ne pas le reprendre. Le combat final
+    `X` est devant.
+  - Les rues sont dessinées par-dessus le bâti, avec au moins une case de large : sinon
+    elles disparaissent à 10 m par case.
+  - `--apercu plan.png` dessine le résultat, `--reference ref.png` les données OSM brutes.
+    Relancer `tools/verifier_plans.py` après : il contrôle qu'on atteint tout **à travers
+    les bandes**. Les retouches à la main dans `zones.gd` sont perdues si on relance le
+    script.
+- **Tramways** : `r` = rails de tram (on marche dessus). `scenes/world/tram.tscn` : une rame
   de 3 cases par ligne (plus sur les longues) qui fait l'aller-retour ; elle attend si le
   joueur ou un PNJ est sur la voie, et le joueur ne traverse pas une rame. Les rails
   (`r`, `v`, `=`) prennent le sens de leurs voisins (`Zones.sol_de_zone`).
 - **Décor transparent** : `scenes/world/decor.gd` (couche `Decor`). Quand le joueur est
   derrière une partie haute (bord de toit, feuillage, tête de lampadaire), elle passe à
   35 % d'opacité.
-- `scenes/ui/carte_monde.tscn` — **carte du monde en jeu** : menu pause > « Carte ». Les
-  4 zones en deux colonnes (nord en haut à gauche, sud en bas à droite), dessinées depuis
-  les plans de `zones.gd`, le joueur qui clignote, les repères (soins, boutique,
-  entraînement, passages, ressources, sorties, combat final) et une légende. Couleurs
-  dans `PaletteUi` (`COULEURS_CARTE`, `REPERES_CARTE`). Ordre des zones : `ORDRE` dans
-  `carte_monde.gd`, à compléter si une zone est ajoutée. `world.gd` passe en
-  `Mode.CARTE` tant qu'elle est ouverte.
-  Un **chemin blanc fléché** relie la sortie de chaque zone à l'entrée de la suivante
-  (`_dessiner_chemin`), y compris de Sainte-Blandine (bas de la colonne de gauche) à la
-  Darse (haut de la colonne de droite).
+- `scenes/ui/carte_monde.tscn` — **carte du monde en jeu** : menu pause > « Carte ». Les 4
+  bandes dessinées **collées, sans écart ni cadre** : une seule carte, nord en haut, avec le
+  joueur qui clignote, les repères (soins, boutique, entraînement, passages, ressources,
+  combat final) et une légende qui indique la zone courante. Couleurs dans `PaletteUi`
+  (`COULEURS_CARTE`, `REPERES_CARTE`). `world.gd` passe en `Mode.CARTE` tant qu'elle est
+  ouverte.
 - **Tuiles HD (placeholder)** : `tools/generer_tuiles_hd.py` dessine en code un atlas
   64×64 (`assets/tilesets/placeholder_tuiles_hd.*`) : pavés, quais, eau, herbe, rails,
   façades lyonnaises (fenêtres à volets, portes, vitrines), toits en tuiles, arbres,

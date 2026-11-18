@@ -3,11 +3,11 @@ extends RefCounted
 ## Les 4 zones du MVP, decrites en texte. Une ligne = une rangee de cases.
 ## world.gd construit les TileMapLayer a partir de ces plans.
 ##
-## Le quartier de la Confluence, parcouru du nord au sud : la gare de Perrache,
-## le faubourg Sainte-Blandine, le bassin de la darse, puis la pointe sud et le
-## Musee des Confluences. La Saone coule a l'ouest (a gauche), le Rhone a l'est
-## (a droite), les deux se rejoignent en bas de la derniere zone, et les voies
-## ferrees descendent au milieu du quartier.
+## Une seule carte de la Confluence, nord en haut, generee depuis OpenStreetMap par
+## tools/osm_vers_zones.py : de la gare de Perrache a la rue Paul-Montrochet, la
+## Saone a gauche, le Rhone a droite, les voies ferrees en diagonale. Elle est
+## coupee en 4 bandes collees (ORDRE) : Perrache, Sainte-Blandine, la Darse (et
+## l'EEMI, au Monolithe) et Montrochet. Les ids des zones n'ont pas change.
 ##
 ## Legende :
 ##   #  batiment / mur (bloquant)     .  pave           ,  pave use
@@ -23,10 +23,15 @@ extends RefCounted
 ##   T  passage sous les voies   R  ressource    X  combat de fin
 ##   1 2 3  sortie vers une autre zone
 
-## Tous les plans font 32 caracteres de large ; la hauteur varie d'une zone a
+## Tous les plans font LARGEUR caracteres de large ; la hauteur varie d'une zone a
 ## l'autre, la camera suit le joueur et se borne sur taille_pixels().
-const LARGEUR := 32
+const LARGEUR := 119
 const TAILLE_CASE := 16
+
+## Les zones sont des bandes d'une seule carte, collees du nord au sud : on passe de
+## l'une a l'autre en sortant par le haut ou par le bas, sur la meme colonne.
+## La carte du monde (carte_monde.gd) les dessine dans cet ordre, sans ecart.
+const ORDRE: Array[StringName] = [&"perrache", &"sainte_blandine", &"darse", &"pointe"]
 
 ## Cases que le joueur ne peut pas traverser.
 const BLOQUANTS := "#wtvjn"
@@ -130,41 +135,52 @@ const TOIT_HAUT_DROITE := Vector2i(5, 4)
 
 const ZONES := {
 	&"perrache": {
-		"titre": "Perrache — la gare et les voûtes",
+		"titre": "Perrache — la gare et le cours de Verdun",
 		"ressource": &"praline",
 		"tuile_ressource": Vector2i(3, 13),
 		## Pas d'herbe haute a Perrache : on ne croise rien sur le parvis.
 		"rencontres": [&"thigoat", &"seb", &"thibouclier"],
 		"niveau_min": 3,
 		"niveau_max": 5,
-		"depart": Vector2i(12, 10),
+		"depart": Vector2i(98, 30),
 		"plan": [
-			"www##########################www",
-			"wwwqqt,,,L,,,,,,,,,,R,L,,,,qqwww",
-			"wwwqq,,S,T,n,,,n,,,,,,,,B,tqqwww",
-			"wwwqq####################..qqwww",
-			"wwwqq####################..qqwww",
-			"wwwqq####################..qqwww",
-			"wwwqq####################..qqwww",
-			"wwwqq####################..qqwww",
-			"wwwqq####################..qqwww",
-			"wwwqq....T...........L.....qqwww",
-			"wwwqq.........L............qqwww",
-			"wwwqq..,.........bvvb......qqwww",
-			"wwwqq##,####..###bvvb######qqwww",
-			"wwwqq##,####..###bvvb######qqwww",
-			"wwwqq##,####..###bvvb######qqwww",
-			"wwwqq##,####..###====######qqwww",
-			"wwwqq..,....L....bvvb......qqwww",
-			"wwwqq..,j,,j.....bvvb......qqwww",
-			"wwwqq##,,,,,..###bvvb######qqwww",
-			"wwwqq##,,R,,..###bvvb######qqwww",
-			"wwwqq##,,,n,..###====######qqwww",
-			"wwwqq##,,,,,.L###bvvb######qqwww",
-			"wwwqq......................qqwww",
-			"www#########22###vvvv########www",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwqqqqqqqqqqqqqqqqq###qqqqqqqqqqqqghgqqqqqqq",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwq,,,,,,.,,####..####,,#..#...,,.ghg.......q",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwq.,,,,,,,,,.####..###,,#.##.#.,..ggm..q...gg",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwqg,,,,,,,,,,,,.###.##,,##.####,,.....tqwq..gg",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwqg.,,,,.,,,,,,,,,.####,,#...###,,....g.qwq.mhg",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwq..,,,,..,,,,,,,,,,,.#,,###....,,..g.mh.qq...gh",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwq.,,,,,,L.,,,RL,,,,,,,,,,######.,,.th..hqwqm.ggh",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwqqm,,,,,,,,,,,...,,,,,,,,,,,#####,,..hm.h.qwghm..q",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwq.h,,,,,,,,,,,,..,,,,,,,,,,,,,,.##,,..t.m.qwgh.gh.q",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwqh,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,......qwq.m.hgmq",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwbb,,,,.,,,,,,,,,,,,,,,,,,,,,,#,,,,,,.....qwwgh.mgt.q",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwvvbbb,#.,,,,,,,,,,,,,,,,,,,,,,###,,,.##..tqwhhRt.g..q",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwqbvvvvb##,,#..,,,,,,,,,,,,,,,,,,#########..qwwhgg...L,q",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwq.bbvvvvvbbb.###.,,,hg,,,,,,,,,,##########..qwh..rr...,q",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwq..,bbvvvvvvbbb.###,,,Thgg,,,,,,,#########..qwg.##.rr..,q",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwq..L,,b#vvvvvvvbbb####,,,,hg,,,,,###########..#..##...r,,#",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwqq...,,.###vvvvvvvvbbb####.,,,,g,,,,,,#####...#.#.###.,,rr,#",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwqTg..,,.####bvvvvvvvvvbb#####.,,,,h,,,,,#####....##.###,,,rrq",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwq.g..,,.####Bbvvvvvvvvvvv#####.##,,,,,,,,,L#####.....#####,,,r",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwq.gg.,,,,####,b#vvvvvvvvvvvv########.,,,,,,.####..##..#######,q",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwqmh..,,.,,S.#,,###vvvvvvvvvvvvv#####.,,,,,,,.####..##.########,q",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwq.gg.,,.##.,,,,,###vvvvvvvvvvvvvvvb##.,,.,,,,...###############,q",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwq.....,.#####,,,.####vvvvvvvvvvvvvvb,,.,,h.,,mh..###.##########,,q",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwqg...,,.######.,,,,.##vvvvvvvvvvvvvvb,,,,,,mg..m.####..#.,#####,,,q",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwqg.RL,,,######.,,#.,,,#vvvvvvvvv#vvvbb##,,,,,,L..##.......,,,,##,,,q",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwqghm..,,,,#####,,..#.,,bbvvvvvvvvvvvvqb###.,,,,,,.##.,,,,,,,,,,,,,,,q",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwqg...,,.#,#####.,,......,bvvvvvvvvvvv#vvqbb.#.,,,,,...,,.,,,,,,,,,,,,q",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwqghm.,,,#,,.####,,##.....#bvvvvvvvvvvvvv#vvqb...,..L,,Lm,,,,,,,,,,,,,,q",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwq.g..,,.###....#.,,..#.....bvvvbbvvvvvvv#vvvvq#b.....,,,,h,,g,,,...,,,,q",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwq....,,,,###.....,,.....#...#vvvbbbvvvvvvvv#v#vvqbb...,,,,,,,,,,,####.,,q",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwq....,,,,,,#.....,,......#####vvvq.bbvvvvvv#v#vv#vvqb.##,,,,,,,,,.####...q",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwq....,,,..,,,,....,,........###vvvqbbbbbvvvvv#vv#vv#vqb###,,,,..,,####....q",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwq.....,.###..,,,..,,.....g..gg.#v#vq....bbbvvvvv#vv#vvvv#####,,,.,,####....q",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwq.gg..,L######,.,,,,,.......gh..#v#vq...L,,bbvvv#v##vvvvvvv##..#,,,,,,#.....q",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwpwwq.gg..,..#####,,,..,,,........bb##v#vq#bb,,##bbbvvvvv#vv#vvvvqbb###bbb,,,...,q",
 		],
-		"sorties": {"2": ["sainte_blandine", 12, 1]},
+		"sorties": {},
 		## Alternants sauvages qui se baladent. Cles optionnelles :
 		## "case" (depart fixe, sinon une case libre au hasard), "rayon"
 		## (distance max a sa case de depart, sinon aucune limite) et "gone"
@@ -176,42 +192,51 @@ const ZONES := {
 	},
 
 	&"sainte_blandine": {
-		"titre": "Sainte-Blandine — le faubourg et le quai Rambaud",
+		"titre": "Sainte-Blandine — Charlemagne et Casimir-Périer",
 		"ressource": &"cocon",
 		"tuile_ressource": Vector2i(4, 13),
 		"rencontres": [&"roulian", &"matiti", &"e1000"],
 		"niveau_min": 4,
 		"niveau_max": 7,
-		"depart": Vector2i(12, 1),
+		"depart": Vector2i(61, 17),
 		"plan": [
-			"www#########11###############www",
-			"wwwqqt,,,,L,..,,,bvvb,,,,,tqqwww",
-			"wwwqq,,,,,,,..,,,bvvb,,L,,,qqwww",
-			"wwwqq,t,,,,,..,,,bvvb,,,,t,qqwww",
-			"wwwqq............bvvb......qqwww",
-			"wwwqq.####....###bvvb......qqwww",
-			"wwwqq.####....###bvvb......qqwww",
-			"wwwqq.####....###bvvb......qqwww",
-			"wwwqq.####....###bvvb......qqwww",
-			"wwwqqj,n,,j...###bvvb......qqwww",
-			"wwwqq,,,,,,....M.bvvb......qqwww",
-			"wwwqq####........====.t..t.qqwww",
-			"wwwpp####..,.....bvvbggggggqqwww",
-			"wwwpp####..,..###bvvbggggggqqwww",
-			"wwwpp.t..t.,L.###bvvbggggggqqwww",
-			"wwwqqgggggg,..###bvvbggggggqqwww",
-			"wwwqqgggggg,..###bvvbgggRggqqwww",
-			"wwwqqgggggg,.....bvvbggggggqqwww",
-			"wwwqqggRggg,.....bvvbhhhhhhqqwww",
-			"wwwqqgggggg,.....bvvbhhhhhhqqwww",
-			"wwwqqgggggg,.L..TbvvbT.....qqwww",
-			"wwwqqhhhhhh,.....bvvb......qqwww",
-			"wwwqqhhhhhh,.....====......qqwww",
-			"wwwqqhhhhhh,.....bvvbhhhhhhqqwww",
-			"wwwqq......................qqwww",
-			"www#########22###vvvv########www",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwppqggh..,.######,,,,,,,,,,.......bvvvv#vqbb.,.####bbbvvvvv#vv#vvvvq###vvbb,,,,,,q",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwq.gh..,.#######,,,#.,,..,,,.....bvvvv#vqb.,,######.bbbvv#vv#v#vv#=v##vvvbbb,,,,#",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwq..hm,,,.######,,,,#,,.....,,,...bvvvv#vbb,,.#####...,bbrvvvv#vvvv=vv#vvvvvbbb,,q",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwq...,,,,.#######,,,#.,,......,,,..b#vvv#vb.,,#.####...,,rbbvvvvv#vv=vvvv#vvvvvbbbq",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww###..,,,,.######,,,##,,##....#..,,,.##vvvvb,,.#.###...,,rr.bbbvv#vv#=vvv#vv#vvvvvbb",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww###.,,,,,,,,,##,,,,#,,##..R.###.,,,,,b#vvqb,,.....##..,r,....bbvvvvv=vvvvv#vv#vvvvb",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww###.,,,,hg.,,,,,,,,#L,,#.......#,,..,,,bvvb,,##....##L,rr,,,..tbb#vvv=vvvvvvvvv#vvvv",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwq##.,,.,,g##.,,,,,,,#,,##......#.,,##..bbvvb,.########,,r,.,,,....bbvv=vvvvvvvvvvv#vv",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwq.#.,,.,,h####..,,,,#.,,#......##,,.####bvvqb,.#######.qr,,#..,,,..,bbbbvvvvvvvvvvvvvv",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwq,,,,,.,,g##,,###,,,,,,,##......#,,.#####bvvb,,..######,qq,####.,,,,,,#,bbbbbvvvvvvvvvv",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwq,gggghm,,g#,,,,.,,##.,,,...##..#.,,######vvvb,,,,..###.qrq.####.#,,,,.##,,,,bbbbbbvvvvv",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwhggggt.,,g##,g,,,,####.,,,..##.##,,.#####vvvbb#..,,,.#.,rq,####...#.,,######,,,,,######v",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwqgghghh.,.g#,,g,.,,###,,..,,,L..#.,,#####vvvvb###.,,,,,,,r,#####...#,,.#######,,,,.######",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwwq.ggghg.,,g##,g,,#,,.##,....,,,,.#,,#######vvbb###,,..,,,r,.########.,,########.,,,,.#####",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwq.mhggh.,,g##,,,,##,,,,,,....#.,,,,,.#####vvvvb###.,,##.,rr,.####..##,,#########,,..,,,.#.#",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwwgg.ghhgm,,##L,g,,#,,.L,,,.....#..,,,L####v#vvbb###,,###.,r,,,..##..#,,.########.,.###.,,,.q",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwwqgh.ghg.,,h.#,,,,#,,..,,##......##,,,,,.###vvbb###,,.##.,r,,.,,,..#.#,,########.,,##..#.,,,q",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwqghm...m,,.,,,,h,##,..,,##..###..#M,..,,,bvvvbb####,,###,,r,.#..,,,..,,#########T,.#..##.##,q",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwwqg.t...L,,h.,,,,,#,,..,.##.##.####T,##..,bbb=b,###,,.##L,r,.####.,,,,,,########L,,L...#.##.,q",
+			"wwwwwwwwwwwwwwwwwwwwwwwwwqhh.....,,g##,,,,##,,.,,##..##..##,,.####.bbvvb###.,,###,,,,.#####..,,,..##.####,,.......##,,q",
+			"wwwwwwwwwwwwwwwwwwwwwwwwqghtmgg..,,##,,##,,#,,,,##..####...,,#######vvbb.##,,###.,r,.########,,,,,...###.,,.......#.,,q",
+			"wwwwwwwwwwwwwwwwwwwwwwwwqh..gmh.,,g##,,.#,,#,,,,##..######,,.#######vbb,,,,,.##.,r,,########L,,.,,,,.###,,#........,,,q",
+			"wwwwwwwwwwwwwwwwwwwwwwwq.gmtg.m.,..#,,m.h,,,,.###..######.,,########v##.,,,,.##,,r,.########,,.#..,,,R.,,.#......#.,,,q",
+			"wwwwwwwwwwwwwwwwwwwwwwwqg....#.,,g##,ghhg..,,.....######.,,.#######v###.#,,,,,.,r,.########.,,#.#,,.,,,,,##.....#.,,,,q",
+			"wwwwwwwwwwwwwwwwwwwwwwqgg,,,L.,,g##,,Lhggg.,,..#..#...##,,L#######v#####,,.#,,,rr,.########,,#..,,....,,..#....##,,,,,q",
+			"wwwwwwwwwwwwwwwwwwwwwwqg...,,,,,g#.,,mgggg,,..##...R....,,ggh####vv#####,,###,,r,.########,,.#..,,#.#,,,,,....##.,,,,qw",
+			"wwwwwwwwwwwwwwwwwwwwwwqt.g#.,,,..##.,,....,....#.......,,.ghhg###v###.#,,.###,r,,,,######.,,#..,,###.,,..,,,..#.,,,,,qw",
+			"wwwwwwwwwwwwwwwwwwwwwq...h#.#.,,,L.##,,,.,,....#.#....L,,..gghgbvv##...,,###,,r,.,,,L####,,..#.,,..#,,.##.,,,,.L,,,,qww",
+			"wwwwwwwwwwwwwwwwwwwwwq..g#####..,,,..##,,,...#..m###..,,##..gtbbvbb...,,###.,r,.gh.,,,##,,.#.#,,..#.,,#####.,,,,,,,,qww",
+			"wwwwwwwwwwwwwwwwwwwwwq..g#gg.###.,,,,.##,,####..gh###,,.###..bbvbb...,,.###,,r,.gm.g.,,,,,###.,...#,,.######..,,,,,qwww",
+			"wwwwwwwwwwwwwwwwwwwwq..g#.gghgm##..,,,L,,L####m.ggg##,,######bvvb...L,,###L,r,,,L.hgg.,,,,###,,L.#,,.########.L,,,qwwww",
+			"wwwwwwwwwwwwwwwwwwwwq..##ghhghgm###..,,,...#...h#gg#,,.#######vbb...,,.##.,r,,,,...mtg.,,,,.,,#.#.,,#########.,,,,qwwww",
+			"wwwwwwwwwwwwwwwwwwwq..g#mghgggghg.##.,,,,......###g.,,#######vvb....,,###.,r,.,,.g....,,..,,,,###,,.########.,,,,qwwwww",
+			"wwwwwwwwwwwwwwwwwpwq.g..ghgggghghhg.#,,.,,,L....###,,########v####.,,.##.,r,,,,L#..g.,,,##.,,,L#.,,#########.,,,qwwwwww",
+			"wwwwwwwwwwwwwwwwpppt...gggghghhghggg,,.#..,,,.....,,.#######v#####,,,,..,,r,,,...###.,,##..,,,,,,,.########.,,,,qwwwwww",
 		],
-		"sorties": {"1": ["perrache", 12, 22], "2": ["darse", 12, 1]},
+		"sorties": {},
 		## Alternants sauvages qui se baladent. Cles optionnelles :
 		## "case" (depart fixe, sinon une case libre au hasard), "rayon"
 		## (distance max a sa case de depart, sinon aucune limite) et "gone"
@@ -223,44 +248,51 @@ const ZONES := {
 	},
 
 	&"darse": {
-		"titre": "La Darse — le bassin de la Confluence",
+		"titre": "La Darse — la place Nautique et l'EEMI",
 		"ressource": &"quenelle",
 		"tuile_ressource": Vector2i(5, 13),
 		"rencontres": [&"palou", &"tortheo", &"cecissoussou"],
 		"niveau_min": 7,
 		"niveau_max": 10,
-		"depart": Vector2i(12, 1),
+		"depart": Vector2i(58, 17),
 		"plan": [
-			"www#########11###############www",
-			"wwwqq,,,,,,,..,,,bvvb,,,,,,qqwww",
-			"wwwqq,,,L,,,..,,,bvvb,,,,,,qqwww",
-			"wwwqq###.###L....bvvb......qqwww",
-			"wwwqq###.###.....====......qqwww",
-			"wwwqq###.###.....bvvb......qqwww",
-			"wwwqqqqqqqqq..###bvvb######qqwww",
-			"wwwqqqqqqqqq..###bvvb######qqwww",
-			"wwwqqwwwwwww..###bvvb######qqwww",
-			"wwwqqwwwwwww..###bvvb######qqwww",
-			"wwwqqpppppww.n###bvvb######qqwww",
-			"wwwqqwwwwpww..###bvvb######qqwww",
-			"wwwwwwwwwpww..###bvvb......qqwww",
-			"wwwwwwwwwpww...R.====......qqwww",
-			"wwwwwwwwwpww.....bvvb......qqwww",
-			"wwwwwwwwwpww.....bvvb......qqwww",
-			"wwwqqpppppww....TbvvbT.....qqwww",
-			"wwwqqwwwwwww.....bvvb.t..t.qqwww",
-			"wwwqqwwwwwww..gggbvvbhhhhhhqqwww",
-			"wwwqqwwwwwww..gggbvvbhhhhhhqqwww",
-			"wwwqqqqqqqqq..gggbvvbhhRhhhqqwww",
-			"wwwqqqqqqqqq..gggbvvbhhhhhhqqwww",
-			"wwwqqtgggggg..j..bvvbggggggqqwww",
-			"wwwqqggggggg.....bvvbggggggqqwww",
-			"wwwqqggggggg.L...bvvbggggggqqwww",
-			"wwwqqggggggt....jbvvbggggggqqwww",
-			"wwwqq......................qqwww",
-			"www#########22###vvvv########www",
+			"wwwwwwwwwwwwwwwwp.....t.ghgghgggghg.,,###..,,,,.g.,,########v#####,,.,,,,r,.g....###,,##..,,##.,,,########.,,,,qwwwwwww",
+			"wwwwwwwwwwwwwwwwp........mhhghggggh,,.######.,,,.,,...#####v##.##,,###,,r,,ggt....#.,,##.,,..#.,,,,,######.,,,qwwwwwwww",
+			"wwwwwwwwwwwwwwwwq...tqt.t.m.ggghggm,,########..,,,,....####v#..#.,,###,,r,,.ghh.t..,,##..,,..#,,.#,,,.###.,,,,qwwwwwwww",
+			"wwwwwwwwwwwwwwwq..gggwqq.....ghghh,,###########L,,,,....##v##.#.,,###.,r,,,,,Lgm..,,.#..,,..#.,,###.,,,##.,,,qwwwwwwwww",
+			"wwwwwwwwwwwwwwq...gRgwwwq......gh,,.###########.,,,,,..bbvb#..#,,.###,,r,#.,,,....,,#...,,..#,,...###.,,,,,,,qwwwwwwwww",
+			"wwwwwwwwwwwwwwq..ghgwwwwwq,,.....,,###########.,,#..,,,bvvb#.#.,,.##.,r,.###.,,,.,,##..,,###,,.#..#####,,,,,qwwwwwwwwww",
+			"wwwwwwwwwwwwwq..ghhgwwwwwq,,,..L,,.###########,,.###..bbvbb..#,,..##,rq,###.##.,,,,##L,,L..L,,#..######L,,,,qwwwwwwwwww",
+			"wwwwwwwwwwwwwq.mhgghwwwwq,##,,,,,,###########.,,#####.bvvb,...,,###,qr,####.....,,,,#.,,...,,.#..#####.,,,,qwwwwwwwwwww",
+			"wwwwwwwwwwwwq..ghgggwwwwq,.###,,,....########,,#######bvbb,,.,,.##.qrq.###..###,,.,,,,,.#..,,#...#####.,,,qwwwwwwwwwwww",
+			"wwwwwwwwwwwwqmhhghwwwwwq,######,,,,....#####.,,#######vb#..,,,.###,,r,.##...###,,##.,,,L##,,..#######.,,,,qwwwwwwwwwwww",
+			"wwwwwwwwwwwwq.hggwwwwwq,g######..,,,...####.,,###gh###vb,##.,,,,..,r,.###...##,,#..#,,,,,.,.#.######..,,,qwwwwwwwwwwwww",
+			"wwwwwwwwwwwwq.ggggwwwwq,..g####..#.,,,....#,,.##ghgbbvbb.,,,,.,,,,r,,.##...##.,,#..,,##,,,,#########.,,,,qwwwwwwwwwwwww",
+			"wwwwwwwwwwwq.gghwwwwwq,Lg..g.#...##L,,,,...,,###ggtbvvb,L#,,.#..,,r,L.##..###,,####,,###,,,,#######.,,,,qwwwwwwwwwwwwww",
+			"wwwwwwwwwwwq.gggwwwwwq,.hgh.....#...##,,,.,,..###gbbv##,,,,,.##.,r,,,.##.###.,,#.#,,#...,,,,,,#####.,,,qwwwwwwwwwwwwwww",
+			"wwwwwwwwwwwq..ggwwwwq,..hghg..mh##...##,,,,,....##bvv####,,..##,,r,,,,..###.,,##..,,..#,,###,,,.##.,,,,qwwwwwwwwwwwwwww",
+			"wwwwwwwwwwwq...qwwwq,##m..gg...m..##..,,L,,,,.g..bbv#####,,.##.,r,...,,,..#,,#.##,,###.,,,,###,,,L.,,,qwwwwwwwwwwwwwwww",
+			"wwwwwwwwwwq...t.qwwq,.###g....hgm.g###,,,,.,,,,.bbv#####,,..#.,,,.###.,,,..,,#..,,####,,#.,####.,,,,,,qwwwwwwwwwwwwwwww",
+			"wwwwwwwwwwq.g....qq,#...###..mghgg..h##.,,...T,,bvv#####,..##.,r,######.,,,,.###,,###,,##m.ghh.#.,,,,qwwwwwwwwwwwwwwwww",
+			"wwwwwwwwwwq.ggg.t.,,.##..##gh.mgghg..##,,......bbvb####,,..#T,r,.#######.,,,,.#,,g.#L,,Lg.hgh.#.L,,,qwwwwwwwwwwwwwwwwww",
+			"wwwwwwwwwwq.gggg..,,,.##.#hhgh...ghm.#X,......,bvvb.##,,####,,r,#########,,,,,,,,.##,,#..tgh.##.,,,,qwwwwwwwwwwwwwwwwww",
+			"wwwwwwwwwq..##g....q,,,,,.h.g###....#.,,......bbvbb,,.,,###.,r,.########,,.#.,,,..#,,.#..ggg##..,,,qwwwwwwwwwwwwwwwwwww",
+			"wwwwwwwwwqqq###..ppwq.,,,,##..####...,,....R.bbv##..,,,.##.,,,,########L,,###,,,,,.,,#.....g##.,,,,qwwwwwwwwwwwwwwwwwww",
+			"wwwwwwwwwwwwqqqqppppppq.,,.########..,,.....,bvv####.,,,,#.,r,#########,,##.#,,..,,,.##...mh#.,,,,qwwwwwwwwwwwwwwwwwwww",
+			"wwwwwwwwwwwwwwwwppwpppwqq,,,.######.,,......bbv#######.,,,,r,.########.,,#..,,##..,,,..##.h#..,,,,qwwwwwwwwwwwwwwwwwwww",
+			"wwwwwwwwwwwwwwwwwwppppwwwqq,,,.####.,,.....bbv#########..,,r,#########,,#...,.###,,.,,,..###.,,,,qwwwwwwwwwwwwwwwwwwwww",
+			"wwwwwwwpwqqqqwwwwwwwpwwwwwwq.,,,##.,,......bvv#########..,r,,,#######,,##..,,###,,.#..,,,....,,,qwwwwwwwwwwwwwwwwwwwwww",
+			"wwwwwwwpwqt.tqqwwwwwwwwwwwwwqq.,,.,,......bbv##########.,r,,,,,######,,##.,,####,,#.#..,,,,.,,,,qwwwwwwwwwwwwwwwwwwwwww",
+			"wwwwwwwpq.gg.qqqqwwwwwwwwwwwwwqq,,,,L.....bvv#########..,r,.#.,,,###,,####,,###,,...###..,,,,,,qwwwwwwwwwwwwwwwwwwwwwww",
+			"wwwwwwwp..ghhwwqqqqwwwwwwwwwwwwwq.,,.....bbv#########..,r,..###,,,..,.#..,,.###,,#...####.,,,,,qwwwwwwwwwwwwwwwwwwwwwww",
+			"wwwwwwwwqmhggwwwwqqqqwwwwwwwwwwwwqq,,,..,bvv##.######.,,r,##.....,,,,###,,...#,,#.##..###.,,,,qwwwwwwwwwwwwwwwwwwwwwwww",
+			"wwwwwwwwq.hggwwwwwwq.qqwwwwwwwwwwwwqq,,,bbv##....###.L,r,.####.##L,,,,.#,,###,,......#...L,,,qwwwwwwwwwwwwwwwwwwwwwwwww",
+			"wwwwwwwwq.ghggwwwwq.#..qqwpwwwwwwwwwwq,bbvb##........,r,,..g#####.,,,,,,,####,,##...####.,,,,qwwwwwwwwwwwwwwwwwwwwwwwww",
+			"wwwwwwwwq.tgghwwwq.####..qqwppwwwwwwwwqbvvb..##..##..,r,.#...#.#R,,.#.,,,.##,,..##.......,,,qwwwwwwwwwwwwwwwwwwwwwwwwww",
+			"wwwwwwwq.mgghwwwwq.######..qqwppwwwwwwwwvbb,,.##.##.,r,.##h....#L,.###L,,,,.,,.....##...,,,,qwwwwwwwwwwwwwwwwwwwwwwwwww",
+			"wwwwwwwq.hghwwwwq.#########..qt.pwwwwwwwwwq,,,,.###,,r,##.h.#...,,##...#.,,,,###...###.,,,,qwwwwwwwwwwwwwwwwwwwwwwwwwww",
 		],
-		"sorties": {"1": ["sainte_blandine", 12, 24], "2": ["pointe", 12, 1]},
+		"sorties": {},
 		## Alternants sauvages qui se baladent. Cles optionnelles :
 		## "case" (depart fixe, sinon une case libre au hasard), "rayon"
 		## (distance max a sa case de depart, sinon aucune limite) et "gone"
@@ -272,42 +304,51 @@ const ZONES := {
 	},
 
 	&"pointe": {
-		"titre": "La Pointe — le musée et le confluent",
+		"titre": "Montrochet — l'Hôtel de Région et le centre commercial",
 		"ressource": &"cocon",
 		"tuile_ressource": Vector2i(4, 13),
 		"rencontres": [&"thomasu", &"paguera", &"guignome"],
 		"niveau_min": 10,
 		"niveau_max": 13,
-		"depart": Vector2i(12, 1),
+		"depart": Vector2i(59, 16),
 		"plan": [
-			"www#########11###############www",
-			"wwwqqthhhthh..hhhbvvbhthhhtqqwww",
-			"wwwqqhhhhhhh..hhhbvvbhhhhhhqqwww",
-			"wwwqqggggggh..hhhbvvbggggggqqwww",
-			"wwwqqggggggh..hhhbvvbggggggqqwww",
-			"wwwqqgggRggh..hhhbvvbggggggqqwww",
-			"wwwqqggggggh..hhhbvvbggRgggqqwww",
-			"wwwqqggggggh..hhhbvvbggggggqqwww",
-			"wwwqqhthhhhh..hhhbbbbhhhhthqqwww",
-			"wwwqqgtggggg.....bbbb......qqwww",
-			"wwwqqggggggqqqqqqqqqqgtggggqqwww",
-			"wwwqqggggggq########qggggggqqwww",
-			"wwwqqgggggtq########qggggggqqwww",
-			"wwwqqggtgggq########qggggtgqqwww",
-			"wwwqq......q########q......qqwww",
-			"wwwqq......q########q......qqwww",
-			"wwwqq......q########q......qqwww",
-			"wwwqq......LqqqqqqqqL......qqwww",
-			"wwwqq......qqqqqqqqqq......qqwww",
-			"wwwwwwwwwqqqqqqqqqqqqqqwwwwwwwww",
-			"wwwwwwwwwhthhhhhhhhhhthwwwwwwwww",
-			"wwwwwwwwwhgggggggggggghwwwwwwwww",
-			"wwwwwwwwwhgggggggggggghwwwwwwwww",
-			"wwwwwwwwwwwwwwsssswwwwwwwwwwwwww",
-			"wwwwwwwwwwwwwwsXsswwwwwwwwwwwwww",
-			"wwwwwwwwwwwwwwsssswwwwwwwwwwwwww",
+			"wwwwwwwq.##gwwwwq############...qwwwwwwwwwwqq,,,.#.,r,.##g..###,,.#....##.,,,,.#.......,,,qwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+			"wwwwwwwq.##hwwwq.##############..qqqwwwwwwwwwq.,,,,r,,##g.tg.#.,,.###...#.,,,,,..##...,,,,qwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+			"wwwwwwwq.##qwwq.#################...bbwwwwwwwwq.,,,r,###..g...,,...###m##,,...,,,.##.,,,,qwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+			"wwwwwwwq...,qwq.###################bb=bbwwwwwwq...r,,L###.hm..,,##...h.#.,,.....,,,L.,,,,qwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+			"wwwwwwwq..,,,q.#####################vbb.qqwwwq.t..r.....##...,,.#...m...,,##...##.,,,,,,qwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+			"wwwwwwwq..qq,,...,#################vv#.#..qqq....r..t.t...##,,.....###.,,..#.#####.,,,,qwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+			"wwwwwwqt.twwq,,.,,#################v######......r....R......,,...t.###L,,...######,,,,,qwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+			"wwwwwwq..hgwwq,,,..,,##############v########....r.t.t...t..,,......##g,,.##..#.##.,,,,qwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+			"wwwwwwqtmggww##,,,,,,,############v##########..r...........,,,....ghg.,.#g###..##,,,,,qwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+			"wwwwwwq..gtww###.,,,,,.##########v###########.rr.........L,,,,,L.....,,.#gg.##..,,,,,qwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+			"wwwwwwq..hwww###.#.,,,..,,#######v##########.qr......t.t..,,##,,,...,,.#ghgghg##.,,,qwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+			"wwwwwwq.qwwww#####,,,,,,,..####vvv##########.rq..........,,##.#.,,,.,,.###hhg##.,,,,qwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+			"wwwwwwq.mgwww#####,,,,,,,...###vv##########.qr..........,,##...##,,,,.g..#..##.,,,,qwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+			"wwwwwwq.thwwwww##,,hg,,,,,,..bvvv#########..rq......##..,,###...##,,,...g....#.,,,,qwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+			"wwwwwwq..ggwwww##,gg,,.##,,,bbvvb#########..r..#..#.##.,,,,,.##...,,.....g....,,,,qwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+			"wwwwwwq...gwww##,,gL,,L####bbvvbb########..r..##.#####.,..,,,L#.#,,.#.........,,,qwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+			"wwwwwwq..t.qwwq,,,g,,....###vvvb...######.r..##..####.,,m##.,,,..,,#.........,,,,qwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+			"wwwwwwq....Rqq...,,,T.....bbvvvb,,...###..r..##.####.,,.#hgT#,,,,,.........,,,,,qwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+			"wwwwwwq.###..t....,,.....bbvvv##,,,,L.#..r..#...####.,,####gg#.,,,L........,,,,,qwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+			"wwwwwwq.###......,,,,...bbvvv#####,,,....r..#...###.,,#..####.#..,,,......,,,,,qwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+			"wwwwwwq.###..t...,,,,,.bbvvvv######.,,,.rr.########.,.#...###...##,,,.....,,,,qwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+			"wwwwwwwq###.....,,bbbb,bvvvvv##...###.,rrrr.######L,,##..####..##...,,,L..,,,,qwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+			"wwwwwwwqghm....,,.bbvbbbvvvvb###.####,,r,,rr..###.,,.....###..g##.###.,,,,,,,qwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+			"wwwwwwwqgg.....,,bbbvbbvvvvvb##..####,r,,,,.r...#.,,##..####g..#R..##.#,,,,,,qwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+			"wwwwwwwq.g.t.L,,Lbbv#bvvvvvbb##.####,,r,L.,,,.r..,,.#..####..........##.,,,,qwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+			"wwwwwwwq......,,bbbv#vvvvvvb,,,.####,r,....,,,.rr,.##..####g.###....##..,,,qwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+			"wwwwwwwq.....,,b#bbvvvvvvvvb.,,,.##,r,,......,,,,,#....###...##.....##.,,,,qwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+			"wwwwwwwq.###L,,b#bbvvvvvvvbb..L,,,,,r,.........,,,.##...#g....#....##L,,,,qwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+			"wwwwwwwwq###.,,bbbbvvvvvvvb.....,,,r,,..........,,,..#.##..........##.,,,,qwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+			"wwwwwwwwq####,,,bbbvvvvvvbb......,,r,.............,,,..##.t.###...##.,,,,qwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+			"wwwwwwwwq####,,,bbbvvvvvvb......L,r,..............,,,,,...g.###....#L,,,qwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+			"wwwwwwwwq.###,,,bbbvvvvvvb....t.,r,,.................,,,...###...#..,,,,qwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+			"wwwwwwwwq.###,,,bbbvvvvvvb......,r,....................,,,.###..##.,,,,qwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+			"wwwwwwwwq..qwq,,bbbvvvvvbb.....,r,L...............##..gL,,,,.#####.,,,,qwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+			"wwwwwwwwqqqqwwqqbbvvvvvvbqqqqqqqrqqqqqqqqqqqqqqqqq###gbbbbqqqqq##qqqqqqwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
 		],
-		"sorties": {"1": ["darse", 12, 26]},
+		"sorties": {},
 		## Alternants sauvages qui se baladent. Cles optionnelles :
 		## "case" (depart fixe, sinon une case libre au hasard), "rayon"
 		## (distance max a sa case de depart, sinon aucune limite) et "gone"
@@ -373,6 +414,13 @@ static func haut_batiment(id: StringName, cellule_toit: Vector2i) -> Array:
 	if case_a(id, cellule_toit + Vector2i.RIGHT) != "#":
 		return [TUILES, TOIT_HAUT_DROITE]
 	return [TUILES, TOIT_HAUT]
+
+## La bande voisine au nord (sens = -1) ou au sud (sens = 1), ou &"" au bord du monde.
+static func zone_voisine(id: StringName, sens: int) -> StringName:
+	var i := ORDRE.find(id) + sens
+	if i < 0 or i >= ORDRE.size() or ORDRE.find(id) < 0:
+		return &""
+	return ORDRE[i]
 
 static func zone(id: StringName) -> Dictionary:
 	return ZONES.get(id, ZONES[&"perrache"])
