@@ -56,10 +56,9 @@ main, et nulle part ailleurs.
 | Guillaume | 18 nov. 2026 | Guillaume | ☐ | `assets/characters/pnj_guillaume/`, `tools/planches/pnj_guillaume.jpg` |
 | Célia | 18 nov. 2026 | Célia | ☐ | `assets/characters/pnj_celia/`, `tools/planches/pnj_celia.jpg` |
 | Gabriel | 18 nov. 2026 | Paguera | ☐ | `assets/characters/pnj_gabriel/`, `tools/planches/pnj_gabriel.jpg`, `pnj_gabriel_combat.jpg`, `data/gones/paguera.tres` |
-| Mathéo | 18 nov. 2026 | Mathéo | ☐ | `assets/characters/pnj_matheo/`, `tools/planches/pnj_matheo.jpg` |
+| Mathéo | 18 nov. 2026 | Matiti | ☐ | `assets/characters/pnj_matheo/`, `tools/planches/pnj_matheo.jpg`, `pnj_matheo_combat.jpg`, `data/gones/matiti.tres` |
 | Nael | 18 nov. 2026 | Nael — Directeur pédagogique | ☐ | *(boss, pas encore de sprite)* |
 | Tristan | 18 nov. 2026 | Tristan — recruteur | ☐ | *(boss, pas encore de sprite)* |
-| *(prénom à compléter)* | 18 nov. 2026 | Matiti | ☐ | *(pas encore de sprite)* |
 | *(prénom à compléter)* | 18 nov. 2026 | CeCissoussou | ☐ | *(pas encore de sprite)* |
 
 Il reste à leur faire **valider le sprite final** avant la mise en ligne, et à conserver
@@ -86,6 +85,6 @@ Matiti, Palou, Thomasu, Guignome, Tortheo, E1000, Paguera, Thibouclier, CeCissou
 Un surnom reste une donnée personnelle dès lors qu'il désigne quelqu'un de reconnaissable
 dans sa promo : il relève du même accord que le prénom.
 
-Trois d'entre eux ne sont connus ici que par leur nom de jeu — Matiti, CeCissoussou et
-Paguera. À compléter avec le prénom réel, pour que le retrait soit possible sur simple
-demande.
+Matiti est Mathéo et Paguera est Gabriel (18 nov. 2026). CeCissoussou n'est encore connu
+ici que par son nom de jeu : à compléter avec le prénom réel, pour que le retrait soit
+possible sur simple demande.

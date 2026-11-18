@@ -384,7 +384,7 @@ pour les sols et des placeholders pour les batiments.
   planche principale et ne prend que le combat. Le combat (`battle.gd`, `_jouer_combat`)
   les joue : l'attaquant frappe (poing ou pied au hasard), la cible encaisse, l'ennemi
   est retourné en miroir. L'image est calée sur la hauteur du cadre (`_afficher_image`).
-  Faits : Gabriel (Gone **Paguera**, pull olive), Émile, Julian, Mathéo, Paloma (marche
+  Faits : Gabriel (Gone **Paguera**, pull olive), Émile, Julian, Mathéo (Gone **Matiti**), Paloma (marche
   d'origine + combat), Thibaut (refait entièrement depuis sa planche de combat).
   **`pnj_generique_2` à `_6`** : planches reçues sans nom (t-shirt marine, pull rayé, polo
   vert, polo noir sans combat, voile marron), à renommer quand on saura qui c'est. Leur marche gauche/droite/haut reprend

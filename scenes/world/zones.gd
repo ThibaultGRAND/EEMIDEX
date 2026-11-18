@@ -384,7 +384,8 @@ const FIGURANTS := [
 	{"nom": "Célia", "frames": "res://assets/characters/pnj_celia/pnj_celia_frames.tres"},
 	# Gabriel : son Gone s'appelle Paguera
 	{"nom": "Paguera", "frames": "res://assets/characters/pnj_gabriel/pnj_gabriel_frames.tres", "gone": &"paguera"},
-	{"nom": "Mathéo", "frames": "res://assets/characters/pnj_matheo/pnj_matheo_frames.tres"},
+	# Mathéo : son Gone s'appelle Matiti
+	{"nom": "Matiti", "frames": "res://assets/characters/pnj_matheo/pnj_matheo_frames.tres", "gone": &"matiti"},
 	{"nom": "Alternante", "frames": "res://assets/characters/pnj_generique_6/pnj_generique_6_frames.tres"},
 	{"nom": "Alternant", "frames": "res://assets/characters/pnj_generique_2/pnj_generique_2_frames.tres"},
 	{"nom": "Alternant", "frames": "res://assets/characters/pnj_generique_3/pnj_generique_3_frames.tres"},
