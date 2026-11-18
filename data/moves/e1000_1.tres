@@ -14,3 +14,4 @@ precision = 85
 stat_modifiee = &""
 modificateur = 0
 soin = 0
+chance_critique = 20

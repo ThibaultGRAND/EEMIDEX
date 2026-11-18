@@ -14,3 +14,5 @@ precision = 95
 stat_modifiee = &""
 modificateur = 0
 soin = 0
+degats_min = 5
+degats_max = 45

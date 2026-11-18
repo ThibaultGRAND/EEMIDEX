@@ -101,6 +101,32 @@ minimum 1
 Une attaque qui rate ne fait rien : chaque attaque a une **précision** en pourcentage,
 tirée avant le calcul.
 
+### Les effets d'attaque **[en jeu]**
+
+| Effet | Ce qu'il fait |
+| --- | --- |
+| **Brûlure** | la cible perd N points de Motivation à la fin de chaque tour, pendant M tours |
+| **Étourdissement** | la cible passe son prochain tour |
+| **Dégâts aléatoires** | les dégâts sont tirés entre deux bornes, en ignorant Compétence et Défense |
+| **Coût en Motivation** | l'attaquant se blesse lui-même en frappant |
+| **Coup critique** | une chance en pourcentage de frapper une fois et demie plus fort |
+| **Recharge** | l'attaque est indisponible pendant N tours après usage |
+
+**Un seul état à la fois.** Un alternant est brûlé *ou* étourdi, jamais les deux : un
+nouvel état remplace le précédent. C'est une règle de lisibilité autant que de code —
+le joueur voit une seule pastille, et sait toujours ce qui le touche.
+
+Les états et les recharges disparaissent à la fin du combat. Les dégâts aléatoires
+ignorent volontairement la Compétence et la Défense : c'est tout l'intérêt d'une attaque
+imprévisible, elle ne récompense ni l'entraînement ni le choix du type.
+
+### Ce qui n'est pas implémenté
+
+Les **passives** — six alternants en ont une — n'ont aucun système : elles se
+déclencheraient sans être choisies, ce que le tour par tour actuel ne sait pas faire.
+L'**esquive** et le **renvoi de dégâts** non plus. Les attaques concernées existent avec
+leurs dégâts, et leur description dit ce qui manque.
+
 ### Les attaques de soutien **[en jeu]**
 
 Une attaque de puissance 0 ne fait pas de dégâts. Elle peut :

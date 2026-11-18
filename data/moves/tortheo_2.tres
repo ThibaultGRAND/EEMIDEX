@@ -14,3 +14,4 @@ precision = 100
 stat_modifiee = &"attaque"
 modificateur = 2
 soin = 0
+cout_pv = 5

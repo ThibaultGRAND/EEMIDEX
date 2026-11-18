@@ -228,16 +228,39 @@ func _choisir_action() -> void:
 func _tour_complet(attaque: MoveData) -> void:
 	_mode = Mode.MESSAGE
 	if _actif.vitesse() >= _ennemi.vitesse():
-		await _executer(_actif, _ennemi, attaque)
+		await _agir(_actif, _ennemi, attaque)
 		if not _ennemi.est_ko():
 			await _tour_ennemi()
 	else:
 		await _tour_ennemi()
 		if not _actif.est_ko():
-			await _executer(_actif, _ennemi, attaque)
+			await _agir(_actif, _ennemi, attaque)
+	await _fin_de_tour()
 	await _apres_tour()
 
+## Un alternant etourdi passe son tour : c'est la seule chose qui l'empeche
+## d'agir, et ca lui coute son attaque, pas seulement ses degats.
+func _agir(attaquant: GoneInstance, cible: GoneInstance, attaque: MoveData) -> void:
+	if attaquant.est_etourdi():
+		await _dire("%s est sonné : il passe son tour." % attaquant.nom())
+		return
+	await _executer(attaquant, cible, attaque)
+
+## Fin de tour : les brulures mordent, les recharges s'egrenent.
+func _fin_de_tour() -> void:
+	for combattant: GoneInstance in [_actif, _ennemi]:
+		var degats := combattant.consumer_etat()
+		if degats > 0:
+			_rafraichir()
+			await _dire("%s perd %d de Motivation : il brûle encore."
+				% [combattant.nom(), degats])
+		combattant.egrener_recharges()
+	_rafraichir()
+
 func _tour_ennemi() -> void:
+	if _ennemi.est_etourdi():
+		await _dire("%s est sonné : il passe son tour." % _ennemi.nom())
+		return
 	var attaques := _attaques_possibles(_ennemi)
 	if attaques.is_empty():
 		return
@@ -254,13 +277,32 @@ func _executer(attaquant: GoneInstance, cible: GoneInstance, attaque: MoveData) 
 		if attaque.soin > 0:
 			attaquant.soigner(attaque.soin)
 			await _dire("%s récupère %d PV." % [attaquant.nom(), attaque.soin])
-	elif attaque.puissance > 0:
+	elif attaque.puissance > 0 or attaque.degats_max > 0:
 		var affinite := Affinites.multiplicateur(attaque.type, cible.data.type)
 		var degats := _degats(attaquant, cible, attaque, affinite)
+		var critique := attaque.chance_critique > 0 and randi() % 100 < attaque.chance_critique
+		if critique:
+			degats = int(degats * 1.5)
 		cible.subir(degats)
 		_rafraichir()
 		var commentaire := Affinites.commentaire(affinite)
+		if critique:
+			commentaire = "Coup critique ! " + commentaire
 		await _dire("%d de Motivation en moins.%s" % [degats, "  " + commentaire if commentaire != "" else ""])
+	# L'etat pose, s'il y en a un. Un nouvel etat remplace le precedent.
+	if attaque.etourdit:
+		cible.appliquer_etat(GoneInstance.ETAT_ETOURDI, 1)
+		await _dire("%s ne sait plus où il habite." % cible.nom())
+	elif attaque.brulure_tours > 0:
+		cible.appliquer_etat(GoneInstance.ETAT_BRULURE, attaque.brulure_tours,
+			attaque.brulure_degats)
+		await _dire("%s est en feu pour %d tours." % [cible.nom(), attaque.brulure_tours])
+	# Ce que l'attaque coute a celui qui la lance.
+	if attaque.cout_pv > 0:
+		attaquant.subir(attaque.cout_pv)
+		_rafraichir()
+		await _dire("%s s'inflige %d de Motivation au passage." % [attaquant.nom(), attaque.cout_pv])
+	attaquant.lancer_recharge(attaque)
 	if attaque.stat_modifiee != &"" and attaque.modificateur != 0:
 		var beneficiaire := attaquant if attaque.cible == MoveData.Cible.SOI else cible
 		_appliquer_modificateur(beneficiaire, attaque.stat_modifiee, attaque.modificateur * 2)
@@ -286,6 +328,10 @@ func _attaques_possibles(alternant: GoneInstance) -> Array:
 
 func _degats(attaquant: GoneInstance, cible: GoneInstance, attaque: MoveData,
 		affinite: float = Affinites.NORMAL) -> int:
+	# Une attaque a degats aleatoires ignore la puissance, la Competence et la
+	# Defense : c'est tout son interet, elle est imprevisible.
+	if attaque.degats_max > 0:
+		return maxi(1, int(randi_range(attaque.degats_min, attaque.degats_max) * affinite))
 	var base := float(attaque.puissance) * float(attaquant.attaque()) / float(maxi(1, cible.defense()))
 	return maxi(1, int(base * affinite * randf_range(0.85, 1.0)))
 
@@ -427,6 +473,8 @@ func _quitter(message: String) -> void:
 		return
 	_fini = true
 	_retirer_modificateurs()
+	for combattant: GoneInstance in GameState.equipe:
+		combattant.oublier_les_etats()
 	GameState.rencontre_en_attente = null
 	GameState.combat_est_boss = false
 	GameState.pnj_en_combat = &""

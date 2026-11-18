@@ -12,6 +12,18 @@ var bonus_attaque: int = 0
 var bonus_defense: int = 0
 var bonus_vitesse: int = 0
 
+## L'etat de combat et sa duree. Un seul a la fois : un nouvel etat remplace
+## le precedent. L'interface l'affiche en pastille, voir docs/interface.md.
+const ETAT_BRULURE := &"brulure"
+const ETAT_ETOURDI := &"etourdi"
+
+var etat: StringName = &""
+var etat_tours: int = 0
+## Degats par tour quand l'etat est une brulure.
+var etat_degats: int = 0
+## id d'attaque -> tours d'attente restants.
+var recharges: Dictionary = {}
+
 func _init(p_data: GoneData = null, p_niveau: int = 5) -> void:
 	data = p_data
 	niveau = p_niveau
@@ -67,7 +79,7 @@ func cafe_plein() -> void:
 
 ## Peut-il se payer cette attaque ?
 func peut_lancer(attaque: MoveData) -> bool:
-	return attaque != null and cafe >= attaque.cout_cafe()
+	return attaque != null and cafe >= attaque.cout_cafe() and not est_en_recharge(attaque)
 
 func attaque() -> int:
 	if data == null:
@@ -83,6 +95,55 @@ func vitesse() -> int:
 	if data == null:
 		return 1
 	return data.base_vitesse + bonus_vitesse + (niveau - 1) + stade() * EVOLUTION_AUTRES
+
+## Remet a zero ce qui ne survit pas au combat.
+func oublier_les_etats() -> void:
+	etat = &""
+	etat_tours = 0
+	etat_degats = 0
+	recharges.clear()
+
+## Pose un etat. Il remplace celui en cours, s'il y en avait un.
+func appliquer_etat(nouvel_etat: StringName, tours: int, degats: int = 0) -> void:
+	etat = nouvel_etat
+	etat_tours = tours
+	etat_degats = degats
+
+func est_etourdi() -> bool:
+	return etat == ETAT_ETOURDI and etat_tours > 0
+
+## Fait passer un tour a l'etat en cours. Renvoie les degats subis, 0 sinon.
+func consumer_etat() -> int:
+	if etat_tours <= 0:
+		etat = &""
+		return 0
+	var degats := 0
+	if etat == ETAT_BRULURE:
+		degats = etat_degats
+		subir(degats)
+	etat_tours -= 1
+	if etat_tours <= 0:
+		etat = &""
+		etat_degats = 0
+	return degats
+
+## Une attaque en recharge ne peut pas etre relancee.
+func est_en_recharge(attaque: MoveData) -> bool:
+	return int(recharges.get(attaque.id, 0)) > 0
+
+func tours_de_recharge(attaque: MoveData) -> int:
+	return int(recharges.get(attaque.id, 0))
+
+func lancer_recharge(attaque: MoveData) -> void:
+	if attaque.recharge > 0:
+		recharges[attaque.id] = attaque.recharge
+
+## Fait passer un tour a toutes les recharges en cours.
+func egrener_recharges() -> void:
+	for id: StringName in recharges.keys():
+		recharges[id] = maxi(0, int(recharges[id]) - 1)
+		if recharges[id] == 0:
+			recharges.erase(id)
 
 func est_ko() -> bool:
 	return pv <= 0

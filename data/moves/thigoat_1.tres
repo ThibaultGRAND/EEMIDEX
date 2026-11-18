@@ -14,3 +14,5 @@ precision = 95
 stat_modifiee = &""
 modificateur = 0
 soin = 0
+brulure_degats = 3
+brulure_tours = 2
