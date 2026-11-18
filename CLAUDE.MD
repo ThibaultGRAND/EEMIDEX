@@ -159,9 +159,9 @@ Le cocon n'a pas encore de mini-jeu : il ne sert qu'à la boutique, en attendant
 
 ### Démo de personnages (hors jeu)
 
-Prototype isolé, **non branché au jeu** : `scenes/main.tscn` (+ `scenes/player*.tscn`,
-`scripts/main.gd`, `scripts/player.gd`, `assets/characters/`). Trois personnages en
-8 directions, découpés depuis des planches fournies par l'équipe (fond vert détouré).
+Prototype isolé, **non branché au jeu** : `scenes/main.tscn` (+ `scenes/pnj_*.tscn`,
+`scripts/main.gd`, `scripts/pnj.gd`, `assets/characters/`). Quatre PNJ (PnjSeb, PnjThomas, PnjJulian, PnjPaloma) en
+8 directions, découpés depuis des planches fournies par l'équipe (fond vert ou magenta détouré).
 La résolution 320×180 va changer : la taille des sprites n'est pas encore calée dessus.
 Reste à faire avant de les brancher au jeu :
 

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://vw78ae12wtah"
-path="res://.godot/imported/player2_sheet.png-fd0c7c873572bd6728b058f25df2b8c8.ctex"
+uid="uid://bkvxn1oux654a"
+path="res://.godot/imported/pnj_julian_sheet.png-a26eda59218e76fc5d892b48d6e234b0.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/characters/player2/player2_sheet.png"
-dest_files=["res://.godot/imported/player2_sheet.png-fd0c7c873572bd6728b058f25df2b8c8.ctex"]
+source_file="res://assets/characters/pnj_julian/pnj_julian_sheet.png"
+dest_files=["res://.godot/imported/pnj_julian_sheet.png-a26eda59218e76fc5d892b48d6e234b0.ctex"]
 
 [params]
 

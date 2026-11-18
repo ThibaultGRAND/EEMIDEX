@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
-[ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2_player"]
-[ext_resource type="PackedScene" path="res://scenes/player2.tscn" id="3_player2"]
-[ext_resource type="PackedScene" path="res://scenes/player3.tscn" id="4_player3"]
+[ext_resource type="PackedScene" path="res://scenes/pnj_seb.tscn" id="2_pnj_seb"]
+[ext_resource type="PackedScene" path="res://scenes/pnj_thomas.tscn" id="3_pnj_thomas"]
+[ext_resource type="PackedScene" path="res://scenes/pnj_julian.tscn" id="4_pnj_julian"]
+[ext_resource type="PackedScene" path="res://scenes/pnj_paloma.tscn" id="5_pnj_paloma"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_main")
@@ -15,13 +16,16 @@ offset_right = 2000.0
 offset_bottom = 2000.0
 color = Color(0.35, 0.55, 0.35, 1)
 
-[node name="Player" parent="." instance=ExtResource("2_player")]
+[node name="PnjSeb" parent="." instance=ExtResource("2_pnj_seb")]
 
-[node name="Player2" parent="." instance=ExtResource("3_player2")]
+[node name="PnjThomas" parent="." instance=ExtResource("3_pnj_thomas")]
 position = Vector2(160, 0)
 
-[node name="Player3" parent="." instance=ExtResource("4_player3")]
+[node name="PnjJulian" parent="." instance=ExtResource("4_pnj_julian")]
 position = Vector2(-160, 0)
+
+[node name="PnjPaloma" parent="." instance=ExtResource("5_pnj_paloma")]
+position = Vector2(320, 0)
 
 [node name="Help" type="CanvasLayer" parent="."]
 
