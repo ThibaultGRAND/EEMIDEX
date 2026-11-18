@@ -48,20 +48,22 @@ func _process(delta: float) -> void:
 	_fleche.visible = fmod(_temps_fleche, PERIODE_CLIGNOTEMENT) < PERIODE_CLIGNOTEMENT * 0.5
 
 ## Affiche un texte ou une suite de textes. À `await` pour attendre la fin.
-func afficher(contenu: Variant) -> Signal:
+## `locuteur` (facultatif) préfixe chaque page : « GÉRARD : … ». Vide = narration.
+func afficher(contenu: Variant, locuteur: String = "") -> Signal:
 	_pages.clear()
 	if contenu is Array:
 		for page in contenu:
-			_pages.append(String(page))
+			_pages.append(_avec_locuteur(String(page), locuteur))
 	else:
-		_pages.append(String(contenu))
+		_pages.append(_avec_locuteur(String(contenu), locuteur))
 	_page = -1
 	_page_suivante()
 	return dialogue_termine
 
 ## Affiche un texte qui reste à l'écran, sans flèche et sans attendre Entrée :
 ## l'invite d'un menu (« Que fait Thigoat ? »). Le clavier va au menu.
-func afficher_invite(texte: String) -> void:
+func afficher_invite(texte: String, locuteur: String = "") -> void:
+	texte = _avec_locuteur(texte, locuteur)
 	_arreter_animations()
 	_pages.clear()
 	_page = -1
@@ -89,6 +91,9 @@ func passer() -> void:
 		return
 	page_validee.emit()
 	_page_suivante()
+
+func _avec_locuteur(texte: String, locuteur: String) -> String:
+	return texte if locuteur == "" else "%s : %s" % [locuteur, texte]
 
 ## Vide la boîte sans émettre quoi que ce soit.
 func vider() -> void:
