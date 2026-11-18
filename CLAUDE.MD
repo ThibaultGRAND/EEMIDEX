@@ -157,6 +157,18 @@ Le cocon n'a pas encore de mini-jeu : il ne sert qu'à la boutique, en attendant
   constantes de `GameState`. Les mini-jeux et le combat n'appellent jamais la carte
   directement : ils écrivent leur résultat dans `GameState` et rendent la main.
 
+### Démo de personnages (hors jeu)
+
+Prototype isolé, **non branché au jeu** : `scenes/main.tscn` (+ `scenes/player*.tscn`,
+`scripts/main.gd`, `scripts/player.gd`, `assets/characters/`). Trois personnages en
+8 directions, découpés depuis des planches fournies par l'équipe (fond vert détouré).
+La résolution 320×180 va changer : la taille des sprites n'est pas encore calée dessus.
+Reste à faire avant de les brancher au jeu :
+
+- pas encore de suivi de consentement pour les personnes représentées ;
+- touches codées en dur (Maj, Tab) au lieu de l'InputMap ;
+- dossier `assets/characters/` au lieu de `assets/sprites/`.
+
 ### Reste à faire pour le MVP
 
 - [x] Figer la version de Godot : **4.7.2 stable** (`project.godot` et la CI sont alignés)

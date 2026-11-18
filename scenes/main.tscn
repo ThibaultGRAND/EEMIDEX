@@ -1,0 +1,33 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2_player"]
+[ext_resource type="PackedScene" path="res://scenes/player2.tscn" id="3_player2"]
+[ext_resource type="PackedScene" path="res://scenes/player3.tscn" id="4_player3"]
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_main")
+
+[node name="Background" type="ColorRect" parent="."]
+offset_left = -2000.0
+offset_top = -2000.0
+offset_right = 2000.0
+offset_bottom = 2000.0
+color = Color(0.35, 0.55, 0.35, 1)
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+
+[node name="Player2" parent="." instance=ExtResource("3_player2")]
+position = Vector2(160, 0)
+
+[node name="Player3" parent="." instance=ExtResource("4_player3")]
+position = Vector2(-160, 0)
+
+[node name="Help" type="CanvasLayer" parent="."]
+
+[node name="Label" type="Label" parent="Help"]
+offset_left = 16.0
+offset_top = 12.0
+offset_right = 800.0
+offset_bottom = 40.0
+text = "Flèches : se déplacer   |   Maj : plus vite   |   Tab : changer de personnage"
