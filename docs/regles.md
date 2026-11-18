@@ -112,7 +112,7 @@ Les modifications de stat durent **jusqu'à la fin du combat** et sont annulées
 sortie. Elles se cumulent sans plafond. *(Un plafond serait plus sain : à surveiller
 à l'équilibrage.)*
 
-### Le Café **[à faire]**
+### Le Café **[en jeu]**
 
 L'énergie dépensée par les attaques. C'est ce qui empêche de marteler la même grosse
 attaque du début à la fin.
