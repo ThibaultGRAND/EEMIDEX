@@ -21,35 +21,58 @@ const BLOQUANTS := "#wt"
 
 ## Sols simples ou les PNJ ont le droit de se balader (pas d'herbe haute,
 ## de traboule, de sortie ni de lieu special).
-const SOLS_PNJ := ".,qhsd"
+const SOLS_PNJ := ".,mqhsd"
 
-## Sol pose sur la couche du bas, pour chaque caractere.
+## Les deux sources du TileSet assets/tilesets/lyon.tres.
+const IMPORT := 0        # les tuiles dessinees par l'equipe
+const PLACEHOLDER := 1   # ce qui manque encore, en attendant
+
+## Sol pose sur la couche du bas : caractere -> [source, case de l'atlas].
 const SOLS := {
-	"#": Vector2i(3, 0), ".": Vector2i(0, 0), ",": Vector2i(1, 0),
-	"q": Vector2i(2, 0), "w": Vector2i(6, 0), "s": Vector2i(7, 0),
-	"h": Vector2i(4, 0), "g": Vector2i(5, 0), "t": Vector2i(4, 0),
-	"d": Vector2i(3, 0),
-	"S": Vector2i(0, 1), "B": Vector2i(1, 1), "M": Vector2i(2, 1),
-	"T": Vector2i(3, 1), "R": Vector2i(4, 1), "X": Vector2i(2, 0),
-	"1": Vector2i(5, 1), "2": Vector2i(5, 1), "3": Vector2i(5, 1),
+	"#": [IMPORT, Vector2i(4, 0)],      # terre, sous les batiments
+	".": [IMPORT, Vector2i(0, 0)],      # pave lyonnais
+	",": [IMPORT, Vector2i(1, 0)],      # pave use
+	"m": [IMPORT, Vector2i(2, 0)],      # pave avec mousse
+	"q": [IMPORT, Vector2i(3, 0)],      # dalle de quai
+	"d": [IMPORT, Vector2i(4, 0)],      # terre et gravier
+	"h": [IMPORT, Vector2i(5, 0)],      # herbe courte
+	"g": [IMPORT, Vector2i(6, 0)],      # herbe haute : declenche les rencontres
+	"w": [IMPORT, Vector2i(7, 0)],      # eau
+	"s": [IMPORT, Vector2i(6, 1)],      # sable de berge
+	"t": [IMPORT, Vector2i(5, 0)],      # herbe, sous l'arbre
+	"S": [IMPORT, Vector2i(3, 0)],
+	"B": [IMPORT, Vector2i(3, 0)],
+	"M": [IMPORT, Vector2i(3, 0)],
+	"T": [IMPORT, Vector2i(3, 0)],
+	"R": [IMPORT, Vector2i(5, 0)],      # l'objet a ramasser est en decor
+	"X": [IMPORT, Vector2i(3, 0)],
+	"1": [IMPORT, Vector2i(0, 14)],     # marqueur de sortie grave au sol
+	"2": [IMPORT, Vector2i(0, 14)],
+	"3": [IMPORT, Vector2i(0, 14)],
 }
 
 ## Volume pose sur la couche du haut, triee en profondeur.
 const DECORS := {
-	"#": Vector2i(0, 2), "t": Vector2i(5, 2),
-	"S": Vector2i(6, 3), "B": Vector2i(5, 3), "M": Vector2i(3, 3),
-	"T": Vector2i(4, 3), "X": Vector2i(7, 3),
+	"#": [PLACEHOLDER, Vector2i(0, 2)],   # mur : planche 5 a refaire
+	"t": [PLACEHOLDER, Vector2i(5, 2)],   # arbre : planche 9 jamais recue
+	"S": [PLACEHOLDER, Vector2i(6, 3)],   # croix de soin
+	"B": [PLACEHOLDER, Vector2i(5, 3)],   # enseigne de boutique
+	"X": [PLACEHOLDER, Vector2i(7, 3)],   # le gardien de Fourviere
+	"M": [IMPORT, Vector2i(7, 13)],       # borne d'entrainement
+	"T": [IMPORT, Vector2i(6, 13)],       # porche de traboule
 }
 
 ## Partie haute des volumes qui font deux cases, posee sur la case du dessus.
 const DECORS_HAUT := {
-	"#": Vector2i(1, 2), "t": Vector2i(6, 2),
+	"#": [PLACEHOLDER, Vector2i(1, 2)],
+	"t": [PLACEHOLDER, Vector2i(6, 2)],
 }
 
 const ZONES := {
 	&"presquile": {
 		"titre": "Presqu'île — Bellecour",
 		"ressource": &"praline",
+		"tuile_ressource": Vector2i(3, 13),
 		"rencontres": [&"generique_gone", &"generique_quenellon"],
 		"niveau_min": 3,
 		"niveau_max": 5,
@@ -88,6 +111,7 @@ const ZONES := {
 	&"vieux_lyon": {
 		"titre": "Vieux Lyon — les traboules",
 		"ressource": &"cocon",
+		"tuile_ressource": Vector2i(4, 13),
 		"rencontres": [&"generique_gone", &"generique_traboulin"],
 		"niveau_min": 5,
 		"niveau_max": 8,
@@ -123,6 +147,7 @@ const ZONES := {
 	&"fourviere": {
 		"titre": "Fourvière — la colline",
 		"ressource": &"quenelle",
+		"tuile_ressource": Vector2i(5, 13),
 		"rencontres": [&"generique_traboulin", &"generique_quenellon"],
 		"niveau_min": 8,
 		"niveau_max": 11,

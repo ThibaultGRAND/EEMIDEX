@@ -111,6 +111,9 @@ res://
 ## Règles du projet
 
 - Aucun Gone sans l'accord écrit de l'étudiant concerné. Un étudiant qui refuse est remplacé par un Gone générique.
+- **Les PNJ de la carte ne passent pas par ce garde-fou** : ils sont codés dans
+  `zones.gd`, pas chargés depuis un `.tres`. Tout PNJ portant un prénom réel doit être
+  inscrit à la main dans `docs/consentement.md`, accord reçu avant le commit.
 - Les sprites et le pixel art sont faits par l'équipe. Claude ne génère pas d'assets graphiques, sauf placeholders explicitement marqués `placeholder_`.
 - Rester dans le périmètre MVP (3 zones, 8 à 12 Gones, combat 1 contre 1, 2 mini-jeux, 1 sauvegarde). Toute fonctionnalité en plus : la proposer, ne pas la coder.
 - Pas d'addon ni de plugin de l'Asset Library sans validation de l'équipe.
