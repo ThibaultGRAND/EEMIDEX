@@ -38,9 +38,27 @@ son accord écrit**, et chacun peut se retirer à tout moment, sans avoir à se 
 
 ## Suivi
 
+### PNJ de la carte
+
+Ces quatre-là ne passent **pas** par le garde-fou `consentement_recu` : ce sont des PNJ
+codés dans `scenes/world/zones.gd`, pas des Gones. Leur accord se suit donc ici, à la
+main, et nulle part ailleurs.
+
+| Étudiant | Accord reçu le | Nom en jeu | Sprite validé | Fichiers |
+| --- | --- | --- | --- | --- |
+| Julian | 18 nov. 2026 | Julian | ☐ | `assets/sprites/pnj_julian.png`, `assets/characters/pnj_julian/` |
+| Seb | 18 nov. 2026 | Seb | ☐ | `assets/sprites/pnj_seb.png`, `assets/characters/pnj_seb/` |
+| Thomas | 18 nov. 2026 | Thomas | ☐ | `assets/sprites/pnj_thomas.png`, `assets/characters/pnj_thomas/` |
+| Paloma | 18 nov. 2026 | Paloma | ☐ | `assets/sprites/pnj_paloma.png`, `assets/characters/pnj_paloma/` |
+
+Il reste à leur faire **valider le sprite final** avant la mise en ligne, et à conserver
+les accords écrits hors du dépôt.
+
+### Gones
+
 | Étudiant | Accord reçu le | Nom en jeu | Sprite validé | Fichier `.tres` |
 | --- | --- | --- | --- | --- |
-| *(exemple)* | *(à remplir)* | *(à remplir)* | ☐ | `data/gones/____.tres` |
+| *(aucun pour l'instant)* | | | ☐ | `data/gones/____.tres` |
 
 ## Points de vigilance
 
