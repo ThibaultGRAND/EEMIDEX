@@ -677,7 +677,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		_input_dialogue(event)
 		return
 	if event.is_action_pressed("ui_cancel"):
-		_ouvrir_menu(&"pause", "Menu", ["Inventaire", "Carte", "Sauvegarder", "Retour au titre", "Reprendre"])
+		_ouvrir_menu(&"pause", "Menu", ["Équipe", "Carte", "Sauvegarder", "Retour au titre", "Reprendre"])
 		return
 	if event.is_action_pressed("ui_accept"):
 		_interagir()
@@ -880,7 +880,7 @@ func _sur_carte_fermee() -> void:
 
 func _menu_pause(choix: String) -> void:
 	match choix:
-		"Inventaire":
+		"Équipe":
 			_fermer_menu()
 			_mode = Mode.INVENTAIRE
 			_inventaire.ouvrir()

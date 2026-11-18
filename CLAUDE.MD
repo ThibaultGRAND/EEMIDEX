@@ -286,8 +286,8 @@ pour les sols et des placeholders pour les batiments.
   colorées, flèches, Parfait/Bien/Raté, combo. Frappe : sac de frappe, barre à 3 zones
   avec légende, la zone bouge à partir de la difficulté 4. Couleurs `MINIJEU_*` dans
   `PaletteUi`.
-- `scenes/ui/inventaire.tscn` — **inventaire** (menu pause > « Inventaire », remplace
-  l'ancien écran « Équipe » en texte). Onglets Équipe / Sac (← →) : liste à gauche
+- `scenes/ui/inventaire.tscn` — **écran Équipe** (menu pause > « Équipe », remplace
+  l'ancien écran en texte ; le fichier et la classe s'appellent encore `Inventaire`). Onglets Équipe / Sac (← →) : liste à gauche
   (`ListeMenu`), fiche à droite (portrait, `FicheCombattant`, stade et prochain palier,
   ATT/DEF/VIT avec le bonus gagné aux mini-jeux, capacités résumées : dégâts, effets,
   café). Nœuds construits dans `inventaire.gd` ; `world.gd` passe en `Mode.INVENTAIRE`.
