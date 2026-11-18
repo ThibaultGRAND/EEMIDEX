@@ -3,11 +3,13 @@ extends RefCounted
 ## Les 4 zones du MVP, decrites en texte. Une ligne = une rangee de cases.
 ## world.gd construit les TileMapLayer a partir de ces plans.
 ##
-## Le quartier de la Confluence, parcouru du nord au sud : la gare de Perrache,
-## le faubourg Sainte-Blandine, le bassin de la darse, puis la pointe sud et le
-## Musee des Confluences. La Saone coule a l'ouest (a gauche), le Rhone a l'est
-## (a droite), les deux se rejoignent en bas de la derniere zone, et les voies
-## ferrees descendent au milieu du quartier.
+## Une seule carte de la Confluence, generee depuis OpenStreetMap par
+## tools/osm_vers_zones.py : de la gare de Perrache a la rue Paul-Montrochet, la
+## Saone a gauche, le Rhone a droite. Carte simplifiee : 16 m par case, rues
+## principales, ilots pleins, une seule voie ferree. Tournee de 31 degres pour que
+## le quadrillage des rues tombe droit. Coupee en 4 bandes collees (ORDRE) :
+## Perrache, Sainte-Blandine, Charlemagne (l'EEMI, combat final) et la Darse
+## (Montrochet). Les ids des zones n'ont pas change.
 ##
 ## Legende :
 ##   #  batiment / mur (bloquant)     .  pave           ,  pave use
@@ -23,10 +25,15 @@ extends RefCounted
 ##   T  passage sous les voies   R  ressource    X  combat de fin
 ##   1 2 3  sortie vers une autre zone
 
-## Tous les plans font 32 caracteres de large ; la hauteur varie d'une zone a
+## Tous les plans font LARGEUR caracteres de large ; la hauteur varie d'une zone a
 ## l'autre, la camera suit le joueur et se borne sur taille_pixels().
-const LARGEUR := 32
+const LARGEUR := 60
 const TAILLE_CASE := 16
+
+## Les zones sont des bandes d'une seule carte, collees du nord au sud : on passe de
+## l'une a l'autre en sortant par le haut ou par le bas, sur la meme colonne.
+## La carte du monde (carte_monde.gd) les dessine dans cet ordre, sans ecart.
+const ORDRE: Array[StringName] = [&"perrache", &"sainte_blandine", &"darse", &"pointe"]
 
 ## Cases que le joueur ne peut pas traverser.
 const BLOQUANTS := "#wtvjn"
@@ -130,7 +137,7 @@ const TOIT_HAUT_DROITE := Vector2i(5, 4)
 
 const ZONES := {
 	&"perrache": {
-		"titre": "Perrache — la gare et les voûtes",
+		"titre": "Perrache — la gare et le cours de Verdun",
 		"ressource": &"praline",
 		## Boucle de GameState.BOUCLES jouee sous la musique. Les zones sans
 		## "ambiance" sont silencieuses.
@@ -140,34 +147,33 @@ const ZONES := {
 		"rencontres": [&"thigoat", &"seb", &"thibouclier"],
 		"niveau_min": 3,
 		"niveau_max": 5,
-		"depart": Vector2i(12, 10),
+		"depart": Vector2i(35, 18),
 		"plan": [
-			"www##########################www",
-			"wwwqqt,,,L,,,,,,,,,,R,L,,,,qqwww",
-			"wwwqq,,S,T,n,,,n,,,,,,,,B,tqqwww",
-			"wwwqq####################..qqwww",
-			"wwwqq####################..qqwww",
-			"wwwqq####################..qqwww",
-			"wwwqq####################..qqwww",
-			"wwwqq####################..qqwww",
-			"wwwqq####################..qqwww",
-			"wwwqq....T...........L.....qqwww",
-			"wwwqq.........L............qqwww",
-			"wwwqq..,.........bvvb......qqwww",
-			"wwwqq##,####..###bvvb######qqwww",
-			"wwwqq##,####..###bvvb######qqwww",
-			"wwwqq##,####..###bvvb######qqwww",
-			"wwwqq##,####..###====######qqwww",
-			"wwwqq..,....L....bvvb......qqwww",
-			"wwwqq..,j,,j.....bvvb......qqwww",
-			"wwwqq##,,,,,..###bvvb######qqwww",
-			"wwwqq##,,R,,..###bvvb######qqwww",
-			"wwwqq##,,,n,..###====######qqwww",
-			"wwwqq##,,,,,.L###bvvb######qqwww",
-			"wwwqq......................qqwww",
-			"www#########22###vvvv########www",
+			"wwwwwwwwwwwwwwwq###,######,####,,##qwq###,,..,,r,,,,,,,,qwww",
+			"wwwwwwwwwwwwwwq.###,,#####,####,,##qwq#,,,,r,,,,,,,,,,,,qwww",
+			"wwwwwwwwwwwwwwq.#,,,,,,,,,,,,,,,,##qwq##gh,,,,,,,,,,,,,,qwww",
+			"wwwwwwwwwwwwwwwq,,,,,,,,,,,,,,hght#.q.gghg,,,,,,,,,,,,,,qwww",
+			"wwwwwwwwwwwwwwwq,,,,,,,,,,,,,,hghR####gghg,,,,,,,,,,,,,,qwww",
+			"wwwwwwwwwwwwwwwq,,,,,,,,,,,,,,thgg####hht,,,,,,,,,,,,,,,qwww",
+			"wwwwwwwwwwwwwwwq,,,,,,,,,,,,,,,g,,######,,,,,,,,,,,,,,,,qwww",
+			"wwwwwwwwwwwwwwwq,,,,,,,,,,,,,,,,,,######,,,,,,,,,,,,,,,,qwww",
+			"wwwwwwwwwwwwwwq,,,,,,,,,,,,,,,,,,,######,,,####,,###,,,,qwww",
+			"wwwwwwwwwwwwwwq,,,,,,,,,,,,,,,,,,,######,,,####,,####,,,qwww",
+			"wwwwwwwwwwwwwwq,,,,,,,,,,,,,#,,,,#######,,,#####,####,,,qwww",
+			"wwwwwwwwwwwwwqR,,,,###########,,,S,,,,B,,,,,,,,,,,,,,,,,qwww",
+			"wwwwwwwwwwwwwb,,b,bbbbbbbbbbbbb,bb,,,,bbbbbbbbbb,bbbb,,,qwww",
+			"wwwwwwwwwwwwwv==v=vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv====www",
+			"wwwwwwwwwwwwwb,bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb,,,qwww",
+			"wwwwwwwwwwwwvv=vv=vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv====www",
+			"wwwwwwwwwwwwbb,bb,bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb,,,qwww",
+			"wwwwwwwwwwwwv==vv=vvvvvvvvvvvvvvvvvvvvvvvvvvvvvv=vvvv====www",
+			"wwwwwwwwwwwbb,,bb,bbbbbbbbbbbbbbbbb,r,bbbbbbbbb,,bbbb,,,qwww",
+			"wwwwwwwwwwwvv==vv=vvvvvvvvvvv=vvvvv=v=vvv==vvvv==vvvv====www",
+			"wwwwwwwwwwwbb,bbb,bbbbbbbbbbb,bbbbb,r,bbb,,bbbbb,bbbb,,,qwww",
+			"wwwwwwwwwwq.#,###,#ggth#####g,###..,r,,,,,,#####,####,,,qwww",
+			"wwwwwwwwwwq#,,###,#########tg,####.,r,...,,#####,####,,,qwww",
 		],
-		"sorties": {"2": ["sainte_blandine", 12, 1]},
+		"sorties": {},
 		## Alternants sauvages qui se baladent. Cles optionnelles :
 		## "case" (depart fixe, sinon une case libre au hasard), "rayon"
 		## (distance max a sa case de depart, sinon aucune limite) et "gone"
@@ -179,42 +185,39 @@ const ZONES := {
 	},
 
 	&"sainte_blandine": {
-		"titre": "Sainte-Blandine — le faubourg et le quai Rambaud",
+		"titre": "Sainte-Blandine — Charlemagne et Casimir-Périer",
 		"ressource": &"cocon",
 		"tuile_ressource": Vector2i(4, 13),
 		"rencontres": [&"roulian", &"matiti", &"e1000"],
 		"niveau_min": 4,
 		"niveau_max": 7,
-		"depart": Vector2i(12, 1),
+		"depart": Vector2i(29, 11),
 		"plan": [
-			"www#########11###############www",
-			"wwwqqt,,,,L,..,,,bvvb,,,,,tqqwww",
-			"wwwqq,,,,,,,..,,,bvvb,,L,,,qqwww",
-			"wwwqq,t,,,,,..,,,bvvb,,,,t,qqwww",
-			"wwwqq............bvvb......qqwww",
-			"wwwqq.####....###bvvb......qqwww",
-			"wwwqq.####....###bvvb......qqwww",
-			"wwwqq.####....###bvvb......qqwww",
-			"wwwqq.####....###bvvb......qqwww",
-			"wwwqqj,n,,j...###bvvb......qqwww",
-			"wwwqq,,,,,,....M.bvvb......qqwww",
-			"wwwqq####........====.t..t.qqwww",
-			"wwwpp####..,.....bvvbggggggqqwww",
-			"wwwpp####..,..###bvvbggggggqqwww",
-			"wwwpp.t..t.,L.###bvvbggggggqqwww",
-			"wwwqqgggggg,..###bvvbggggggqqwww",
-			"wwwqqgggggg,..###bvvbgggRggqqwww",
-			"wwwqqgggggg,.....bvvbggggggqqwww",
-			"wwwqqggRggg,.....bvvbhhhhhhqqwww",
-			"wwwqqgggggg,.....bvvbhhhhhhqqwww",
-			"wwwqqgggggg,.L..TbvvbT.....qqwww",
-			"wwwqqhhhhhh,.....bvvb......qqwww",
-			"wwwqqhhhhhh,.....====......qqwww",
-			"wwwqqhhhhhh,.....bvvbhhhhhhqqwww",
-			"wwwqq......................qqwww",
-			"www#########22###vvvv########www",
+			"wwwwwwwwwwq#,,###,.ghggt###gh,#####,r,####,#####,####,,,qwww",
+			"wwwwwwwwwwq#,####,.tgggg####g,#####,r,####,#####,#####,,qwww",
+			"wwwwwwwwwq.,,####,##########g,#####,r,####,#####,#####,,qwww",
+			"wwwwwwwwwq#,,####,###########,#####,r,####,#####,#####,,qwww",
+			"wwwwwwwwwq#,,,###,,,,#,,,#,,#,,#,#,,r,,,#,,#,,#,,####,,,qwww",
+			"wwwwwwwwwq#,,,,,,,,,,,,,,,,,,,,,,,,,r,,,,,,,,,,,,,,,,,,,qwww",
+			"wwwwwwwwq.,,#####,#####,,####,##,##,r,####,#,,##,#####,,qwww",
+			"wwwwwwwwq#,,#####,#####,,####,##,##,r,####,##,##,#####,,qwww",
+			"wwwwwwwwq#,,#####,#####,,####,##,##,r,####,##,##,#####,,qwww",
+			"wwwwwwwwq#,######,#####,,####,##,##,r,####,##,##,#####,,qwww",
+			"wwwwwwwq.#,######,#####,,####,##,##,r,####,##,##,#####,,qwww",
+			"wwwwwwwq#,,######,#####,,####,##,##,r,####,##,##,#####,,qwww",
+			"wwwwwwwq#,,######,#####,,####,##,#M,r,,,,,,,,,,,,,,,,,,,qwww",
+			"wwwwwwwq#,,,,,,,,,,,,,,,,,,,,,,,,,,,r,,,,,,,,,,,,,,,,,,,qwww",
+			"wwwwwwwq#,,############,,#######,##,r,g###,##,##,#####,,qwww",
+			"wwwwwwq##,,############,########,##,r,t###,##,##,#####,,qwww",
+			"wwwwwwq##,,.hg#########,########,##,r,gg##,##,##,#####,,qwww",
+			"wwwwwwq##,,#gh#########,########,##,r,####,##,##,#####,,qwww",
+			"wwwwwwqhg,,#gg#########,,#######,##,r,hg##,##,##,#####,,qwww",
+			"wwwwwwqth,,#tg#########,,ght####,##,r,gg##,##,##,#####,,qwww",
+			"wwwwwqhgh,,#gR#########,hRhgg###,##,r,tRg#,#,,##,#####,,qwww",
+			"wwwwwqghg,,#hg#########,,hgg####,,,,r,,,,,,,,,,,,,,,,,,,qwww",
+			"wwwwwqggg,,############,,#######,##,r,####,##,##,#####,,qwww",
 		],
-		"sorties": {"1": ["perrache", 12, 22], "2": ["darse", 12, 1]},
+		"sorties": {},
 		## Alternants sauvages qui se baladent. Cles optionnelles :
 		## "case" (depart fixe, sinon une case libre au hasard), "rayon"
 		## (distance max a sa case de depart, sinon aucune limite) et "gone"
@@ -226,44 +229,39 @@ const ZONES := {
 	},
 
 	&"darse": {
-		"titre": "La Darse — le bassin de la Confluence",
+		"titre": "Charlemagne — la patinoire et l'EEMI",
 		"ressource": &"quenelle",
 		"tuile_ressource": Vector2i(5, 13),
 		"rencontres": [&"palou", &"tortheo", &"cecissoussou"],
 		"niveau_min": 7,
 		"niveau_max": 10,
-		"depart": Vector2i(12, 1),
+		"depart": Vector2i(32, 11),
 		"plan": [
-			"www#########11###############www",
-			"wwwqq,,,,,,,..,,,bvvb,,,,,,qqwww",
-			"wwwqq,,,L,,,..,,,bvvb,,,,,,qqwww",
-			"wwwqq###.###L....bvvb......qqwww",
-			"wwwqq###.###.....====......qqwww",
-			"wwwqq###.###.....bvvb......qqwww",
-			"wwwqqqqqqqqq..###bvvb######qqwww",
-			"wwwqqqqqqqqq..###bvvb######qqwww",
-			"wwwqqwwwwwww..###bvvb######qqwww",
-			"wwwqqwwwwwww..###bvvb######qqwww",
-			"wwwqqpppppww.n###bvvb######qqwww",
-			"wwwqqwwwwpww..###bvvb######qqwww",
-			"wwwwwwwwwpww..###bvvb......qqwww",
-			"wwwwwwwwwpww...R.====......qqwww",
-			"wwwwwwwwwpww.....bvvb......qqwww",
-			"wwwwwwwwwpww.....bvvb......qqwww",
-			"wwwqqpppppww....TbvvbT.....qqwww",
-			"wwwqqwwwwwww.....bvvb.t..t.qqwww",
-			"wwwqqwwwwwww..gggbvvbhhhhhhqqwww",
-			"wwwqqwwwwwww..gggbvvbhhhhhhqqwww",
-			"wwwqqqqqqqqq..gggbvvbhhRhhhqqwww",
-			"wwwqqqqqqqqq..gggbvvbhhhhhhqqwww",
-			"wwwqqtgggggg..j..bvvbggggggqqwww",
-			"wwwqqggggggg.....bvvbggggggqqwww",
-			"wwwqqggggggg.L...bvvbggggggqqwww",
-			"wwwqqggggggt....jbvvbggggggqqwww",
-			"wwwqq......................qqwww",
-			"www#########22###vvvv########www",
+			"wwwwwqthg,,############,,#######,##,r,####,##,##,##t##,,qwww",
+			"wwwwwqh##,,############,########,##,r,####,##,##,#gg##,,qwww",
+			"wwwwwqh##,,#########ghg,########,##,r,####,##,##,hRg##,,qwww",
+			"wwwwwq###,,#########ggh,########,##,r,####,##,##,thhg#,,qwww",
+			"wwwwwq###,,############,########,##,r,####,##,##,#hg##,,qwww",
+			"wwwwwq###,,###########g,,#######,##,r,####,##,##,#####,,qwww",
+			"wwwwwq###,,,,,,,,,,,,,,,,,,,,,,,,,,,r,,,,,,,,,,,,,,,,,,,qwww",
+			"wwwwwq#########,,######,,######,,##,r,###,,#,,##,#####,,qwww",
+			"wwwwwq##########,gg#gh#,,#######,##,r,####,##,##,#####,,qwww",
+			"wwwwwq.#########,hg#tgh,,#######,##,r,####,##,##,#####,,qwww",
+			"wwwwwwq#########,#g#ggh,,#######,##,r,####,##,##,#####,,qwww",
+			"wwwwwwq#########,#h#hht,,#######,##,r,####,##,##,#####,,qwww",
+			"wwwwwwq#########,#t##g#,,#######,##,r,####,##,##,#####,,qwww",
+			"wwwwwwq#########,######,,#######,##,r,####,##,##,#####,,qwww",
+			"wwwwwwq#########,######,,##,,,#,,,,,r,###,,#,,#,,#####,,qwww",
+			"wwwwwwq##qqq,,,,,,,,,,,,,,,,,,,,,,,,r,,,,,,,,,,,,,,,,,,,qwww",
+			"wwwwwwqtqwwwq####t#####,,##########,r,####,####,,..###,,qwww",
+			"wwwwwwqgqwwwq####g#####,,##########,r,####,####,,#####,,qwww",
+			"wwwwwq.RqwwwqgthghhthX#,,##########,r,ht##,####,,#####,,qwww",
+			"wwwwwwqghqwwqggghggRgg#,,##########,r,g###,ghtg,,#####,,qwww",
+			"wwwwwwqgqwwwqhggtggggt#,,##########,r,g###,####,,#gth#,,qwww",
+			"wwwwwwqtqwwwqghhghgggg#,,##########,r,g###,####,,ghhg#,,qwww",
+			"wwwwwwqgqwwwq####gt####,,##########,r,t###,tghg,,###gt,,qwww",
 		],
-		"sorties": {"1": ["sainte_blandine", 12, 24], "2": ["pointe", 12, 1]},
+		"sorties": {},
 		## Alternants sauvages qui se baladent. Cles optionnelles :
 		## "case" (depart fixe, sinon une case libre au hasard), "rayon"
 		## (distance max a sa case de depart, sinon aucune limite) et "gone"
@@ -275,42 +273,39 @@ const ZONES := {
 	},
 
 	&"pointe": {
-		"titre": "La Pointe — le musée et le confluent",
+		"titre": "La Darse — Montrochet et l'Hôtel de Région",
 		"ressource": &"cocon",
 		"tuile_ressource": Vector2i(4, 13),
 		"rencontres": [&"thomasu", &"paguera", &"guignome"],
 		"niveau_min": 10,
 		"niveau_max": 13,
-		"depart": Vector2i(12, 1),
+		"depart": Vector2i(35, 11),
 		"plan": [
-			"www#########11###############www",
-			"wwwqqthhhthh..hhhbvvbhthhhtqqwww",
-			"wwwqqhhhhhhh..hhhbvvbhhhhhhqqwww",
-			"wwwqqggggggh..hhhbvvbggggggqqwww",
-			"wwwqqggggggh..hhhbvvbggggggqqwww",
-			"wwwqqgggRggh..hhhbvvbggggggqqwww",
-			"wwwqqggggggh..hhhbvvbggRgggqqwww",
-			"wwwqqggggggh..hhhbvvbggggggqqwww",
-			"wwwqqhthhhhh..hhhbbbbhhhhthqqwww",
-			"wwwqqgtggggg.....bbbb......qqwww",
-			"wwwqqggggggqqqqqqqqqqgtggggqqwww",
-			"wwwqqggggggq########qggggggqqwww",
-			"wwwqqgggggtq########qggggggqqwww",
-			"wwwqqggtgggq########qggggtgqqwww",
-			"wwwqq......q########q......qqwww",
-			"wwwqq......q########q......qqwww",
-			"wwwqq......q########q......qqwww",
-			"wwwqq......LqqqqqqqqL......qqwww",
-			"wwwqq......qqqqqqqqqq......qqwww",
-			"wwwwwwwwwqqqqqqqqqqqqqqwwwwwwwww",
-			"wwwwwwwwwhthhhhhhhhhhthwwwwwwwww",
-			"wwwwwwwwwhgggggggggggghwwwwwwwww",
-			"wwwwwwwwwhgggggggggggghwwwwwwwww",
-			"wwwwwwwwwwwwwwsssswwwwwwwwwwwwww",
-			"wwwwwwwwwwwwwwsXsswwwwwwwwwwwwww",
-			"wwwwwwwwwwwwwwsssswwwwwwwwwwwwww",
+			"wwwwwwq.qwwwq##########,,##########,r,####,####,,#ghgh,,qwww",
+			"wwwwwwwq#qqq,##########,,,,,,,,,,,,,r,....,,,,,,,#####,,qwww",
+			"wwwwwwwq###.qqqqqqqqqqqqqqqqqqqqqq,,r,....,,,,,,,#####,,qwww",
+			"wwwwwwwq###qwwwwwwwwwwwwwwwwwwwwwwq,r,L..L,####,,#####,,qwww",
+			"wwwwwwwwq#.qwwwwwwwwwwwwwwwwwwwwwwq,r,.R..,####,,#####,,qwww",
+			"wwwwwwwwqqqwwwwwwwwwwwwwwwwwwwwwwq.,r,....,,,,,,,,,,,,,,qwww",
+			"wwwwwwwwwwwwwwwwwwwwwwwqqqqqqqqqq..,r,####,###########,,qwww",
+			"wwwwwwwwwwwwwqqqqqqqqqq.###########,r,####,###########,,qwww",
+			"wwwwwwwwwqqqwwwwq##################,r,####,###########,,qwww",
+			"wwwwwwwwwwqgqwwwq##################,r,####,###########,,qwww",
+			"wwwwwwwwwwqRhqwwq##################,r,####,###########,,qwww",
+			"wwwwwwwwwwqmgqwwq##################,r,####,###########,,qwww",
+			"wwwwwwwwwwwqgqwwq##################,r,####,###########,,qwww",
+			"wwwwwwwwwwwq..qwq##################,r,####,###########,,qwww",
+			"wwwwwwwwwwwwq#.q###################,r,####,###########,,qwww",
+			"wwwwwwwwwwwwq##qq,,,,,,,,,,,,,,,,,,,r,,,,,,,,,,,,,,,,,,,qwww",
+			"wwwwwwwwwwwwwqqwwq,####,,##########,r,,,#,,,,##,,,###,,,qwww",
+			"wwwwwwwwwwwwwqgqwwq####,,##########,r,#########g######,,qwww",
+			"wwwwwwwwwwwwwqmhqwqq###,,##########,r,#########g######,,qwww",
+			"wwwwwwwwwwwwwwqqwwwwq##,,##########,r,#########h######,,qwww",
+			"wwwwwwwwwwwwwwwqqwwwq..,,,,,,,,,,,,,r,#########R######,,qwww",
+			"wwwwwwwwwwwwwwwq.qwwq..,,,,,,,,,,,,,r,#########g######,,qwww",
+			"wwwwwwwwwwwwwwwwq.qq...,,##########,r,#########h######,,qwww",
 		],
-		"sorties": {"1": ["darse", 12, 26]},
+		"sorties": {},
 		## Alternants sauvages qui se baladent. Cles optionnelles :
 		## "case" (depart fixe, sinon une case libre au hasard), "rayon"
 		## (distance max a sa case de depart, sinon aucune limite) et "gone"
@@ -376,6 +371,13 @@ static func haut_batiment(id: StringName, cellule_toit: Vector2i) -> Array:
 	if case_a(id, cellule_toit + Vector2i.RIGHT) != "#":
 		return [TUILES, TOIT_HAUT_DROITE]
 	return [TUILES, TOIT_HAUT]
+
+## La bande voisine au nord (sens = -1) ou au sud (sens = 1), ou &"" au bord du monde.
+static func zone_voisine(id: StringName, sens: int) -> StringName:
+	var i := ORDRE.find(id) + sens
+	if i < 0 or i >= ORDRE.size() or ORDRE.find(id) < 0:
+		return &""
+	return ORDRE[i]
 
 static func zone(id: StringName) -> Dictionary:
 	return ZONES.get(id, ZONES[&"perrache"])

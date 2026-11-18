@@ -16,7 +16,8 @@ Ce que le script controle, zone par zone :
   6. chaque zone a bien sa ressource, au moins deux cases "R", et de l'herbe
      haute si elle compte des rencontres ;
   7. tout ce qui compte (sorties, R, S, B, M, X, T) est joignable a pied depuis
-     la case de depart.
+     la case de depart de la premiere zone. Les zones de Zones.ORDRE sont des
+     bandes collees du nord au sud : on passe de l'une a l'autre par le bord.
 
 Sortie : la liste des anomalies, et un code de retour non nul s'il y en a.
 """
@@ -134,6 +135,30 @@ def joignables(plan, depart, bloquants):
     return vus
 
 
+def lire_ordre(source):
+    m = re.search(r"const ORDRE: Array\[StringName\] = \[(.*?)\]", source)
+    return re.findall(r'&"(\w+)"', m.group(1)) if m else []
+
+
+def joignables_bandes(zones, ordre, bloquants):
+    """Depuis le depart de la premiere bande, a travers toutes les bandes collees.
+
+    Renvoie {zone: ensemble des cases atteintes}."""
+    decalage, y0 = {}, 0
+    for nom in ordre:
+        decalage[nom] = y0
+        y0 += len(zones[nom]["plan"])
+    lignes = [l for nom in ordre for l in zones[nom]["plan"]]
+    dx, dy = zones[ordre[0]]["depart"]
+    vus = joignables(lignes, (dx, dy), bloquants)
+    par_zone = {nom: set() for nom in ordre}
+    for x, y in vus:
+        for nom in ordre:
+            if decalage[nom] <= y < decalage[nom] + len(zones[nom]["plan"]):
+                par_zone[nom].add((x, y - decalage[nom]))
+    return par_zone
+
+
 def main():
     source = open(ZONES_GD).read()
     largeur = lire_constante_entier(source, "LARGEUR")
@@ -141,6 +166,8 @@ def main():
     sols_pnj = lire_constante_chaine(source, "SOLS_PNJ")
     sols = lire_sols(source)
     zones = lire_zones(source)
+    ordre = [n for n in lire_ordre(source) if n in zones]
+    bandes = joignables_bandes(zones, ordre, bloquants) if ordre else {}
 
     anomalies = []
 
@@ -221,8 +248,11 @@ def main():
             rater(nom, "des rencontres declarees mais aucune herbe haute")
 
         # 7. tout ce qui compte est joignable a pied
-        if depart is not None:
+        if nom in bandes:
+            atteints = bandes[nom]
+        elif depart is not None:
             atteints = joignables(plan, depart, bloquants)
+        if nom in bandes or depart is not None:
             manquants = {}
             for y, ligne in enumerate(plan):
                 for x, c in enumerate(ligne):

@@ -100,7 +100,5 @@ const REPERES_CARTE := {
 	"R": Color("d64f8a"),   # ressource
 	"1": Color("f4f1ea"), "2": Color("f4f1ea"), "3": Color("f4f1ea"),   # sorties
 }
-## Chemin qui relie une zone à la suivante sur la carte du monde.
-const CARTE_CHEMIN := Color("f4f1ea")
 ## Le point « vous êtes ici ».
 const CARTE_JOUEUR := Color("ff4d4d")

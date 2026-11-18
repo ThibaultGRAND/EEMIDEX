@@ -10,7 +10,7 @@ extends Node2D
 
 signal envie_de_bouger(pnj: Pnj)
 
-const DUREE_PAS := 0.3
+const DUREE_PAS := 0.4
 const PAUSE_MIN := 0.8
 const PAUSE_MAX := 2.6
 ## Nom des directions dans les animations, dans l'ordre de Joueur.Direction.

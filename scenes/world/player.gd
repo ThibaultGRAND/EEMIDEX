@@ -8,7 +8,7 @@ signal deplacement_fini(cellule: Vector2i)
 ## L'ordre doit correspondre a NOMS_DIRECTIONS (noms des animations).
 enum Direction { BAS, HAUT, GAUCHE, DROITE }
 
-const DUREE_PAS := 0.14
+const DUREE_PAS := 0.25
 ## Nom des directions dans les animations idle_<dir> / walk_<dir>.
 const NOMS_DIRECTIONS: Array[String] = ["down", "up", "left", "right"]
 ## Delai sans pas avant de passer en idle : evite un clignotement entre deux

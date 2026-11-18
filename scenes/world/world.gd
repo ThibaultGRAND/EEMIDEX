@@ -37,6 +37,9 @@ const VOLUME_PAS_DB := -16.0
 
 ## action -> [deplacement, Joueur.Direction]. Les entiers suivent l'ordre de
 ## l'enum Direction de player.gd : BAS, HAUT, GAUCHE, DROITE.
+## Direction opposee (Joueur.Direction : BAS, HAUT, GAUCHE, DROITE).
+const OPPOSEE := [1, 0, 3, 2]
+
 const DIRECTIONS := {
 	"ui_down": [Vector2i(0, 1), 0],
 	"ui_up": [Vector2i(0, -1), 1],
@@ -211,11 +214,41 @@ func _tenter_pas(action: String) -> void:
 		_joueur.regarder(consigne[1])
 		_message("Ding ding ! Attention au tram.")
 		return
-	if Zones.est_traversable(zone_id, cible) and _pnj_sur(cible) == null:
-		GameState.jouer_son(&"marche", VOLUME_PAS_DB)
-		_joueur.avancer_vers(cible, consigne[1])
-	else:
+	var hauteur: int = zone["plan"].size()
+	if cible.y < 0 or cible.y >= hauteur:
+		_passer_dans_la_bande_voisine(cible, consigne[1])
+		return
+	if not Zones.est_traversable(zone_id, cible):
 		_joueur.regarder(consigne[1])
+		return
+	var croise := _pnj_sur(cible)
+	if croise != null:
+		# On ne se bloque pas entre personnages : on se croise, chacun prend la case
+		# de l'autre (seuls les pieds comptent, et ils restent au centre de leur case).
+		if croise.en_mouvement:
+			_joueur.regarder(consigne[1])
+			return
+		croise.pas_restants = 0
+		croise.avancer_vers(_joueur.cellule, OPPOSEE[consigne[1]] as Joueur.Direction)
+	GameState.jouer_son(&"marche", VOLUME_PAS_DB)
+	_joueur.avancer_vers(cible, consigne[1])
+
+## Les zones sont des bandes collees : sortir par le haut ou le bas mene a la bande
+## voisine, sur la meme colonne. Bloque si la case d'en face est un mur ou de l'eau.
+func _passer_dans_la_bande_voisine(cible: Vector2i, direction: Joueur.Direction) -> void:
+	var sens := -1 if cible.y < 0 else 1
+	var voisine := Zones.zone_voisine(zone_id, sens)
+	if voisine == &"":
+		_joueur.regarder(direction)
+		return
+	var arrivee := Vector2i(cible.x, Zones.zone(voisine)["plan"].size() - 1 if sens < 0 else 0)
+	if not Zones.est_traversable(voisine, arrivee):
+		_joueur.regarder(direction)
+		return
+	_charger_zone(voisine, arrivee)
+	_joueur.regarder(direction)
+	_message("Vous arrivez : %s" % zone["titre"])
+	GameState.sauvegarde_auto()
 
 func _sur_case_atteinte(cellule: Vector2i) -> void:
 	GameState.case_joueur = cellule
@@ -256,7 +289,7 @@ func _indice_case(c: String) -> String:
 		"M":
 			return "Entraînement. Entrée pour lancer un mini-jeu."
 		"X":
-			return "Quelqu'un garde la pointe. Entrée pour l'affronter."
+			return "Quelqu'un garde l'entrée de l'EEMI. Entrée pour l'affronter."
 		_:
 			return ""
 
@@ -325,6 +358,14 @@ func _sur_envie_pnj(pnj: Pnj) -> void:
 	if Zones.accepte_pnj(zone_id, cible) and _case_libre(cible) and dans_le_rayon:
 		pnj.avancer_vers(cible, vers)
 		_tenter_agression(pnj)
+		return
+	# Deux PNJ face a face se croisent au lieu de se bloquer.
+	var croise := _pnj_sur(cible)
+	if croise != null and croise != pnj and not croise.en_mouvement and dans_le_rayon \
+			and Zones.accepte_pnj(zone_id, cible) and _tram_sur(cible) == null:
+		croise.pas_restants = 0
+		croise.avancer_vers(pnj.cellule, OPPOSEE[vers] as Joueur.Direction)
+		pnj.avancer_vers(cible, vers)
 	else:
 		pnj.regarder(vers)
 		_tenter_agression(pnj)
@@ -543,7 +584,7 @@ func _tenter_rencontre() -> void:
 
 func _lancer_combat_de_fin() -> void:
 	if GameState.drapeau(&"gardien_battu"):
-		_message("La pointe est calme. Fin du MVP : merci d'avoir joué.")
+		_message("L'EEMI est calme. Fin du MVP : merci d'avoir joué.")
 		return
 	var gardien: GoneData = GameState.catalogue_gones.get(&"nael")
 	if gardien == null:

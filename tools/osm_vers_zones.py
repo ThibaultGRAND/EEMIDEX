@@ -1,6 +1,14 @@
 #!/usr/bin/env python3
 """Construit les plans des 4 zones de la Confluence depuis OpenStreetMap.
 
+Une seule carte continue et simplifiee, de la gare de Perrache a la rue
+Paul-Montrochet, de la Saone au Rhone : 16 m par case, rues principales seulement,
+chaque ilot est un seul bloc plein, une seule voie ferree (les lignes principales).
+La carte est tournee de 31 degres (ANGLE) pour que le quadrillage des rues tombe
+droit : sinon chaque rue en biais fait des escaliers. Elle est coupee en
+4 bandes horizontales collees : on passe de l'une a l'autre n'importe ou sur la
+limite (Zones.ORDRE dans zones.gd), sans case de sortie.
+
     python3 tools/osm_vers_zones.py --apercu apercu.png     # dessine, n'ecrit rien
     python3 tools/osm_vers_zones.py --ecrire                 # met a jour zones.gd
 
@@ -9,15 +17,15 @@ du quartier : batiments, voirie, voies ferrees et de tram, eau, parcs, arbres.
 Donnees © les contributeurs d'OpenStreetMap, licence ODbL (voir assets/maps/SOURCES.md).
 
 Ce que fait le script :
-  1. tourne la carte pour que la presqu'ile soit verticale (Perrache en haut, la
-     Pointe en bas, la Saone a gauche, le Rhone a droite) ;
+  1. projette l'emprise, tournee de ANGLE degres (Perrache en haut, Montrochet en
+     bas, la Saone a gauche, le Rhone a droite) ;
   2. dessine chaque element dans une grille de LARGEUR cases (un caractere par case,
      meme legende que zones.gd) ;
   3. relie toutes les parties praticables a la plus grande (passage a niveau, passerelle,
      passage entre deux batiments) : aucun recoin inaccessible ;
-  4. coupe la grille en 4 zones et y place les elements de jeu : sorties, soins,
-     boutique, entrainement, passages sous les voies, ressources, herbe haute, et le
-     combat final devant l'EEMI.
+  4. coupe la grille en 4 bandes et y place les elements de jeu : soins, boutique,
+     entrainement, passages sous les voies, ressources, herbe haute, et le combat
+     final devant l'EEMI (au Monolithe, au nord de la darse).
 
 Avec --ecrire, seules les cles "depart", "plan" et "sorties" de chaque zone et la
 constante LARGEUR sont remplacees dans zones.gd : le reste (titres, rencontres, PNJ...)
@@ -43,17 +51,25 @@ DONNEES = os.path.join(RACINE, "tools/map_data/confluence_osm.json")
 RIVIERES = os.path.join(RACINE, "tools/map_data/confluence_rivieres.json")
 ZONES_GD = os.path.join(RACINE, "scenes/world/zones.gd")
 
-LARGEUR = 128           # cases par ligne
-METRES = 9.0            # metres par case
+METRES = 16.0           # metres par case : carte simplifiee, pas trop grande
 SUR = 4                 # sur-echantillonnage du dessin
 ZONES = ["perrache", "sainte_blandine", "darse", "pointe"]
 
-# Axe de la presqu'ile, a mi-chemin entre la Saone et le Rhone : du nord de Perrache
-# a la pointe du confluent.
-NORD = (45.7500, 4.8246)
-SUD = (45.7312, 4.8172)
-MARGE_NORD, MARGE_SUD = 60.0, 40.0     # metres en plus aux deux bouts
-EEMI = (45.7385446, 4.8215140)
+# Emprise : la presqu'ile de la gare de Perrache (cours de Verdun) a la rue
+# Paul-Montrochet, de la Saone au Rhone.
+LAT_NORD, LAT_SUD = 45.7512, 45.7383
+LON_OUEST, LON_EST = 4.8132, 4.8285
+# Les rues de la Confluence suivent un quadrillage incline de 59 degres. On tourne
+# la carte de 31 degres pour l'aligner sur la grille : les ilots deviennent des
+# rectangles au lieu d'escaliers. La presqu'ile se retrouve verticale (Perrache en
+# haut, la Saone a gauche, le Rhone a droite).
+ANGLE = 31.0
+MARGE = 80.0            # metres gardes autour des quais : on voit les deux fleuves
+# L'EEMI est au Monolithe, au nord de la darse. Le noeud « EEMI » d'OSM (45.7385,
+# 4.8215) est une ancienne adresse : on ne s'en sert pas.
+EEMI = (45.7431, 4.8182)
+# La gare : le depart du jeu (le prologue commence a Perrache).
+GARE = (45.7482, 4.8255)
 
 BLOQUANTS = set("#wtvjn")
 
@@ -69,32 +85,45 @@ SPECIAUX = {
 # =============================================================================
 # Projection
 # =============================================================================
-LAT0, LON0 = (NORD[0] + SUD[0]) / 2, (NORD[1] + SUD[1]) / 2
+LAT0, LON0 = (LAT_NORD + LAT_SUD) / 2, (LON_OUEST + LON_EST) / 2
 KX = math.cos(math.radians(LAT0)) * 111320.0
 KY = 110540.0
+_COS, _SIN = math.cos(math.radians(ANGLE)), math.sin(math.radians(ANGLE))
 
 
-def metres(lat, lon):
-    """x vers l'est, y vers le sud, en metres."""
-    return (lon - LON0) * KX, (LAT0 - lat) * KY
+def tourne(lat, lon):
+    """Metres dans le repere tourne : x vers la droite de l'ecran, y vers le haut."""
+    x, y = (lon - LON0) * KX, (lat - LAT0) * KY
+    return x * _COS - y * _SIN, x * _SIN + y * _COS
 
 
-NX, NY = metres(*NORD)
-SX, SY = metres(*SUD)
-_long = math.hypot(SX - NX, SY - NY)
-BAS = ((SX - NX) / _long, (SY - NY) / _long)        # unitaire, du nord vers le sud
-DROITE = (BAS[1], -BAS[0])                           # perpendiculaire, vers l'est
-HAUTEUR = int(math.ceil((_long + MARGE_NORD + MARGE_SUD) / METRES))
-HAUTEUR -= HAUTEUR % len(ZONES)
+def _cadre():
+    """Le cadre tourne : les quais de la Saone et du Rhone en largeur, du cours de
+    Verdun a la rue Paul-Montrochet en hauteur."""
+    xs, ys = [], []
+    for e in json.load(open(DONNEES))["elements"]:
+        nom = e.get("tags", {}).get("name", "")
+        for p in e.get("geometry") or []:
+            if not p or not (LAT_SUD <= p["lat"] <= LAT_NORD and LON_OUEST <= p["lon"] <= LON_EST):
+                continue
+            x, y = tourne(p["lat"], p["lon"])
+            if nom in ("Quai Rambaud", "Quai Perrache"):
+                xs.append(x)
+            if nom.startswith("Cours de Verdun") or nom in ("Rue Paul Montrochet", "Passage Panama"):
+                ys.append(y)
+    return min(xs) - MARGE, max(xs) + MARGE, min(ys) - MARGE / 4, max(ys) + MARGE / 4
+
+
+X_MIN, X_MAX, Y_MIN, Y_MAX = _cadre()
+LARGEUR = int(math.ceil((X_MAX - X_MIN) / METRES))
+HAUTEUR = int(math.ceil((Y_MAX - Y_MIN) / METRES))
+HAUTEUR += (-HAUTEUR) % len(ZONES)
 
 
 def grille(lat, lon):
     """Coordonnees (colonne, ligne) flottantes dans la grille."""
-    x, y = metres(lat, lon)
-    dx, dy = x - NX, y - NY
-    u = dx * DROITE[0] + dy * DROITE[1]
-    s = dx * BAS[0] + dy * BAS[1]
-    return u / METRES + LARGEUR / 2, (s + MARGE_NORD) / METRES
+    x, y = tourne(lat, lon)
+    return (x - X_MIN) / METRES, (Y_MAX - y) / METRES
 
 
 # =============================================================================
@@ -162,28 +191,75 @@ class Toile:
 # =============================================================================
 # Dessin
 # =============================================================================
-LARGEUR_ROUTE_M = {   # largeur de chaussee, en metres
-    "trunk": 18, "trunk_link": 9, "primary": 16, "primary_link": 9,
-    "secondary": 14, "tertiary": 12, "residential": 9, "unclassified": 9,
-    "living_street": 7, "service": 5, "pedestrian": 8, "footway": 3, "cycleway": 3, "path": 3,
-}
-LARGEUR_ROUTE = {k: v / METRES for k, v in LARGEUR_ROUTE_M.items()}
+# Carte simplifiee : seules les rues principales, en 1 case (2 pour les grands axes).
+GRANDS_AXES = {"trunk", "primary", "secondary"}
+RUES = GRANDS_AXES | {"tertiary", "residential", "unclassified", "living_street"}
+# Un parc plus petit que ca (en cases) redevient un morceau d'ilot.
+PARC_MIN = 6
+
+
+def quatre_connexe(m):
+    """Un trace en escalier (cases qui ne se touchent que par un coin) devient continu
+    pour un deplacement en 4 directions : on bouche le coin."""
+    m = m.copy()
+    h, w = m.shape
+    for y in range(h - 1):
+        for x in range(w - 1):
+            if m[y, x] and m[y + 1, x + 1] and not m[y, x + 1] and not m[y + 1, x]:
+                m[y, x + 1] = True
+            if m[y, x + 1] and m[y + 1, x] and not m[y, x] and not m[y + 1, x + 1]:
+                m[y, x] = True
+    return m
+
+
+# Faisceau de Perrache : des voies paralleles, au sud de la gare seulement.
+VOIES = 4               # nombre de voies
+
+
+def faisceau_perrache():
+    """VOIES voies horizontales paralleles, une ligne sur deux, centrees sur la gare :
+    elles traversent la presqu'ile de gauche a droite, comme le faisceau de Perrache.
+    Nulle part ailleurs il n'y a de rails."""
+    m = np.zeros((HAUTEUR, LARGEUR), bool)
+    _, gy = grille(*GARE)
+    centre = int(round(gy))
+    for k in range(VOIES):
+        m[centre - (VOIES - 1) + 2 * k, :] = True
+    return m
+
+
+def amincir(m, epaisseur):
+    """Une voie verticale garde au plus `epaisseur` cases par ligne (le milieu de
+    chaque troncon) : un faisceau de voies paralleles devient une seule voie."""
+    out = np.zeros_like(m)
+    for y in range(m.shape[0]):
+        x = 0
+        while x < m.shape[1]:
+            if not m[y, x]:
+                x += 1
+                continue
+            debut = x
+            while x < m.shape[1] and m[y, x]:
+                x += 1
+            milieu = (debut + x) // 2
+            garde = max(1, min(epaisseur, x - debut))
+            out[y, milieu - garde // 2: milieu - garde // 2 + garde] = True
+    return quatre_connexe(out)
 
 
 def dessiner(elements):
-    t = {k: Toile() for k in ["eau", "parc", "sable", "emprise_fer", "route", "pieton",
-                             "rail", "tram", "quai_fer", "ponton", "bati"]}
-    arbres = []
-    eemi_bati = None
+    """Une grille simple : rues principales, ilots pleins, une seule voie ferree.
+
+    Toute la terre qui n'est ni rue, ni place, ni parc, ni eau devient du bati : chaque
+    ilot entre deux rues est un seul grand batiment."""
+    t = {k: Toile() for k in ["eau", "parc", "place", "grand_axe", "rue", "rail", "tram"]}
     for e in elements:
         tg = e.get("tags", {})
-        sous_terre = tg.get("tunnel") in ("yes", "building_passage") or tg.get("layer", "0").startswith("-")
         if e["type"] == "node":
-            if tg.get("natural") == "tree":
-                arbres.append(grille(e["lat"], e["lon"]))
             continue
-        ext, inte = anneaux(e) if (e["type"] == "relation" or (e.get("geometry") and
-                                   e["geometry"][0] == e["geometry"][-1])) else ([], [])
+        sous_terre = tg.get("tunnel") in ("yes", "building_passage") or tg.get("layer", "0").startswith("-")
+        ferme = e["type"] == "relation" or (e.get("geometry") and e["geometry"][0] == e["geometry"][-1])
+        ext, inte = anneaux(e) if ferme else ([], [])
         geo = points(e.get("geometry", []) or [])
         if tg.get("riviere_interieur"):          # ile au milieu d'un fleuve
             for p in ext: t["eau"].poly(p, 0)
@@ -191,62 +267,59 @@ def dessiner(elements):
                 tg.get("landuse") in ("basin", "reservoir"):
             for p in ext: t["eau"].poly(p)
             for p in inte: t["eau"].poly(p, 0)
-        elif tg.get("leisure") in ("park", "garden", "playground", "pitch") or \
-                tg.get("landuse") in ("grass", "meadow", "forest") or \
-                tg.get("natural") in ("wood", "scrub", "grassland"):
+        elif tg.get("leisure") in ("park", "garden") or tg.get("landuse") in ("grass", "meadow"):
             for p in ext: t["parc"].poly(p)
-        elif tg.get("natural") in ("sand", "beach"):
-            for p in ext: t["sable"].poly(p)
-        elif tg.get("landuse") == "railway":
-            for p in ext: t["emprise_fer"].poly(p)
-        if "building" in tg and not sous_terre:
-            for p in ext: t["bati"].poly(p)
-            if tg.get("name", "").startswith("« Lumen"):
-                eemi_bati = ext
-        if tg.get("man_made") == "pier":
-            if ext: t["ponton"].poly(ext[0])
-            else: t["ponton"].ligne(geo, 1.0)
-        if sous_terre or tg.get("bridge") == "yes" and "highway" in tg:
-            continue
         hw = tg.get("highway")
-        if hw in LARGEUR_ROUTE:
-            if tg.get("area") == "yes" and ext:
-                t["pieton"].poly(ext[0])
+        if hw == "pedestrian" and tg.get("area") == "yes" or tg.get("place") == "square":
+            for p in ext: t["place"].poly(p)
+            continue
+        if sous_terre or tg.get("bridge") == "yes" and hw:
+            continue
+        if hw in RUES:
+            if hw in GRANDS_AXES:
+                t["grand_axe"].ligne(geo, 3.0)
             else:
-                pieton = hw in ("pedestrian", "footway", "cycleway", "path")
-                (t["pieton"] if pieton else t["route"]).ligne(geo, LARGEUR_ROUTE[hw])
+                t["rue"].ligne(geo, 1.0)
         rw = tg.get("railway")
-        if rw == "rail":
-            t["rail"].ligne(geo, 1.6 / METRES * 1.8)
-        elif rw == "tram":
-            t["tram"].ligne(geo, 3.0 / METRES)
-        elif rw == "platform":
-            if ext: t["quai_fer"].poly(ext[0])
-            else: t["quai_fer"].ligne(geo, 1.0)
-    m = {k: v.cases(0.5) for k, v in t.items()}
-    m["bati"] = t["bati"].cases(0.45)
-    m["rail"] = t["rail"].cases(0.25)
-    m["tram"] = t["tram"].cases(0.3)
-    m["route"] = t["route"].cases(0.4)
+        # Les voies ferrees ne viennent pas d'OSM : un faisceau de voies paralleles est
+        # dessine a part, au sud de la gare (faisceau_perrache).
+        if rw == "tram" and tg.get("usage") == "main" and not tg.get("service") and not sous_terre:
+            t["tram"].ligne(geo, 1.0)
+    eau = t["eau"].cases(0.5)
+    rue = quatre_connexe(t["grand_axe"].cases(0.35) | t["rue"].cases(0.3)) & ~eau
+    tram = amincir(quatre_connexe(t["tram"].cases(0.3)), 1) & ~eau
+    # la rue du tram : une voie de chaque cote des rails
+    rue |= (np.roll(tram, 1, 1) | np.roll(tram, -1, 1)) & ~eau
+    rail = faisceau_perrache() & ~eau
 
-    g = np.full((HAUTEUR, LARGEUR), ".", dtype="<U1")
-    g[m["parc"]] = "h"
-    g[m["sable"]] = "s"
-    g[m["emprise_fer"]] = "b"
-    g[m["eau"]] = "w"
-    g[m["ponton"]] = "p"
-    g[m["route"] & ~m["eau"]] = ","
-    g[m["pieton"] & ~m["eau"]] = "."
-    g[m["bati"] & ~m["eau"]] = "#"
-    g[m["quai_fer"]] = "q"
-    # ballast autour des rails, puis les rails par-dessus tout le reste (sauf l'eau)
-    autour = np.zeros_like(m["rail"])
-    for dy in (-1, 0, 1):
-        for dx in (-1, 0, 1):
-            autour |= np.roll(np.roll(m["rail"], dy, 0), dx, 1)
-    g[autour & ~m["eau"] & (g != "#") & (g != "q")] = "b"
-    g[m["rail"] & ~m["eau"]] = "v"
-    g[m["tram"] & ~m["eau"]] = "r"
+    g = np.full((HAUTEUR, LARGEUR), "#", dtype="<U1")
+    g[eau] = "w"
+    parc = t["parc"].cases(0.5) & ~eau
+    lab, n = composantes_masque(parc)
+    tailles = np.bincount(lab[lab >= 0], minlength=n)
+    g[parc & (tailles[np.maximum(lab, 0)] >= PARC_MIN)] = "h"
+    g[t["place"].cases(0.5) & ~eau] = "."
+    g[rue] = ","
+    # ballast entre les voies du faisceau (sauf sur les rues)
+    lignes = np.nonzero(rail.any(axis=1))[0]
+    if len(lignes):
+        zone = np.zeros_like(rail)
+        zone[lignes[0] - 1:lignes[-1] + 2, :] = True
+        g[zone & ~rue & ~eau] = "b"
+    g[rail] = "v"
+    # passage a niveau la ou une rue traverse les voies (rue au-dessus ou au-dessous) ;
+    # une rue qui longe les voies s'efface sous les rails
+    for y, x in zip(*np.nonzero(rail & rue)):
+        dessus = y > 0 and rue[y - 1, x] and not rail[y - 1, x]
+        dessous = y < HAUTEUR - 1 and rue[y + 1, x] and not rail[y + 1, x]
+        g[y, x] = "=" if dessus or dessous else "v"
+    # une voie prise entre deux passages a niveau (au-dessus et au-dessous) en devient un
+    for y, x in zip(*np.nonzero(g == "v")):
+        if 0 < y < HAUTEUR - 1 and g[y - 1, x] in "=," and g[y + 1, x] in "=," and \
+                ("=" in (g[y - 1, x], g[y + 1, x])):
+            g[y, x] = "="
+    g[tram & (g != "v") & (g != "=")] = "r"
+
     # la presqu'ile seule : toute terre separee d'elle par l'eau redevient fleuve
     terre = g != "w"
     lab, n = composantes_masque(terre)
@@ -254,28 +327,22 @@ def dessiner(elements):
     if centre < 0:
         centre = int(np.argmax(np.bincount(lab[lab >= 0])))
     g[terre & (lab != centre)] = "w"
-    # cours fermees au milieu des immeubles : elles font partie du bati
-    marchable = ~np.isin(g, list(BLOQUANTS))
-    lab, n = composantes_masque(marchable)
-    tailles = np.bincount(lab[lab >= 0], minlength=n)
-    principale = int(np.argmax(tailles))
-    for k in range(n):
-        if k != principale and tailles[k] < 60:
-            g[lab == k] = "#"
-    # quais : la terre au bord de l'eau
+    # quais : la terre au bord de l'eau devient un quai praticable
     eau = g == "w"
     bord = np.zeros_like(eau)
     for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1)):
         bord |= np.roll(np.roll(eau, dy, 0), dx, 1)
-    g[bord & np.isin(g, [".", ","])] = "q"
-    # arbres d'alignement et des parcs (un sur deux, jamais colles)
-    for x, y in arbres:
-        c, r = int(x), int(y)
-        if 0 <= r < HAUTEUR and 0 <= c < LARGEUR and g[r, c] in "h." and (c * 7 + r * 13) % 2 == 0:
-            voisins = g[max(0, r - 1):r + 2, max(0, c - 1):c + 2]
-            if "t" not in voisins and "#" not in voisins and "," not in voisins and "r" not in voisins:
-                g[r, c] = "t"
-    return g, eemi_bati
+    g[bord & ~eau & np.isin(g, ["#", ".", ",", "h"])] = "q"
+    # miettes de bati (moins de 4 cases) : de la place pavee
+    bati = g == "#"
+    lab, n = composantes_masque(bati)
+    tailles = np.bincount(lab[lab >= 0], minlength=n)
+    g[bati & (tailles[np.maximum(lab, 0)] < 4)] = "."
+    # quelques arbres dans les parcs, jamais colles
+    for y, x in zip(*np.nonzero(g == "h")):
+        if (x * 7 + y * 13) % 5 == 0 and "t" not in g[max(0, y - 1):y + 2, max(0, x - 1):x + 2]:
+            g[y, x] = "t"
+    return g, None
 
 
 # =============================================================================
@@ -381,38 +448,8 @@ def placer_elements(g, eemi_bati):
     sorties = {nom: {} for nom in ZONES}
     departs = {}
 
-    # --- sorties entre zones voisines : la route la plus large qui traverse la limite
-    for i in range(len(ZONES) - 1):
-        a, b = zones[ZONES[i]], zones[ZONES[i + 1]]
-        candidats = [x for x in range(LARGEUR) if praticable(a[-1, x]) and praticable(b[0, x])
-                     and a[-1, x] != "r" and b[0, x] != "r"]
-        if not candidats:
-            raise SystemExit("aucun passage entre %s et %s" % (ZONES[i], ZONES[i + 1]))
-        # prefere une chaussee, au plus pres du milieu
-        candidats.sort(key=lambda x: (a[-1, x] != ",", abs(x - LARGEUR // 2)))
-        x0 = candidats[0]
-        largeur = [x for x in (x0 - 1, x0, x0 + 1) if x in candidats]
-        for x in largeur:
-            a[-1, x] = "2"
-            b[0, x] = "1"
-            # devant chaque case de sortie, une case normale : on n'atteint pas une
-            # sortie en passant par une autre (on serait teleporte avant)
-            for z, y in ((a, h - 2), (b, 1)):
-                if not praticable(z[y, x]) or z[y, x] in "123":
-                    z[y, x] = "."
-        # cases d'arrivee : juste a l'interieur, jamais coiffees par un volume
-        for z, y_arr, y_dessous in ((b, 1, 2), (a, h - 2, h - 1)):
-            if not praticable(z[y_arr, x0]) or z[y_arr, x0] in "123":
-                z[y_arr, x0] = "."
-            if z[y_dessous, x0] in "#t":
-                z[y_dessous, x0] = "."
-        sorties[ZONES[i]]["2"] = [ZONES[i + 1], x0, 1]
-        sorties[ZONES[i + 1]]["1"] = [ZONES[i], x0, h - 2]
-        departs.setdefault(ZONES[i + 1], (x0, 1))
-
-    # --- chaque zone doit etre praticable d'un seul tenant (on n'y passe pas par une autre)
-    for nom in ZONES:
-        zones[nom] = relier(zones[nom])
+    # Pas de sortie : les bandes sont collees, on passe de l'une a l'autre sur toute
+    # la limite. La grille entiere a deja ete reliee d'un seul tenant (relier).
 
     def libres(z, sols=".,qhd", devant_batiment=False):
         out = []
@@ -454,14 +491,14 @@ def placer_elements(g, eemi_bati):
                     z[y, x] = c
                     pris.add((x, y))
                     n -= 1
-        # --- passages sous les voies : un de chaque cote du faisceau de rails
+        # --- passages sous les voies : un au nord et un au sud du faisceau de rails
         rails = np.argwhere(z == "v")
         if len(rails) > 8:
-            cx = int(np.median(rails[:, 1]))
-            ouest = [(x, y) for x, y in proche_du_centre(libres(z, ".,q")) if x < cx - 3]
-            est = [(x, y) for x, y in proche_du_centre(libres(z, ".,q")) if x > cx + 3]
-            if ouest and est:
-                for x, y in (ouest[0], est[0]):
+            haut, bas = int(rails[:, 0].min()), int(rails[:, 0].max())
+            nord = [(x, y) for x, y in proche_du_centre(libres(z, ".,q")) if y < haut - 1]
+            sud = [(x, y) for x, y in proche_du_centre(libres(z, ".,q")) if y > bas + 1]
+            if nord and sud:
+                for x, y in (nord[0], sud[0]):
                     z[y, x] = "T"
         # --- herbe haute : des taches dans les parcs
         herbe = np.argwhere(z == "h")
@@ -491,8 +528,11 @@ def placer_elements(g, eemi_bati):
                     z[y, x] = "L"
                 elif z[y, x] == "." and "h" in z[y - 1:y + 2, x - 1:x + 2] and (x * 11 + y * 5) % 4 == 0:
                     z[y, x] = "m"
-        # --- depart de la premiere zone : pres du centre
-        if nom not in departs:
+        # --- depart : devant la gare pour la premiere bande, pres du centre sinon
+        if nom == ZONES[0]:
+            gx, gy = grille(*GARE)
+            departs[nom] = sorted(libres(z, ".,"), key=lambda c: (c[0] - gx) ** 2 + (c[1] - gy) ** 2)[0]
+        else:
             departs[nom] = proche_du_centre(libres(z, ".,"))[0]
         x, y = departs[nom]
         if not praticable(z[y, x]) or z[y, x] in "123":
@@ -535,7 +575,6 @@ def apercu(zones, chemin, echelle=4):
     lignes = []
     for nom in ZONES:
         lignes.extend(zones[nom])
-        lignes.append(["@"] * LARGEUR)
     im = Image.new("RGB", (LARGEUR * echelle, len(lignes) * echelle), (0, 0, 0))
     d = ImageDraw.Draw(im)
     for y, l in enumerate(lignes):
@@ -562,9 +601,9 @@ def reference(elements, chemin, echelle=4):
             ordre.append((0, "poly", pts(geo), (47, 111, 159)))
         elif tg.get("leisure") in ("park", "garden", "playground", "pitch") or tg.get("landuse") in ("grass", "meadow"):
             ordre.append((1, "poly", pts(geo), (120, 175, 90)))
-        elif tg.get("highway") in LARGEUR_ROUTE and tg.get("tunnel") != "yes":
-            ordre.append((2, "ligne", pts(geo), (110, 106, 100), max(1, int(LARGEUR_ROUTE[tg["highway"]] * echelle))))
-        elif tg.get("railway") == "rail" and tg.get("tunnel") != "yes":
+        elif tg.get("highway") in RUES and tg.get("tunnel") != "yes":
+            ordre.append((2, "ligne", pts(geo), (110, 106, 100), echelle * (2 if tg["highway"] in GRANDS_AXES else 1)))
+        elif tg.get("railway") == "rail" and tg.get("usage") == "main" and not tg.get("service") and tg.get("tunnel") != "yes":
             ordre.append((3, "ligne", pts(geo), (50, 50, 55), 2))
         elif tg.get("railway") == "tram" and tg.get("tunnel") != "yes":
             ordre.append((4, "ligne", pts(geo), (230, 180, 40), 3))
