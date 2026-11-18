@@ -5,8 +5,8 @@
 [resource]
 script = ExtResource("1_script")
 id = &"mache_praline"
-display_name = "Mâche-praline"
-description = "Rend 25 PV à un Gone."
+display_name = "Barre de céréales"
+description = "Rend 25 points de Motivation à un alternant."
 genre = 0
 valeur = 25
 utilisable_en_combat = true

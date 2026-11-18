@@ -22,7 +22,7 @@ anchor_right = 1.0
 anchor_bottom = 0.267
 theme_override_colors/font_color = Color(0.913725, 0.772549, 0.419608, 1)
 theme_override_font_sizes/font_size = 20
-text = "GONES"
+text = "MOUSTACHE QUEST"
 horizontal_alignment = 1
 
 [node name="SousTitre" type="Label" parent="."]
@@ -33,7 +33,7 @@ anchor_right = 1.0
 anchor_bottom = 0.344
 theme_override_colors/font_color = Color(0.564706, 0.635294, 0.709804, 1)
 theme_override_font_sizes/font_size = 8
-text = "Attrapez-les tous, ils sont dans votre promo."
+text = "Les chasseurs d'alternants de Confluence"
 horizontal_alignment = 1
 
 [node name="Menu" type="Label" parent="."]
@@ -48,14 +48,15 @@ text = "> Nouvelle partie"
 horizontal_alignment = 1
 
 [node name="Aide" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = -1
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 6.0
 offset_top = -16.0
 offset_right = -6.0
-offset_bottom = 6.0
-layout_mode = 0
+offset_bottom = -4.0
 theme_override_colors/font_color = Color(0.407843, 0.470588, 0.537255, 1)
 theme_override_font_sizes/font_size = 8
 text = "Flèches : choisir     Entrée : valider"

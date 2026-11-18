@@ -168,9 +168,9 @@ func _case_courante() -> String:
 func _indice_case(c: String) -> String:
 	match c:
 		"S":
-			return "Soins. Entrée pour remettre l'équipe d'aplomb."
+			return "Machine à café. Entrée pour remotiver l'équipe."
 		"B":
-			return "Boutique. Entrée pour échanger des ressources."
+			return "Boutique. Entrée pour dépenser la note de frais."
 		"M":
 			return "Entraînement. Entrée pour lancer un mini-jeu."
 		"X":
@@ -412,7 +412,7 @@ func _interagir() -> void:
 		"S":
 			GameState.soigner_equipe()
 			GameState.sauvegarde_auto()
-			_message("Toute l'équipe est soignée.")
+			_message("La machine à café a fait son office. Équipe au complet.")
 		"B":
 			_ouvrir_menu(&"boutique", _texte_boutique(), [
 				"3 pralines -> 1 Filet à Gone",
@@ -527,9 +527,9 @@ func _lancer_minijeu(index: int) -> void:
 	get_tree().change_scene_to_file(scene)
 
 func _texte_equipe() -> String:
-	var lignes: Array = ["Équipe (%d/%d)" % [GameState.equipe.size(), GameState.TAILLE_EQUIPE_MAX]]
+	var lignes: Array = ["Équipe (%d/%d alternants)" % [GameState.equipe.size(), GameState.TAILLE_EQUIPE_MAX]]
 	for g in GameState.equipe:
-		lignes.append("%s  Niv.%d  PV %d/%d" % [g.nom(), g.niveau, g.pv, g.pv_max()])
+		lignes.append("%s  Niv.%d  Motivation %d/%d" % [g.nom(), g.niveau, g.pv, g.pv_max()])
 		lignes.append("   ATT %d  DEF %d  VIT %d" % [g.attaque(), g.defense(), g.vitesse()])
 	lignes.append("")
 	var sacs: Array = []

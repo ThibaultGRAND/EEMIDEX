@@ -48,7 +48,7 @@ func _ready() -> void:
 	if GameState.combat_est_boss:
 		await _dire("%s vous barre la route !" % _ennemi.nom())
 	else:
-		await _dire("Un %s sauvage apparaît !" % _ennemi.nom())
+		await _dire("%s cherche une alternance !" % _ennemi.nom())
 	_menu_racine()
 
 # =============================================================================
@@ -56,9 +56,9 @@ func _ready() -> void:
 # =============================================================================
 func _rafraichir() -> void:
 	_ennemi_nom.text = "%s  Niv.%d" % [_ennemi.nom(), _ennemi.niveau]
-	_ennemi_pv.text = "PV %d/%d  %s" % [_ennemi.pv, _ennemi.pv_max(), _barre(_ennemi)]
+	_ennemi_pv.text = "Motivation %d/%d  %s" % [_ennemi.pv, _ennemi.pv_max(), _barre(_ennemi)]
 	_joueur_nom.text = "%s  Niv.%d" % [_actif.nom(), _actif.niveau]
-	_joueur_pv.text = "PV %d/%d  %s" % [_actif.pv, _actif.pv_max(), _barre(_actif)]
+	_joueur_pv.text = "Motivation %d/%d  %s" % [_actif.pv, _actif.pv_max(), _barre(_actif)]
 	if _ennemi.data != null:
 		_ennemi_sprite.color = _ennemi.data.couleur
 	if _actif.data != null:
@@ -204,7 +204,7 @@ func _executer(attaquant: GoneInstance, cible: GoneInstance, attaque: MoveData) 
 		cible.subir(degats)
 		_rafraichir()
 		var commentaire := Affinites.commentaire(affinite)
-		await _dire("%d dégâts.%s" % [degats, "  " + commentaire if commentaire != "" else ""])
+		await _dire("%d de Motivation en moins.%s" % [degats, "  " + commentaire if commentaire != "" else ""])
 	if attaque.stat_modifiee != &"" and attaque.modificateur != 0:
 		var beneficiaire := attaquant if attaque.cible == MoveData.Cible.SOI else cible
 		_appliquer_modificateur(beneficiaire, attaque.stat_modifiee, attaque.modificateur * 2)
@@ -266,15 +266,15 @@ func _utiliser_objet(objet: ItemData) -> void:
 
 func _tenter_capture(objet: ItemData) -> void:
 	if GameState.combat_est_boss:
-		await _dire("On ne capture pas le gardien de la colline.")
+		await _dire("On ne recrute pas le directeur comme ça.")
 		_menu_racine()
 		return
 	if GameState.equipe_est_pleine():
-		await _dire("L'équipe est déjà complète (%d Gones)." % GameState.TAILLE_EQUIPE_MAX)
+		await _dire("L'équipe est déjà complète (%d alternants)." % GameState.TAILLE_EQUIPE_MAX)
 		_menu_racine()
 		return
 	GameState.consommer_objet(objet.id)
-	await _dire("Vous lancez un %s..." % objet.display_name)
+	await _dire("Vous tendez un %s..." % objet.display_name)
 	var part_pv := float(_ennemi.pv) / float(maxi(1, _ennemi.pv_max()))
 	var chance := int(_ennemi.data.taux_capture * (1.0 - 0.7 * part_pv) + objet.valeur * 0.5)
 	chance = clampi(chance, 5, 95)
@@ -284,10 +284,10 @@ func _tenter_capture(objet: ItemData) -> void:
 		GameState.ajouter_a_equipe(_ennemi)
 		if GameState.pnj_en_combat != &"":
 			GameState.lever_drapeau(GameState.pnj_en_combat)
-		await _dire("%s rejoint l'équipe !" % _ennemi.nom())
+		await _dire("%s signe ! Il rejoint l'équipe." % _ennemi.nom())
 		_quitter("%s a rejoint l'équipe." % _ennemi.nom())
 	else:
-		await _dire("Raté, il s'échappe du filet.")
+		await _dire("Il relit les clauses… et refuse de signer.")
 		await _tour_ennemi()
 		await _apres_tour()
 

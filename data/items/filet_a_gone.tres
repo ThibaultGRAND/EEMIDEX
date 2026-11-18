@@ -5,8 +5,8 @@
 [resource]
 script = ExtResource("1_script")
 id = &"filet_a_gone"
-display_name = "Filet à Gone"
-description = "Sert à recruter un Gone affaibli."
+display_name = "Contrat Basique"
+description = "Un contrat d'alternance standard. Sert à recruter un alternant épuisé."
 genre = 1
 valeur = 30
 utilisable_en_combat = true

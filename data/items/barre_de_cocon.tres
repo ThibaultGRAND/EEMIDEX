@@ -5,8 +5,8 @@
 [resource]
 script = ExtResource("1_script")
 id = &"barre_de_cocon"
-display_name = "Barre de cocon"
-description = "Rend 60 PV. Rare."
+display_name = "Panier garni"
+description = "Rend 60 points de Motivation. Le grand jeu."
 genre = 0
 valeur = 60
 utilisable_en_combat = true

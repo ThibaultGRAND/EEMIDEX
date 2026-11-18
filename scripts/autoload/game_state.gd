@@ -110,7 +110,7 @@ func nouvelle_partie() -> void:
 	case_joueur = Zones.zone(&"perrache")["depart"]
 	partie_commencee = true
 
-	var depart: GoneData = catalogue_gones.get(&"generique_moustachu")
+	var depart: GoneData = catalogue_gones.get(&"thigoat")
 	if depart == null:
 		var dispo := gones_jouables()
 		depart = dispo[0] if not dispo.is_empty() else null
