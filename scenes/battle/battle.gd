@@ -346,7 +346,8 @@ func _tenter_capture(objet: ItemData) -> void:
 	GameState.consommer_objet(objet.id)
 	await _dire("Vous tendez un %s..." % objet.display_name)
 	var part_pv := float(_ennemi.pv) / float(maxi(1, _ennemi.pv_max()))
-	var chance := int(_ennemi.data.taux_capture * (1.0 - 0.7 * part_pv) + objet.valeur * 0.5)
+	var chance := int((_ennemi.data.taux_capture * (1.0 - 0.7 * part_pv) + objet.valeur * 0.5)
+		* GameState.bonus_recrutement())
 	chance = clampi(chance, 5, 95)
 	if randi() % 100 < chance:
 		_retirer_modificateurs()
@@ -397,7 +398,7 @@ func _fuir() -> void:
 # =============================================================================
 func _victoire() -> void:
 	await _dire("%s est hors de combat !" % _ennemi.nom())
-	if _actif.niveau < _ennemi.niveau + 3:
+	if _actif.niveau < _ennemi.niveau + GameState.marge_de_niveau():
 		var stade_avant := _actif.stade()
 		_actif.niveau += 1
 		_actif.soigner(2)

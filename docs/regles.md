@@ -9,7 +9,34 @@ elle attend l'accord de l'équipe.
 
 ---
 
-## 1. Les alternants
+## 1. Le patron **[en jeu]**
+
+Le prologue fait choisir entre deux patrons. Celui qu'on laisse devient le rival.
+
+| | Moustache | Moustachette |
+| --- | --- | --- |
+| Société | Moustache Corp | Moustachette & Associés |
+| Bonus | **+10 % de chance de recrutement** | **les alternants progressent plus longtemps** |
+| Réplique | *« Un alternant, c'est un CDI sans les inconvénients. »* | *« Je ne les exploite pas. Je les fais monter en compétences. »* |
+
+Le bonus de Moustache multiplie la chance de recrutement par 1,10, après le calcul
+ordinaire : un recrutement à 60 % passe à 66 %.
+
+Celui de Moustachette touche le plafond de montée en niveau. Un alternant ne monte que
+s'il reste sous le niveau du vaincu **+ 3** ; chez elle, c'est **+ 4**. Ses alternants
+continuent donc de progresser une marche plus haut, ce qui compte surtout en fin de
+partie quand les adversaires plafonnent.
+
+*Le document prévoyait « +10 % d'XP » pour elle. Le jeu n'a pas de points
+d'expérience — un combat gagné vaut un niveau — donc le bonus a été traduit en
+quelque chose qui existe, en gardant l'intention : chez elle, on progresse plus.*
+
+**Il n'y a qu'un seul sprite de héros.** Moustachette s'affiche avec celui de
+Moustache en attendant que l'équipe la dessine.
+
+---
+
+## 2. Les alternants
 
 ### Les quatre stats **[en jeu]**
 

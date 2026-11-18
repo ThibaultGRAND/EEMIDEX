@@ -29,6 +29,25 @@ const DUREE_FONDU := 0.5
 ## Volume d'une piste qui s'efface. -80 dB, c'est le silence pour Godot.
 const VOLUME_SILENCE_DB := -80.0
 
+## Les deux patrons jouables. Celui qu'on ne choisit pas devient le rival.
+## Voir docs/histoire.md section 2.
+const HEROS := {
+	&"moustache": {
+		"nom": "Moustache",
+		"societe": "Moustache Corp",
+		"titre": "Monsieur le Président",
+		"bonus": "+10 % de chance de recrutement",
+		"replique": "Un alternant, c'est un CDI sans les inconvénients.",
+	},
+	&"moustachette": {
+		"nom": "Moustachette",
+		"societe": "Moustachette & Associés",
+		"titre": "Madame la Présidente",
+		"bonus": "les alternants progressent plus longtemps",
+		"replique": "Je ne les exploite pas. Je les fais monter en compétences.",
+	},
+}
+
 ## Les 3 ressources ramassées sur la carte. Chacune alimente un mini-jeu.
 const RESSOURCES := {
 	&"praline": "Praline",
@@ -47,6 +66,8 @@ var inventaire: Dictionary = {}  # item_id (StringName) -> quantité (int)
 var ressources: Dictionary = {}  # ressource_id (StringName) -> quantité (int)
 var drapeaux: Dictionary = {}    # progression : objets ramassés, boss battu...
 var partie_commencee: bool = false
+## Le patron choisi au prologue.
+var heros: StringName = &"moustache"
 
 # --- Position du joueur -------------------------------------------------------
 var zone_courante: StringName = &"perrache"
@@ -215,6 +236,25 @@ func nouvelle_partie() -> void:
 	inventaire_modifie.emit()
 	ressources_modifiees.emit()
 
+## Le patron qu'on n'a pas choisi : c'est lui le rival.
+func rival() -> StringName:
+	return &"moustachette" if heros == &"moustache" else &"moustache"
+
+func fiche_heros() -> Dictionary:
+	return HEROS.get(heros, HEROS[&"moustache"])
+
+func fiche_rival() -> Dictionary:
+	return HEROS.get(rival(), HEROS[&"moustachette"])
+
+## Bonus de Moustache : il sait faire signer. Multiplie la chance de recrutement.
+func bonus_recrutement() -> float:
+	return 1.10 if heros == &"moustache" else 1.0
+
+## Bonus de Moustachette : elle fait monter en competences. Ses alternants
+## continuent de progresser une marche plus haut que les autres.
+func marge_de_niveau() -> int:
+	return 4 if heros == &"moustachette" else 3
+
 ## Garde-fou : permet de lancer scenes/battle/battle.tscn seule (F6) sans crash.
 func assurer_partie() -> void:
 	if not partie_commencee or equipe.is_empty():
@@ -339,6 +379,7 @@ func sauvegarder() -> bool:
 		"inventaire": inv,
 		"ressources": res,
 		"drapeaux": dra,
+		"heros": String(heros),
 		"zone": String(zone_courante),
 		"case_x": case_joueur.x,
 		"case_y": case_joueur.y,
@@ -382,6 +423,7 @@ func charger() -> bool:
 	for id in donnees.get("drapeaux", {}):
 		drapeaux[StringName(id)] = bool(donnees["drapeaux"][id])
 
+	heros = StringName(donnees.get("heros", "moustache"))
 	zone_courante = StringName(donnees.get("zone", "perrache"))
 	case_joueur = Vector2i(int(donnees.get("case_x", 12)), int(donnees.get("case_y", 10)))
 	partie_commencee = true

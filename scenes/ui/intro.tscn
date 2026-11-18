@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scenes/ui/intro.gd" id="1_intro"]
 [ext_resource type="PackedScene" path="res://scenes/ui/composants/boite_dialogue.tscn" id="2_boite"]
+[ext_resource type="PackedScene" path="res://scenes/ui/composants/liste_menu.tscn" id="3_menu"]
 
 [node name="Intro" type="Control"]
 layout_mode = 3
@@ -19,9 +20,9 @@ anchor_bottom = 1.0
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = -1
-anchor_top = 0.15
+anchor_top = 0.08
 anchor_right = 1.0
-anchor_bottom = 0.3
+anchor_bottom = 0.22
 text = "Gare de Perrache"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -30,9 +31,9 @@ vertical_alignment = 1
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = -1
-anchor_top = 0.3
+anchor_top = 0.22
 anchor_right = 1.0
-anchor_bottom = 0.4
+anchor_bottom = 0.34
 text = "quai B — 8 h 12"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -48,3 +49,15 @@ offset_left = 6.0
 offset_top = -48.0
 offset_right = -6.0
 offset_bottom = -6.0
+
+[node name="Menu" parent="." instance=ExtResource("3_menu")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.08
+anchor_top = 0.42
+anchor_right = 0.92
+anchor_bottom = 0.42
+offset_bottom = 30.0
+grow_vertical = 1
