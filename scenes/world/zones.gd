@@ -1,86 +1,142 @@
 class_name Zones
 extends RefCounted
-## Les 3 zones du MVP, décrites en texte. Une ligne = une rangée de cases.
-## Remplacer ce plan par une TileMapLayer quand les tilesets seront dessinés :
-## seules les fonctions de world.gd qui lisent `plan` changeront.
+## Les 3 zones du MVP, decrites en texte. Une ligne = une rangee de cases.
+## world.gd construit les TileMapLayer a partir de ces plans.
 ##
-## Légende :
-##   #  mur            .  sol libre        g  herbe / ruelle (rencontres)
-##   S  soin           B  boutique         M  salle d'entraînement
-##   T  traboule       R  ressource        X  combat de fin
-##   1 2 3             sortie vers une autre zone
+## Legende :
+##   #  batiment / mur (bloquant)     .  pave           ,  pave use
+##   q  dalle de quai                 w  eau (bloquant) s  sable
+##   h  herbe courte                  g  herbe haute (rencontres)
+##   t  arbre (bloquant)              d  terre
+##   S  soin      B  boutique     M  entrainement
+##   T  traboule  R  ressource    X  combat de fin
+##   1 2 3  sortie vers une autre zone
 
-const LARGEUR := 20
-const HAUTEUR := 10
+const LARGEUR := 32
+const HAUTEUR := 20
 const TAILLE_CASE := 16
+
+## Cases que le joueur ne peut pas traverser.
+const BLOQUANTS := "#wt"
+
+## Sol pose sur la couche du bas, pour chaque caractere.
+const SOLS := {
+	"#": Vector2i(3, 0), ".": Vector2i(0, 0), ",": Vector2i(1, 0),
+	"q": Vector2i(2, 0), "w": Vector2i(6, 0), "s": Vector2i(7, 0),
+	"h": Vector2i(4, 0), "g": Vector2i(5, 0), "t": Vector2i(4, 0),
+	"d": Vector2i(3, 0),
+	"S": Vector2i(0, 1), "B": Vector2i(1, 1), "M": Vector2i(2, 1),
+	"T": Vector2i(3, 1), "R": Vector2i(4, 1), "X": Vector2i(2, 0),
+	"1": Vector2i(5, 1), "2": Vector2i(5, 1), "3": Vector2i(5, 1),
+}
+
+## Volume pose sur la couche du haut, triee en profondeur.
+const DECORS := {
+	"#": Vector2i(0, 2), "t": Vector2i(5, 2),
+	"S": Vector2i(6, 3), "B": Vector2i(5, 3), "M": Vector2i(3, 3),
+	"T": Vector2i(4, 3), "X": Vector2i(7, 3),
+}
+
+## Partie haute des volumes qui font deux cases, posee sur la case du dessus.
+const DECORS_HAUT := {
+	"#": Vector2i(1, 2), "t": Vector2i(6, 2),
+}
 
 const ZONES := {
 	&"presquile": {
 		"titre": "Presqu'île — Bellecour",
-		"sol": Color(0.439216, 0.423529, 0.380392),
 		"ressource": &"praline",
 		"rencontres": [&"generique_gone", &"generique_quenellon"],
 		"niveau_min": 3,
 		"niveau_max": 5,
+		"depart": Vector2i(16, 9),
 		"plan": [
-			"####################",
-			"#..................#",
-			"#..S............B..#",
-			"#..................#",
-			"#.......M..........#",
-			"#..................#",
-			"#...gg.......gg....#",
-			"#...gg.......gg....2",
-			"#.........R........#",
-			"####################",
+			"################################",
+			"#ttt##########################t#",
+			"#..............................#",
+			"#..###...###......###...###....#",
+			"#..###...###...S..###...###....#",
+			"#..............................#",
+			"wwqq,,,,,,,,,,,,,,,,,,,,,,,,...#",
+			"wwqq,,,,,,,,,,,,,,,,,,,,,,,,...#",
+			"wwqq,,,,,,,,,,,,,,,,,,,,,,,,...#",
+			"2qqq,,,,,,,,,,,,,,,,,,,,,,,,...#",
+			"wwqq,,,,,,,,,,,,,,,,,,,,,,,,...#",
+			"wwqq,,,,,,,,,,,,,,,,,,,,,,,,...#",
+			"wwqq,,,,,,,,,,,,,,,,,,,,,,,,...#",
+			"#..............................#",
+			"#..hhgg.......###......hhgg....#",
+			"#..hhgg...M...###......hhgg....#",
+			"#..hhgg................hhgg....#",
+			"#.........R........B...........#",
+			"#t...........................t.#",
+			"################################",
 		],
-		"sorties": {"2": ["vieux_lyon", 2, 1]},
+		"sorties": {"2": ["vieux_lyon", 30, 7]},
 	},
 	&"vieux_lyon": {
 		"titre": "Vieux Lyon — les traboules",
-		"sol": Color(0.380392, 0.360784, 0.396078),
 		"ressource": &"cocon",
 		"rencontres": [&"generique_gone", &"generique_traboulin"],
 		"niveau_min": 5,
 		"niveau_max": 8,
+		"depart": Vector2i(30, 7),
 		"plan": [
-			"####################",
-			"1..................#",
-			"#.gg...###...gg....#",
-			"#.gg...#T#...gg....#",
-			"#..................#",
-			"#.....R......###...#",
-			"#............#T#...#",
-			"#..gg..............#",
-			"#..gg..........R...3",
-			"####################",
+			"################################",
+			"#..............................#",
+			"#.####.####.####.####.####.###.#",
+			"#.####.####.####.####.####.###.#",
+			"#..............................#",
+			"#.####.#T##.####.####.#T##.###.#",
+			"#.####.####.####.####.####.###.#",
+			"#..............................1",
+			"#..............................#",
+			"3..............................#",
+			"#..gg....R.........gg..........#",
+			"#..gg..............gg..........#",
+			"#.####.####.####.####.####.###.#",
+			"#.####.####.####.####.####.###.#",
+			"#..............................#",
+			"#..gg.......R......gg..........#",
+			"#..gg..............gg..........#",
+			"#..............................#",
+			"#.####.####.####.####.####.###.#",
+			"################################",
 		],
-		"sorties": {"1": ["presquile", 18, 7], "3": ["fourviere", 2, 1]},
+		"sorties": {"1": ["presquile", 1, 9], "3": ["fourviere", 1, 8]},
 	},
 	&"fourviere": {
 		"titre": "Fourvière — la colline",
-		"sol": Color(0.47451, 0.443137, 0.380392),
 		"ressource": &"quenelle",
 		"rencontres": [&"generique_traboulin", &"generique_quenellon"],
 		"niveau_min": 8,
 		"niveau_max": 11,
+		"depart": Vector2i(1, 8),
 		"plan": [
-			"####################",
-			"2..................#",
-			"#...gg....R....gg..#",
-			"#...gg.........gg..#",
-			"#..................#",
-			"#.........X........#",
-			"#..................#",
-			"#...gg....R....gg..#",
-			"#...gg.........gg..#",
-			"####################",
+			"################################",
+			"#tt##########tt###########tt####",
+			"#..............................#",
+			"#..hhh....########....hhh......#",
+			"#..hhh....########....hhh......#",
+			"#.........########.............#",
+			"#..gg.................gg.......#",
+			"#..gg......R..........gg.......#",
+			"2..............................#",
+			"#..............................#",
+			"#...........X..................#",
+			"#..............................#",
+			"#..gg.................gg.......#",
+			"#..gg......R..........gg.......#",
+			"#..hhh....########....hhh......#",
+			"#..hhh....########....hhh......#",
+			"#.........########.............#",
+			"#..............................#",
+			"#tt########################tt###",
+			"################################",
 		],
-		"sorties": {"2": ["vieux_lyon", 18, 8]},
+		"sorties": {"2": ["vieux_lyon", 1, 9]},
 	},
 }
-
-const CASES_BLOQUEES := "#"
 
 static func zone(id: StringName) -> Dictionary:
 	return ZONES.get(id, ZONES[&"presquile"])
@@ -95,7 +151,7 @@ static func case_a(id: StringName, position: Vector2i) -> String:
 	return ligne[position.x]
 
 static func est_traversable(id: StringName, position: Vector2i) -> bool:
-	return not CASES_BLOQUEES.contains(case_a(id, position))
+	return not BLOQUANTS.contains(case_a(id, position))
 
 ## Les deux bouts d'une traboule : on sort par l'autre.
 static func autre_traboule(id: StringName, depuis: Vector2i) -> Vector2i:
@@ -106,3 +162,8 @@ static func autre_traboule(id: StringName, depuis: Vector2i) -> Vector2i:
 			if ligne[x] == "T" and Vector2i(x, y) != depuis:
 				return Vector2i(x, y)
 	return depuis
+
+## Taille de la zone en pixels, pour borner la camera.
+static func taille_pixels(id: StringName) -> Vector2i:
+	var plan: Array = zone(id)["plan"]
+	return Vector2i(int(plan[0].length()) * TAILLE_CASE, plan.size() * TAILLE_CASE)

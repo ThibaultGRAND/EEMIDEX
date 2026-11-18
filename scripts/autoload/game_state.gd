@@ -36,7 +36,7 @@ var partie_commencee: bool = false
 
 # --- Position du joueur -------------------------------------------------------
 var zone_courante: StringName = &"presquile"
-var case_joueur := Vector2i(3, 5)
+var case_joueur := Vector2i(16, 9)
 
 # --- Contexte passé d'une scène à l'autre ------------------------------------
 var rencontre_en_attente: GoneData = null
@@ -104,7 +104,7 @@ func nouvelle_partie() -> void:
 		ressources[id] = 0
 	drapeaux.clear()
 	zone_courante = &"presquile"
-	case_joueur = Vector2i(3, 5)
+	case_joueur = Zones.zone(&"presquile")["depart"]
 	partie_commencee = true
 
 	var depart: GoneData = catalogue_gones.get(&"generique_moustachu")
@@ -279,7 +279,7 @@ func charger() -> bool:
 		drapeaux[StringName(id)] = bool(donnees["drapeaux"][id])
 
 	zone_courante = StringName(donnees.get("zone", "presquile"))
-	case_joueur = Vector2i(int(donnees.get("case_x", 3)), int(donnees.get("case_y", 5)))
+	case_joueur = Vector2i(int(donnees.get("case_x", 16)), int(donnees.get("case_y", 9)))
 	partie_commencee = true
 
 	equipe_modifiee.emit()

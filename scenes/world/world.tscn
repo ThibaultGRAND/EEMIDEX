@@ -1,9 +1,24 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scenes/world/world.gd" id="1_world"]
+[ext_resource type="TileSet" path="res://assets/tilesets/placeholder_tuiles.tres" id="2_tileset"]
+[ext_resource type="PackedScene" path="res://scenes/world/player.tscn" id="3_joueur"]
 
 [node name="World" type="Node2D"]
+y_sort_enabled = true
 script = ExtResource("1_world")
+
+[node name="Sol" type="TileMapLayer" parent="."]
+unique_name_in_owner = true
+tile_set = ExtResource("2_tileset")
+
+[node name="Decor" type="TileMapLayer" parent="."]
+unique_name_in_owner = true
+y_sort_enabled = true
+tile_set = ExtResource("2_tileset")
+
+[node name="Joueur" parent="." instance=ExtResource("3_joueur")]
+unique_name_in_owner = true
 
 [node name="Hud" type="CanvasLayer" parent="."]
 
@@ -11,7 +26,7 @@ script = ExtResource("1_world")
 offset_top = 160.0
 offset_right = 320.0
 offset_bottom = 180.0
-color = Color(0.0627451, 0.0784314, 0.109804, 1)
+color = Color(0.0627451, 0.0784314, 0.109804, 0.878431)
 
 [node name="Zone" type="Label" parent="Hud"]
 unique_name_in_owner = true
@@ -40,7 +55,7 @@ offset_left = 32.0
 offset_top = 24.0
 offset_right = 288.0
 offset_bottom = 152.0
-color = Color(0.0627451, 0.0784314, 0.109804, 0.933333)
+color = Color(0.0627451, 0.0784314, 0.109804, 0.952941)
 
 [node name="Overlay" type="Label" parent="Hud"]
 unique_name_in_owner = true

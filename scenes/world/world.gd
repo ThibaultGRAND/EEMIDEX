@@ -1,27 +1,38 @@
 extends Node2D
-## La carte. Déplacement case par case, rencontres dans l'herbe, traboules,
-## ressources à ramasser, hub de soin, boutique et salle d'entraînement.
+## La carte. Deux TileMapLayer construites depuis les plans texte de zones.gd :
+## une couche de sol, et une couche de decor triee en profondeur (Y-sort), pour
+## que le joueur passe derriere ce qui est devant lui.
 ##
-## Les cases sont dessinées à la main dans _draw() : c'est un placeholder.
-## Quand les tilesets seront prêts, remplacer _draw() par une TileMapLayer.
+## Quand l'equipe aura dessine les vraies tuiles, il suffira de remplacer le PNG
+## du tileset : les plans et le code ne bougent pas.
 
 enum Mode { LIBRE, MENU }
 
-const DELAI_DEPLACEMENT := 0.13
+const SOURCE := 0                 # la seule source du TileSet
 const CHANCE_RENCONTRE := 0.14
+
+## action -> [deplacement, Joueur.Direction]. Les entiers suivent l'ordre de
+## l'enum Direction de player.gd : BAS, HAUT, GAUCHE, DROITE.
+const DIRECTIONS := {
+	"ui_down": [Vector2i(0, 1), 0],
+	"ui_up": [Vector2i(0, -1), 1],
+	"ui_left": [Vector2i(-1, 0), 2],
+	"ui_right": [Vector2i(1, 0), 3],
+}
 
 var zone_id: StringName = &"presquile"
 var zone: Dictionary = {}
-var pos: Vector2i = Vector2i(3, 5)
 
 var _mode: Mode = Mode.LIBRE
-var _cooldown: float = 0.0
 var _menu_contexte: StringName = &""
 var _menu_titre: String = ""
 var _menu_options: Array = []
 var _menu_index: int = 0
 var _minijeu_choisi: StringName = &""
 
+@onready var _sol: TileMapLayer = %Sol
+@onready var _decor: TileMapLayer = %Decor
+@onready var _joueur: Joueur = %Joueur
 @onready var _label_zone: Label = %Zone
 @onready var _label_message: Label = %Message
 @onready var _volet: ColorRect = %Volet
@@ -29,57 +40,83 @@ var _minijeu_choisi: StringName = &""
 
 func _ready() -> void:
 	GameState.assurer_partie()
+	_joueur.deplacement_fini.connect(_sur_case_atteinte)
 	_charger_zone(GameState.zone_courante, GameState.case_joueur)
 	if GameState.dernier_resultat_combat != "":
 		_message(GameState.dernier_resultat_combat)
 		GameState.dernier_resultat_combat = ""
 	else:
-		_message(_indice_case(_case_courante()))
+		_message("Flèches : marcher     Entrée : agir     Échap : menu")
 
+# =============================================================================
+# Construction de la carte
+# =============================================================================
 func _charger_zone(id: StringName, case_depart: Vector2i) -> void:
 	zone_id = id
 	zone = Zones.zone(id)
-	pos = case_depart
 	GameState.zone_courante = id
-	GameState.case_joueur = pos
+
+	# Une sauvegarde ancienne peut pointer hors de la zone : on retombe au depart.
+	var depart: Vector2i = case_depart
+	if not Zones.est_traversable(id, depart):
+		depart = zone["depart"]
+	GameState.case_joueur = depart
+
+	_peindre_zone()
+	_joueur.placer(depart)
+	_joueur.borner_camera(Zones.taille_pixels(id))
 	_label_zone.text = str(zone["titre"])
-	queue_redraw()
+
+func _peindre_zone() -> void:
+	_sol.clear()
+	_decor.clear()
+	var plan: Array = zone["plan"]
+	for y in plan.size():
+		var ligne: String = plan[y]
+		for x in ligne.length():
+			var c: String = ligne[x]
+			var cellule := Vector2i(x, y)
+			if Zones.SOLS.has(c):
+				_sol.set_cell(cellule, SOURCE, Zones.SOLS[c])
+			if Zones.DECORS.has(c):
+				_decor.set_cell(cellule, SOURCE, Zones.DECORS[c])
+	# Deuxieme passe : la partie haute des volumes deborde sur la case du dessus.
+	for y in plan.size():
+		var ligne2: String = plan[y]
+		for x in ligne2.length():
+			var c2: String = ligne2[x]
+			if not Zones.DECORS_HAUT.has(c2) or y == 0:
+				continue
+			var dessus := Vector2i(x, y - 1)
+			if Zones.case_a(zone_id, dessus) == c2:
+				continue          # un autre bloc du meme volume : rien a coiffer
+			_decor.set_cell(dessus, SOURCE, Zones.DECORS_HAUT[c2])
 
 # =============================================================================
-# Déplacement
+# Deplacement
 # =============================================================================
-func _process(delta: float) -> void:
-	if _mode != Mode.LIBRE:
+func _process(_delta: float) -> void:
+	# Touche maintenue : on enchaine les pas tant qu'elle est enfoncee.
+	if _mode != Mode.LIBRE or _joueur.en_mouvement:
 		return
-	_cooldown = maxf(0.0, _cooldown - delta)
-	if _cooldown > 0.0:
+	for action in DIRECTIONS:
+		if Input.is_action_pressed(action):
+			_tenter_pas(action)
+			return
+
+## Un pas, ou un simple demi-tour si la case est bloquee.
+func _tenter_pas(action: String) -> void:
+	if _joueur.en_mouvement:
 		return
-	var direction := Vector2i.ZERO
-	if Input.is_action_pressed("ui_up"):
-		direction = Vector2i(0, -1)
-	elif Input.is_action_pressed("ui_down"):
-		direction = Vector2i(0, 1)
-	elif Input.is_action_pressed("ui_left"):
-		direction = Vector2i(-1, 0)
-	elif Input.is_action_pressed("ui_right"):
-		direction = Vector2i(1, 0)
-	if direction != Vector2i.ZERO:
-		_deplacer(direction)
-		_cooldown = DELAI_DEPLACEMENT
+	var consigne: Array = DIRECTIONS[action]
+	var cible: Vector2i = _joueur.cellule + consigne[0]
+	if Zones.est_traversable(zone_id, cible):
+		_joueur.avancer_vers(cible, consigne[1])
+	else:
+		_joueur.regarder(consigne[1])
 
-func _deplacer(direction: Vector2i) -> void:
-	var cible := pos + direction
-	if not Zones.est_traversable(zone_id, cible):
-		return
-	pos = cible
-	GameState.case_joueur = pos
-	queue_redraw()
-	_entrer_sur_case()
-
-func _case_courante() -> String:
-	return Zones.case_a(zone_id, pos)
-
-func _entrer_sur_case() -> void:
+func _sur_case_atteinte(cellule: Vector2i) -> void:
+	GameState.case_joueur = cellule
 	var c := _case_courante()
 	var sorties: Dictionary = zone["sorties"]
 	if sorties.has(c):
@@ -89,16 +126,21 @@ func _entrer_sur_case() -> void:
 		return
 	match c:
 		"T":
-			pos = Zones.autre_traboule(zone_id, pos)
-			GameState.case_joueur = pos
-			queue_redraw()
+			var sortie_traboule := Zones.autre_traboule(zone_id, cellule)
+			_joueur.placer(sortie_traboule)
+			GameState.case_joueur = sortie_traboule
 			_message("Traboule : un raccourci entre deux cours.")
 		"R":
-			_ramasser_ressource()
+			_ramasser_ressource(cellule)
 		"g":
 			_tenter_rencontre()
 		_:
-			_message(_indice_case(c))
+			var indice := _indice_case(c)
+			if indice != "":
+				_message(indice)
+
+func _case_courante() -> String:
+	return Zones.case_a(zone_id, _joueur.cellule)
 
 func _indice_case(c: String) -> String:
 	match c:
@@ -110,22 +152,21 @@ func _indice_case(c: String) -> String:
 			return "Entraînement. Entrée pour lancer un mini-jeu."
 		"X":
 			return "Quelqu'un garde la colline. Entrée pour l'affronter."
-		"g":
-			return "Ça bouge dans les fourrés..."
 		_:
-			return "Échap : menu     Entrée : agir"
+			return ""
 
 # =============================================================================
 # Ressources et rencontres
 # =============================================================================
-func _ramasser_ressource() -> void:
-	var cle := StringName("ramasse_%s_%d_%d" % [zone_id, pos.x, pos.y])
+func _ramasser_ressource(cellule: Vector2i) -> void:
+	var cle := StringName("ramasse_%s_%d_%d" % [zone_id, cellule.x, cellule.y])
 	if GameState.drapeau(cle):
-		_message("Il n'y a plus rien ici.")
 		return
 	var ressource: StringName = zone["ressource"]
 	GameState.lever_drapeau(cle)
 	GameState.ajouter_ressource(ressource, 2)
+	_decor.set_cell(cellule, -1)          # l'objet disparait du decor
+	_sol.set_cell(cellule, SOURCE, Zones.SOLS["h"])
 	_message("+2 %s (total : %d)" % [
 		GameState.RESSOURCES.get(ressource, ressource),
 		GameState.quantite_ressource(ressource),
@@ -133,15 +174,15 @@ func _ramasser_ressource() -> void:
 
 func _tenter_rencontre() -> void:
 	if randf() > CHANCE_RENCONTRE:
-		_message("Ça bouge dans les fourrés...")
 		return
 	var candidats: Array = []
+	var sauvages := GameState.gones_sauvages()
 	for id in zone["rencontres"]:
 		var fiche: GoneData = GameState.catalogue_gones.get(id)
-		if fiche != null and fiche in GameState.gones_sauvages():
+		if fiche != null and fiche in sauvages:
 			candidats.append(fiche)
 	if candidats.is_empty():
-		candidats = GameState.gones_sauvages()
+		candidats = sauvages
 	if candidats.is_empty():
 		return
 	GameState.rencontre_en_attente = candidats[randi() % candidats.size()]
@@ -171,8 +212,16 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event.is_action_pressed("ui_cancel"):
 		_ouvrir_menu(&"pause", "Menu", ["Équipe", "Sauvegarder", "Retour au titre", "Reprendre"])
-	elif event.is_action_pressed("ui_accept"):
+		return
+	if event.is_action_pressed("ui_accept"):
 		_interagir()
+		return
+	# Une tape breve peut durer moins qu'une image : on la prend a l'evenement,
+	# sinon le pas serait perdu. La touche maintenue, elle, passe par _process.
+	for action in DIRECTIONS:
+		if event.is_action_pressed(action):
+			_tenter_pas(action)
+			return
 
 func _interagir() -> void:
 	match _case_courante():
@@ -194,7 +243,7 @@ func _interagir() -> void:
 		"X":
 			_lancer_combat_de_fin()
 		_:
-			_message(_indice_case(_case_courante()))
+			_message("Rien à faire ici.")
 
 func _ouvrir_menu(contexte: StringName, titre: String, options: Array) -> void:
 	_menu_contexte = contexte
@@ -278,7 +327,7 @@ func _menu_boutique() -> void:
 
 func _menu_entrainement() -> void:
 	_minijeu_choisi = &"rythme" if _menu_index == 0 else &"frappe"
-	var noms: Array[String] = []
+	var noms: Array = []
 	for g in GameState.equipe:
 		noms.append("%s  Niv.%d" % [g.nom(), g.niveau])
 	noms.append("Annuler")
@@ -289,80 +338,26 @@ func _lancer_minijeu(index: int) -> void:
 		_fermer_menu()
 		return
 	GameState.gone_a_entrainer = index
-	var scene := GameState.SCENE_RYTHME if _minijeu_choisi == &"rythme" else GameState.SCENE_FRAPPE
+	var scene: String = GameState.SCENE_RYTHME if _minijeu_choisi == &"rythme" else GameState.SCENE_FRAPPE
 	get_tree().change_scene_to_file(scene)
 
 func _texte_equipe() -> String:
-	var lignes: Array[String] = ["Équipe (%d/%d)" % [GameState.equipe.size(), GameState.TAILLE_EQUIPE_MAX]]
+	var lignes: Array = ["Équipe (%d/%d)" % [GameState.equipe.size(), GameState.TAILLE_EQUIPE_MAX]]
 	for g in GameState.equipe:
 		lignes.append("%s  Niv.%d  PV %d/%d" % [g.nom(), g.niveau, g.pv, g.pv_max()])
 		lignes.append("   ATT %d  DEF %d  VIT %d" % [g.attaque(), g.defense(), g.vitesse()])
 	lignes.append("")
-	var sacs: Array[String] = []
+	var sacs: Array = []
 	for objet in GameState.objets_possedes():
 		sacs.append("%s x%d" % [objet.display_name, GameState.quantite_objet(objet.id)])
 	lignes.append("Sac : " + (", ".join(sacs) if not sacs.is_empty() else "vide"))
 	return "\n".join(lignes)
 
 func _texte_boutique() -> String:
-	var lignes: Array[String] = ["Boutique"]
+	var lignes: Array = ["Boutique"]
 	for id in GameState.RESSOURCES:
 		lignes.append("%s : %d" % [GameState.RESSOURCES[id], GameState.quantite_ressource(id)])
 	return "\n".join(lignes)
 
 func _message(texte: String) -> void:
 	_label_message.text = texte
-
-# =============================================================================
-# Rendu (placeholder : à remplacer par une TileMapLayer)
-# =============================================================================
-func _draw() -> void:
-	var t := Zones.TAILLE_CASE
-	var plan: Array = zone["plan"]
-	var sol: Color = zone["sol"]
-	for y in plan.size():
-		var ligne: String = plan[y]
-		for x in ligne.length():
-			var rect := Rect2(x * t, y * t, t, t)
-			var c: String = ligne[x]
-			draw_rect(rect, sol if c != "#" else Color(0.145098, 0.168627, 0.223529))
-			_dessiner_decor(c, Vector2(x * t, y * t), t)
-	_dessiner_joueur(Vector2(pos.x * t, pos.y * t), t)
-
-func _dessiner_decor(c: String, origine: Vector2, t: int) -> void:
-	match c:
-		"g":
-			draw_rect(Rect2(origine + Vector2(1, 1), Vector2(t - 2, t - 2)), Color(0.231373, 0.431373, 0.286275))
-			draw_rect(Rect2(origine + Vector2(4, 4), Vector2(2, 6)), Color(0.321569, 0.552941, 0.364706))
-			draw_rect(Rect2(origine + Vector2(10, 6), Vector2(2, 6)), Color(0.321569, 0.552941, 0.364706))
-		"S":
-			draw_rect(Rect2(origine + Vector2(2, 2), Vector2(12, 12)), Color(0.862745, 0.345098, 0.345098))
-			draw_rect(Rect2(origine + Vector2(7, 4), Vector2(2, 8)), Color(1, 1, 1))
-			draw_rect(Rect2(origine + Vector2(4, 7), Vector2(8, 2)), Color(1, 1, 1))
-		"B":
-			draw_rect(Rect2(origine + Vector2(2, 2), Vector2(12, 12)), Color(0.286275, 0.513726, 0.776471))
-			draw_rect(Rect2(origine + Vector2(4, 6), Vector2(8, 5)), Color(0.941176, 0.941176, 0.886275))
-		"M":
-			draw_rect(Rect2(origine + Vector2(2, 2), Vector2(12, 12)), Color(0.52549, 0.4, 0.72549))
-			draw_rect(Rect2(origine + Vector2(5, 5), Vector2(6, 6)), Color(0.937255, 0.835294, 0.513726))
-		"T":
-			draw_rect(Rect2(origine + Vector2(3, 0), Vector2(10, 16)), Color(0.105882, 0.0941176, 0.133333))
-			draw_rect(Rect2(origine + Vector2(5, 3), Vector2(6, 13)), Color(0.054902, 0.0470588, 0.0745098))
-		"R":
-			draw_rect(Rect2(origine + Vector2(5, 6), Vector2(6, 6)), Color(0.937255, 0.741176, 0.329412))
-			draw_rect(Rect2(origine + Vector2(7, 4), Vector2(2, 3)), Color(0.72549, 0.521569, 0.223529))
-		"X":
-			draw_rect(Rect2(origine + Vector2(3, 1), Vector2(10, 14)), Color(0.882353, 0.858824, 0.788235))
-			draw_rect(Rect2(origine + Vector2(6, 5), Vector2(4, 10)), Color(0.580392, 0.552941, 0.470588))
-		"#":
-			draw_rect(Rect2(origine + Vector2(0, 0), Vector2(t, 3)), Color(0.219608, 0.254902, 0.333333))
-		_:
-			if c.is_valid_int():
-				draw_rect(Rect2(origine + Vector2(0, 0), Vector2(t, t)), Color(0.396078, 0.419608, 0.364706))
-				draw_rect(Rect2(origine + Vector2(6, 2), Vector2(4, 12)), Color(0.760784, 0.780392, 0.686275))
-
-func _dessiner_joueur(origine: Vector2, _t: int) -> void:
-	draw_rect(Rect2(origine + Vector2(4, 7), Vector2(8, 8)), Color(0.286275, 0.360784, 0.541176))
-	draw_rect(Rect2(origine + Vector2(4, 2), Vector2(8, 6)), Color(0.960784, 0.819608, 0.670588))
-	draw_rect(Rect2(origine + Vector2(3, 1), Vector2(10, 3)), Color(0.682353, 0.270588, 0.247059))
-	draw_rect(Rect2(origine + Vector2(5, 6), Vector2(6, 1)), Color(0.164706, 0.133333, 0.117647))
