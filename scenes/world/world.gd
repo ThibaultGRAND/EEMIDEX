@@ -15,6 +15,13 @@ const CHANCE_PNJ_REGARDE := 0.3
 ## Un PNJ place au hasard n'apparait pas a moins de cette distance du joueur.
 const DISTANCE_MIN_PNJ := 5
 ## Longueur d'une promenade de PNJ, en pas d'affilee.
+## Ce que fait un alternant sauvage quand le joueur lui marche dessus.
+## Les trois chances se completent : le reste, il hesite et ne se passe rien.
+const CHANCE_ALTERNANT_SE_BAT := 0.6
+const CHANCE_ALTERNANT_FUIT := 0.25
+## Chance qu'un alternant passant a cote du joueur l'attaque de lui-meme.
+const CHANCE_ALTERNANT_ATTAQUE := 0.12
+
 const PAS_PROMENADE_MIN := 2
 const PAS_PROMENADE_MAX := 5
 
@@ -179,6 +186,8 @@ func _placer_pnj() -> void:
 		_pnjs.remove_child(ancien)
 		ancien.queue_free()
 	for fiche: Dictionary in zone.get("pnj", []):
+		if GameState.drapeau(StringName("%s_%s" % [zone_id, fiche.get("nom", "")])):
+			continue              # deja recrute : il est dans l'equipe, plus dehors
 		var depart: Vector2i
 		if fiche.has("case"):
 			depart = fiche["case"]
@@ -233,8 +242,83 @@ func _sur_envie_pnj(pnj: Pnj) -> void:
 	var dans_le_rayon: bool = pnj.rayon < 0 or maxi(ecart.x, ecart.y) <= pnj.rayon
 	if Zones.accepte_pnj(zone_id, cible) and _case_libre(cible) and dans_le_rayon:
 		pnj.avancer_vers(cible, vers)
+		_tenter_agression(pnj)
 	else:
 		pnj.regarder(vers)
+		_tenter_agression(pnj)
+
+# =============================================================================
+# Rencontrer un alternant sauvage
+# =============================================================================
+## Le joueur marche sur un alternant. Il ne decide pas de ce qui suit : l'autre
+## se bat, s'enfuit, ou ne fait rien. C'est son humeur, pas un menu.
+func _aborder(alternant: Pnj) -> void:
+	var sort := randf()
+	if sort < CHANCE_ALTERNANT_SE_BAT:
+		_message("%s ne compte pas se laisser recruter !" % alternant.name)
+		_combattre(alternant)
+	elif sort < CHANCE_ALTERNANT_SE_BAT + CHANCE_ALTERNANT_FUIT:
+		_message("%s file sans demander son reste." % alternant.name)
+		_faire_fuir(alternant)
+	else:
+		_message("%s vous ignore poliment." % alternant.name)
+
+## Il s'ecarte du joueur et continue sur sa lancee.
+func _faire_fuir(alternant: Pnj) -> void:
+	var ecart: Vector2i = alternant.cellule - _joueur.cellule
+	var deplacement := Vector2i(signi(ecart.x), 0) if absi(ecart.x) >= absi(ecart.y) \
+		else Vector2i(0, signi(ecart.y))
+	if deplacement == Vector2i.ZERO:
+		return
+	var vers: Joueur.Direction = _direction_de(deplacement)
+	var cible: Vector2i = alternant.cellule + deplacement
+	if Zones.accepte_pnj(zone_id, cible) and _case_libre(cible):
+		alternant.pas_restants = PAS_PROMENADE_MAX
+		alternant.avancer_vers(cible, vers)
+	else:
+		alternant.regarder(vers)
+
+## Il attaque de lui-meme en passant a cote du joueur.
+func _tenter_agression(alternant: Pnj) -> bool:
+	if _mode != Mode.LIBRE or _joueur.en_mouvement:
+		return false
+	var ecart: Vector2i = (alternant.cellule - _joueur.cellule).abs()
+	if ecart.x + ecart.y != 1:
+		return false
+	if randf() >= CHANCE_ALTERNANT_ATTAQUE:
+		return false
+	_message("%s vous barre la route !" % alternant.name)
+	_combattre(alternant)
+	return true
+
+func _combattre(alternant: Pnj) -> void:
+	var fiche: GoneData = _fiche_de(alternant)
+	if fiche == null:
+		return
+	GameState.rencontre_en_attente = fiche
+	GameState.niveau_rencontre = randi_range(int(zone["niveau_min"]), int(zone["niveau_max"]))
+	GameState.combat_est_boss = false
+	GameState.pnj_en_combat = StringName("%s_%s" % [zone_id, alternant.name])
+	get_tree().change_scene_to_file(GameState.SCENE_COMBAT)
+
+## La fiche de l'alternant : celle que la zone lui attribue, sinon une au hasard.
+func _fiche_de(alternant: Pnj) -> GoneData:
+	for entree: Dictionary in zone.get("pnj", []):
+		if str(entree.get("nom", "")) != alternant.name:
+			continue
+		if entree.has("gone"):
+			var fiche: GoneData = GameState.catalogue_gones.get(entree["gone"])
+			if fiche != null:
+				return fiche
+		break
+	var sauvages := GameState.gones_sauvages()
+	return sauvages.pick_random() if not sauvages.is_empty() else null
+
+func _direction_de(deplacement: Vector2i) -> Joueur.Direction:
+	for consigne: Array in DIRECTIONS.values():
+		if consigne[0] == deplacement:
+			return consigne[1]
+	return Joueur.Direction.BAS
 
 ## Libre = ni le joueur (ou la case ou il va), ni un PNJ.
 func _case_libre(c: Vector2i) -> bool:

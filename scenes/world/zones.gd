@@ -139,9 +139,10 @@ const ZONES := {
 			"www#########22###vvvv########www",
 		],
 		"sorties": {"2": ["sainte_blandine", 12, 1]},
-		## PNJ qui se baladent dans toute la zone. Cles optionnelles :
-		## "case" (depart fixe, sinon une case libre au hasard) et "rayon"
-		## (distance max a sa case de depart, sinon aucune limite).
+		## Alternants sauvages qui se baladent. Cles optionnelles :
+		## "case" (depart fixe, sinon une case libre au hasard), "rayon"
+		## (distance max a sa case de depart, sinon aucune limite) et "gone"
+		## (sa fiche dans data/gones, sinon un sauvage au hasard).
 		"pnj": [
 			{"nom": "PnjSeb", "sprite": "res://assets/sprites/pnj_seb.png"},
 			{"nom": "PnjThibaut", "sprite": "res://assets/sprites/pnj_thibaut.png"},
@@ -185,9 +186,10 @@ const ZONES := {
 			"www#########22###vvvv########www",
 		],
 		"sorties": {"1": ["perrache", 12, 22], "2": ["darse", 12, 1]},
-		## PNJ qui se baladent dans toute la zone. Cles optionnelles :
-		## "case" (depart fixe, sinon une case libre au hasard) et "rayon"
-		## (distance max a sa case de depart, sinon aucune limite).
+		## Alternants sauvages qui se baladent. Cles optionnelles :
+		## "case" (depart fixe, sinon une case libre au hasard), "rayon"
+		## (distance max a sa case de depart, sinon aucune limite) et "gone"
+		## (sa fiche dans data/gones, sinon un sauvage au hasard).
 		"pnj": [
 			{"nom": "PnjThomas", "sprite": "res://assets/sprites/pnj_thomas.png"},
 			{"nom": "PnjTheophile", "sprite": "res://assets/sprites/pnj_theophile.png"},
@@ -233,9 +235,10 @@ const ZONES := {
 			"www#########22###vvvv########www",
 		],
 		"sorties": {"1": ["sainte_blandine", 12, 24], "2": ["pointe", 12, 1]},
-		## PNJ qui se baladent dans toute la zone. Cles optionnelles :
-		## "case" (depart fixe, sinon une case libre au hasard) et "rayon"
-		## (distance max a sa case de depart, sinon aucune limite).
+		## Alternants sauvages qui se baladent. Cles optionnelles :
+		## "case" (depart fixe, sinon une case libre au hasard), "rayon"
+		## (distance max a sa case de depart, sinon aucune limite) et "gone"
+		## (sa fiche dans data/gones, sinon un sauvage au hasard).
 		"pnj": [
 			{"nom": "PnjJulian", "sprite": "res://assets/sprites/pnj_julian.png"},
 			{"nom": "PnjEmile", "sprite": "res://assets/sprites/pnj_emile.png"},
@@ -279,9 +282,10 @@ const ZONES := {
 			"wwwwwwwwwwwwwwsssswwwwwwwwwwwwww",
 		],
 		"sorties": {"1": ["darse", 12, 26]},
-		## PNJ qui se baladent dans toute la zone. Cles optionnelles :
-		## "case" (depart fixe, sinon une case libre au hasard) et "rayon"
-		## (distance max a sa case de depart, sinon aucune limite).
+		## Alternants sauvages qui se baladent. Cles optionnelles :
+		## "case" (depart fixe, sinon une case libre au hasard), "rayon"
+		## (distance max a sa case de depart, sinon aucune limite) et "gone"
+		## (sa fiche dans data/gones, sinon un sauvage au hasard).
 		"pnj": [
 			{"nom": "PnjPaloma", "sprite": "res://assets/sprites/pnj_paloma.png"},
 			{"nom": "PnjGuillaume", "sprite": "res://assets/sprites/pnj_guillaume.png"},

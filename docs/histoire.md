@@ -19,9 +19,9 @@ installe son nouveau siège à Lyon, dans le quartier le plus « innovant » de 
 Son plan est simple : monter une équipe entière **uniquement avec des alternants**.
 Pas chers, motivés, et « ils apprennent tellement de choses ».
 
-Mais à Confluence, chaque bâtiment est une **arène** tenue par un·e manager qui protège
-ses talents. Pour avoir le droit de recruter à l'**EEMI**, il faut d'abord réunir
-**8 Recommandations**.
+Mais à Confluence, les meilleurs talents sont au même endroit : l'**EEMI**, 2ᵉ étage du
+Monolithe. Une seule arène dans tout le jeu, et c'est la dernière. Avant d'y entrer, il
+faut avoir monté une vraie équipe — et passer le Stagiaire Zéro, qui en garde la porte.
 
 Tout commence sur un quai de la **gare de Perrache**.
 
@@ -59,6 +59,30 @@ Le personnage non choisi devient **le Rival**.
 
 - **Les stats d'un alternant** : Motivation (PV), Café (énergie pour les attaques),
   Compétence, Vitesse de rendu.
+
+### Le Café, chiffré
+
+Le Café est l'énergie dépensée par les attaques. C'est ce qui empêche de marteler la
+même grosse attaque du début à la fin d'un combat.
+
+| Règle | Valeur |
+| --- | --- |
+| Café maximum | `20 + 2 × (niveau − 1)` — 28 au niveau 5, 38 au niveau 10 |
+| Coût d'une attaque | `puissance ÷ 5`, arrondi au supérieur, minimum 2 |
+| Attaque de soutien (0 de puissance) | 2 |
+| Récupération | +2 par tour où l'alternant n'attaque pas : objet, changement, défense |
+| À court de Café | il ne lui reste que **Traîner des pieds** : 5 dégâts, type neutre, gratuit |
+| Machine à café | restaure Motivation **et** Café au maximum, toute l'équipe |
+| Recettes de café | Expresso +15, Allongé +30 |
+
+**Pourquoi ces nombres.** Une attaque à 25 de puissance coûte 5 Café. Un alternant de
+niveau 5 en a 28, soit cinq grosses attaques — et un combat ordinaire en dure cinq à
+huit tours. Il finit donc ses combats tout juste, et doit alterner avec des attaques
+moins chères s'il veut tenir. Face à un boss à 200 PV, il tombe forcément à sec : il
+faut prévoir des recettes, ou changer d'alternant en cours de route. C'est là que
+l'équipe de trois prend son sens.
+
+*Pas encore implémenté : le combat ne connaît pas le Café pour l'instant.*
 - **Le LinkedOut** : l'encyclopédie du jeu, où s'enregistrent tous les alternants
   rencontrés.
 - **Les centres de soin** sont les **machines à café** : elles restaurent la Motivation
@@ -186,9 +210,14 @@ système que le combat n'a pas encore.
 
 ---
 
-## 6. L'arène finale : le Monolithe
+## 6. L'arène, unique : le Monolithe
 
-- **Rez-de-chaussée** : l'accueil. Il faut montrer les 8 Recommandations au gardien.
+C'est la seule arène du jeu. Tout le reste du quartier est du terrain de recrutement.
+
+- **Rez-de-chaussée** : l'accueil. Le gardien ne laisse monter qu'un patron qui a déjà
+  une **équipe complète de 3 alternants** et qui a battu le **Stagiaire Zéro**, posté
+  devant l'entrée. C'est la seule condition du jeu : il n'y a pas d'autre arène, donc
+  pas de badges à collectionner.
 - **1ᵉʳ étage, le Conseil Pédagogique** — 4 professeurs à la suite, sans retour à la
   machine à café :
   1. **Marketing Digital** (Marketing / Com) : *« Votre stratégie de recrutement n'a aucun KPI. »*
@@ -329,12 +358,10 @@ les bureaux sont vides. Même Gérard est parti. Sur le fauteuil de PDG, un mot 
 
 À trancher avant de coder les parties concernées :
 
-- **Les 8 Recommandations** : seule l'arène du Monolithe est décrite. Les sept autres
-  arènes, leurs managers et leurs bâtiments restent à inventer.
-- **Le stat « Café »** : énergie dépensée par les attaques. Combien par attaque, comment
-  elle se régénère, ce qui se passe à zéro.
+- **La condition d'entrée au Monolithe** : équipe de 3 et Stagiaire Zéro battu, c'est une
+  proposition. À valider.
 - **Les passives** : six alternants en ont une. Le combat n'a aucun système pour ça.
 - **Les trois CV du prologue** : quels alternants, et de quels types.
 - **Le niveau « Lead »** et l'échelle de niveaux en général.
-- **Consentement** : plusieurs alternants nommés ne figurent pas encore dans
-  `consentement.md` (Nael, Tristan, Matiti, CeCissoussou, Paguera).
+- **Les vrais prénoms** de Matiti, CeCissoussou et Paguera, pour le suivi de
+  consentement : seuls leurs noms de jeu sont connus ici.

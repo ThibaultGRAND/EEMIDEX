@@ -282,6 +282,8 @@ func _tenter_capture(objet: ItemData) -> void:
 		_retirer_modificateurs()
 		_ennemi.soigner_tout()
 		GameState.ajouter_a_equipe(_ennemi)
+		if GameState.pnj_en_combat != &"":
+			GameState.lever_drapeau(GameState.pnj_en_combat)
 		await _dire("%s rejoint l'équipe !" % _ennemi.nom())
 		_quitter("%s a rejoint l'équipe." % _ennemi.nom())
 	else:
@@ -349,6 +351,7 @@ func _quitter(message: String) -> void:
 	_retirer_modificateurs()
 	GameState.rencontre_en_attente = null
 	GameState.combat_est_boss = false
+	GameState.pnj_en_combat = &""
 	GameState.dernier_resultat_combat = message
 	GameState.sauvegarde_auto()
 	GameState.equipe_modifiee.emit()

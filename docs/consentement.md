@@ -38,9 +38,9 @@ son accord écrit**, et chacun peut se retirer à tout moment, sans avoir à se 
 
 ## Suivi
 
-### PNJ de la carte
+### Personnages nommés
 
-Ces huit-là ne passent **pas** par le garde-fou `consentement_recu` : ce sont des PNJ
+Ceux-ci ne passent **pas** par le garde-fou `consentement_recu` : ce sont des PNJ
 codés dans `scenes/world/zones.gd`, pas des Gones. Leur accord se suit donc ici, à la
 main, et nulle part ailleurs.
 
@@ -54,6 +54,11 @@ main, et nulle part ailleurs.
 | Théophile | 18 nov. 2026 | Théophile | ☐ | `assets/sprites/pnj_theophile.png` |
 | Émile | 18 nov. 2026 | Émile | ☐ | `assets/sprites/pnj_emile.png` |
 | Guillaume | 18 nov. 2026 | Guillaume | ☐ | `assets/sprites/pnj_guillaume.png` |
+| Nael | 18 nov. 2026 | Nael — Directeur pédagogique | ☐ | *(boss, pas encore de sprite)* |
+| Tristan | 18 nov. 2026 | Tristan — recruteur | ☐ | *(boss, pas encore de sprite)* |
+| *(prénom à compléter)* | 18 nov. 2026 | Matiti | ☐ | *(pas encore de sprite)* |
+| *(prénom à compléter)* | 18 nov. 2026 | CeCissoussou | ☐ | *(pas encore de sprite)* |
+| *(prénom à compléter)* | 18 nov. 2026 | Paguera | ☐ | *(pas encore de sprite)* |
 
 Il reste à leur faire **valider le sprite final** avant la mise en ligne, et à conserver
 les accords écrits hors du dépôt.
@@ -71,3 +76,14 @@ les accords écrits hors du dépôt.
 - Pas de nom de famille, pas de mail, pas de photo dans le jeu ni dans les `.tres`.
 - Un étudiant qui refuse n'est pas absent du jeu : il est simplement représenté par le
   Gone générique, comme tout le monde au début.
+
+## Les noms de jeu
+
+`docs/histoire.md` donne à chaque étudiant un nom de personnage : Thigoat, Roulian,
+Matiti, Palou, Thomasu, Guignome, Tortheo, E1000, Paguera, Thibouclier, CeCissoussou.
+Un surnom reste une donnée personnelle dès lors qu'il désigne quelqu'un de reconnaissable
+dans sa promo : il relève du même accord que le prénom.
+
+Trois d'entre eux ne sont connus ici que par leur nom de jeu — Matiti, CeCissoussou et
+Paguera. À compléter avec le prénom réel, pour que le retrait soit possible sur simple
+demande.
