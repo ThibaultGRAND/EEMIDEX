@@ -9,103 +9,116 @@ anchor_bottom = 1.0
 script = ExtResource("1_battle")
 
 [node name="Fond" type="ColorRect" parent="."]
-layout_mode = 0
-offset_right = 320.0
-offset_bottom = 180.0
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+anchor_bottom = 1.0
 color = Color(0.235294, 0.278431, 0.305882, 1)
 
 [node name="Sol" type="ColorRect" parent="."]
-layout_mode = 0
-offset_top = 96.0
-offset_right = 320.0
-offset_bottom = 136.0
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.533
+anchor_right = 1.0
+anchor_bottom = 0.756
 color = Color(0.321569, 0.341176, 0.282353, 1)
 
 [node name="EnnemiSprite" type="ColorRect" parent="."]
 unique_name_in_owner = true
-layout_mode = 0
-offset_left = 228.0
-offset_top = 24.0
-offset_right = 284.0
-offset_bottom = 80.0
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.712
+anchor_top = 0.133
+anchor_right = 0.887
+anchor_bottom = 0.444
 color = Color(0.65098, 0.717647, 0.8, 1)
 
 [node name="JoueurSprite" type="ColorRect" parent="."]
 unique_name_in_owner = true
-layout_mode = 0
-offset_left = 36.0
-offset_top = 72.0
-offset_right = 92.0
-offset_bottom = 128.0
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.112
+anchor_top = 0.4
+anchor_right = 0.287
+anchor_bottom = 0.711
 color = Color(0.913725, 0.772549, 0.419608, 1)
 
 [node name="EnnemiNom" type="Label" parent="."]
 unique_name_in_owner = true
-layout_mode = 0
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.055
+anchor_right = 0.562
+anchor_bottom = 0.122
 offset_left = 8.0
-offset_top = 10.0
-offset_right = 180.0
-offset_bottom = 22.0
 theme_override_font_sizes/font_size = 8
 text = "Gone sauvage"
 
 [node name="EnnemiPv" type="Label" parent="."]
 unique_name_in_owner = true
-layout_mode = 0
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.122
+anchor_right = 0.562
+anchor_bottom = 0.189
 offset_left = 8.0
-offset_top = 22.0
-offset_right = 180.0
-offset_bottom = 34.0
 theme_override_colors/font_color = Color(0.784314, 0.823529, 0.866667, 1)
 theme_override_font_sizes/font_size = 8
 text = "PV --/--"
 
 [node name="JoueurNom" type="Label" parent="."]
 unique_name_in_owner = true
-layout_mode = 0
-offset_left = 168.0
-offset_top = 84.0
-offset_right = 312.0
-offset_bottom = 96.0
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.525
+anchor_top = 0.467
+anchor_right = 0.975
+anchor_bottom = 0.533
 theme_override_font_sizes/font_size = 8
 text = "Moustachu"
 
 [node name="JoueurPv" type="Label" parent="."]
 unique_name_in_owner = true
-layout_mode = 0
-offset_left = 168.0
-offset_top = 96.0
-offset_right = 312.0
-offset_bottom = 108.0
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.525
+anchor_top = 0.533
+anchor_right = 0.975
+anchor_bottom = 0.6
 theme_override_colors/font_color = Color(0.784314, 0.823529, 0.866667, 1)
 theme_override_font_sizes/font_size = 8
 text = "PV --/--"
 
 [node name="Panneau" type="ColorRect" parent="."]
-layout_mode = 0
-offset_top = 134.0
-offset_right = 320.0
-offset_bottom = 180.0
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.744
+anchor_right = 1.0
+anchor_bottom = 1.0
 color = Color(0.0627451, 0.0784314, 0.109804, 1)
 
 [node name="Journal" type="Label" parent="."]
 unique_name_in_owner = true
-layout_mode = 0
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.756
+anchor_right = 1.0
+anchor_bottom = 0.822
 offset_left = 6.0
-offset_top = 136.0
-offset_right = 314.0
-offset_bottom = 148.0
+offset_right = -6.0
 theme_override_font_sizes/font_size = 8
 text = ""
 autowrap_mode = 2
 
 [node name="Menu" type="Label" parent="."]
 unique_name_in_owner = true
-layout_mode = 0
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.822
+anchor_right = 1.0
+anchor_bottom = 1.0
 offset_left = 6.0
-offset_top = 148.0
-offset_right = 314.0
-offset_bottom = 180.0
+offset_right = -6.0
 theme_override_colors/font_color = Color(0.913725, 0.772549, 0.419608, 1)
 theme_override_font_sizes/font_size = 8
 text = ""
