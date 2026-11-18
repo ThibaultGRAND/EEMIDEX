@@ -184,19 +184,15 @@ pour les sols et des placeholders pour les batiments.
   l'autre. Les plans sont en texte dans `zones.gd`.
 - `scenes/world/pnj.tscn` — 8 PNJ qui se baladent, deux par zone, sans case imposee :
   la carte leur trouve une place libre au demarrage.
-- **Carte générée depuis OpenStreetMap** (18 nov. 2026) : `tools/osm_vers_zones.py --ecrire`
-  reconstruit les 4 zones (128 × 62 cases, 9 m par case) depuis
-  `tools/map_data/confluence_osm.json` et `confluence_rivieres.json` : Saône à gauche,
-  Rhône à droite, rues, bâtiments, quais, darse, voies ferrées, tram T1, parcs, arbres.
-  Seule la presqu'île est gardée (les rives d'en face redeviennent fleuve), les cours
-  fermées des immeubles sont comptées comme bâti, et le script relie le reste de chaque
-  zone (passages à niveau, passages entre bâtiments). `--reference ref.png` dessine les
-  données OSM brutes dans le même cadre, pour comparer avec `--apercu plan.png`.
-  place sorties, soins, boutique, entraînement, passages sous les voies, ressources, herbe
-  haute, et le **combat final (`X`) devant l'EEMI** (bâtiment « Lumen »). Il ne touche qu'à
-  `LARGEUR`, `depart`, `plan` et `sorties` ; relancer `tools/verifier_plans.py` après.
-  Retouches à la main possibles dans `zones.gd`, mais elles sont perdues si on relance.
-- **Tramways** : `r` = rails de tram (on marche dessus). `scenes/world/tram.tscn` : une rame
+- **Carte : retour aux 4 zones dessinées à la main** (18 nov. 2026, demande de Sébastien).
+  Les plans de `zones.gd` sont revenus à 32 cases de large (perrache 24 lignes,
+  sainte_blandine 26, darse 28, pointe 26). La version générée depuis OpenStreetMap
+  (128 × 62 cases) a été abandonnée : jugée buggée et illisible. **Ne pas relancer
+  `tools/osm_vers_zones.py --ecrire`** sans l'accord de l'équipe : il écraserait ces plans
+  (il ne touche qu'à `LARGEUR`, `depart`, `plan` et `sorties`). Le script et les données
+  `tools/map_data/confluence_*.json` restent dans le dépôt comme base de travail.
+  Relancer `tools/verifier_plans.py` après toute retouche des plans.
+- **Tramways** : `r` = rails de tram (on marche dessus). **Aucun `r` dans les plans actuels : pas de tram en jeu pour l’instant.** `scenes/world/tram.tscn` : une rame
   de 3 cases par ligne (plus sur les longues) qui fait l'aller-retour ; elle attend si le
   joueur ou un PNJ est sur la voie, et le joueur ne traverse pas une rame. Les rails
   (`r`, `v`, `=`) prennent le sens de leurs voisins (`Zones.sol_de_zone`).
@@ -210,6 +206,9 @@ pour les sols et des placeholders pour les batiments.
   dans `PaletteUi` (`COULEURS_CARTE`, `REPERES_CARTE`). Ordre des zones : `ORDRE` dans
   `carte_monde.gd`, à compléter si une zone est ajoutée. `world.gd` passe en
   `Mode.CARTE` tant qu'elle est ouverte.
+  Un **chemin blanc fléché** relie la sortie de chaque zone à l'entrée de la suivante
+  (`_dessiner_chemin`), y compris de Sainte-Blandine (bas de la colonne de gauche) à la
+  Darse (haut de la colonne de droite).
 - **Tuiles HD (placeholder)** : `tools/generer_tuiles_hd.py` dessine en code un atlas
   64×64 (`assets/tilesets/placeholder_tuiles_hd.*`) : pavés, quais, eau, herbe, rails,
   façades lyonnaises (fenêtres à volets, portes, vitrines), toits en tuiles, arbres,
@@ -229,6 +228,11 @@ pour les sols et des placeholders pour les batiments.
   `tools/planches/`, puis `python3 tools/decouper_planche.py tools/planches/<id>.jpg <id>
   --fond vert|magenta|transparent` (options `--face-en-premier`, `--unique` : voir l'aide
   du script ; il demande Pillow, numpy et scipy).
+  Si deux poses se touchent presque, le script réessaie seul avec une marge plus fine.
+  **Planches découpées le 18 nov. 2026** : `joueur_moustachette` (pas encore jouable : il
+  n'y a pas d'écran de choix Moustache / Moustachette), `pnj_julian` et `pnj_guillaume`
+  refaits, et `pnj_celia`, `pnj_gabriel`, `pnj_matheo`. Ces trois derniers ne sont **pas
+  encore placés sur la carte** : il faut d'abord les inscrire dans `docs/consentement.md`.
 - `scripts/ui/` + `scenes/ui/composants/` — le socle d'interface : palette,
   thème Godot, jauge animée, badge de type, fiche de combattant, liste à curseur,
   boîte de dialogue qui s'écrit lettre par lettre. `scenes/ui/apercu_ui.tscn` les

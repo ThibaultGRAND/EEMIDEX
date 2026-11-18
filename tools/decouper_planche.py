@@ -74,7 +74,19 @@ def masque_fond(im, fond):
 
 
 def lire_poses(chemin, fond, unique):
-    """Renvoie {(ligne, colonne): image RGBA recadrée} et la liste des lignes."""
+    """Renvoie {(ligne, colonne): image RGBA recadrée} et la liste des lignes.
+
+    Les poses sont d'abord regroupées avec une marge de 4 px ; si deux poses très
+    proches se collent (moins de 8 px d'écart), on réessaie avec une marge plus petite.
+    """
+    for dilatation in (4, 3, 2):
+        resultat = _lire_poses(chemin, fond, unique, dilatation)
+        if resultat[1] == [8, 6, 6, 6, 6] or unique:
+            return resultat
+    raise SystemExit("Planche inattendue : %s poses par ligne au lieu de [8, 6, 6, 6, 6]" % resultat[1])
+
+
+def _lire_poses(chemin, fond, unique, dilatation):
     src = Image.open(chemin)
     if fond == "transparent":
         rgba = np.asarray(src.convert("RGBA")).astype(int)
@@ -83,7 +95,7 @@ def lire_poses(chemin, fond, unique):
         rgb = np.asarray(src.convert("RGB")).astype(int)
         premier_plan = ndimage.binary_opening(~masque_fond(rgb, fond), iterations=2)
     # Regroupe les pixels proches (mains, mèches) sans coller deux poses voisines.
-    etiquettes, _ = ndimage.label(ndimage.binary_dilation(premier_plan, iterations=4))
+    etiquettes, _ = ndimage.label(ndimage.binary_dilation(premier_plan, iterations=dilatation))
     poses = []
     for i, tranche in enumerate(ndimage.find_objects(etiquettes)):
         hauteur = tranche[0].stop - tranche[0].start
@@ -118,8 +130,6 @@ def lire_poses(chemin, fond, unique):
     for ligne in lignes:
         ligne.sort(key=lambda p: p["x0"])
     nb = [len(l) for l in lignes]
-    if nb != [8, 6, 6, 6, 6]:
-        raise SystemExit("Planche inattendue : %s poses par ligne au lieu de [8, 6, 6, 6, 6]" % nb)
     return {(r, c): p for r, ligne in enumerate(lignes) for c, p in enumerate(ligne)}, nb
 
 

@@ -1,6 +1,10 @@
-[gd_resource type="SpriteFrames" load_steps=31 format=3]
+[gd_resource type="SpriteFrames" load_steps=32 format=3]
 
 [ext_resource type="Texture2D" path="res://assets/characters/pnj_julian/pnj_julian_sheet.png" id="1_sheet"]
+
+[sub_resource type="AtlasTexture" id="atlas_0_0"]
+atlas = ExtResource("1_sheet")
+region = Rect2(0, 0, 32, 56)
 
 [sub_resource type="AtlasTexture" id="atlas_0_1"]
 atlas = ExtResource("1_sheet")
@@ -154,7 +158,7 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": SubResource("atlas_3_4")
+"texture": SubResource("atlas_0_0")
 }],
 "loop": true,
 "name": &"idle_up",
