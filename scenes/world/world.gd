@@ -14,6 +14,9 @@ const SCENE_PNJ: PackedScene = preload("res://scenes/world/pnj.tscn")
 const CHANCE_PNJ_REGARDE := 0.3
 ## Un PNJ place au hasard n'apparait pas a moins de cette distance du joueur.
 const DISTANCE_MIN_PNJ := 5
+## Longueur d'une promenade de PNJ, en pas d'affilee.
+const PAS_PROMENADE_MIN := 2
+const PAS_PROMENADE_MAX := 5
 
 ## action -> [deplacement, Joueur.Direction]. Les entiers suivent l'ordre de
 ## l'enum Direction de player.gd : BAS, HAUT, GAUCHE, DROITE.
@@ -205,15 +208,26 @@ func _case_au_hasard_pour_pnj() -> Vector2i:
 	return candidates.pick_random()
 
 ## Le PNJ demande a bouger : la carte choisit une case libre autour de lui.
+## En pleine promenade, il continue tout droit ; sinon il en commence une
+## nouvelle (2 a 5 pas) dans une direction au hasard, ou regarde juste autour.
 func _sur_envie_pnj(pnj: Pnj) -> void:
 	if _mode != Mode.LIBRE:
+		pnj.regarder(pnj.direction)
 		return
-	var consigne: Array = DIRECTIONS.values().pick_random()
-	var vers: Joueur.Direction = consigne[1]
-	if randf() < CHANCE_PNJ_REGARDE:
-		pnj.regarder(vers)
-		return
-	var cible: Vector2i = pnj.cellule + consigne[0]
+	var deplacement: Vector2i
+	var vers: Joueur.Direction
+	if pnj.pas_restants > 0:
+		vers = pnj.direction
+		deplacement = DIRECTIONS.values()[int(vers)][0]
+	else:
+		var consigne: Array = DIRECTIONS.values().pick_random()
+		deplacement = consigne[0]
+		vers = consigne[1]
+		if randf() < CHANCE_PNJ_REGARDE:
+			pnj.regarder(vers)
+			return
+		pnj.pas_restants = randi_range(PAS_PROMENADE_MIN, PAS_PROMENADE_MAX)
+	var cible: Vector2i = pnj.cellule + deplacement
 	var ecart: Vector2i = (cible - pnj.case_depart).abs()
 	var dans_le_rayon: bool = pnj.rayon < 0 or maxi(ecart.x, ecart.y) <= pnj.rayon
 	if Zones.accepte_pnj(zone_id, cible) and _case_libre(cible) and dans_le_rayon:

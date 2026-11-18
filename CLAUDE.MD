@@ -39,7 +39,14 @@ Le document de référence est la page de cadrage. En cas de doute sur le périm
 
 ### Pixel art
 - **Résolution de base : 320×180. Tuiles de 16×16. Décidé le 18 nov. 2026, ne pas y revenir
-  sans l'accord de l'équipe.** Stretch mode `viewport`, scale `integer`.
+  sans l'accord de l'équipe.** Stretch mode `canvas_items`, scale `integer`.
+  *Changé par Sébastien le 18 nov. 2026 (était `viewport`), à valider en équipe* : la
+  logique reste en 320×180 (carte, caméra, cases de 16), mais le rendu se fait à la
+  résolution de la fenêtre. Les **personnages** sont fournis en 4× plus de détail
+  (~120 px de haut) et affichés avec `scale = 0.25` : ils gardent 30 à 32 px dans le
+  monde mais restent nets. Les tuiles, elles, restent en 16×16.
+  Si l'éditeur est ouvert pendant une modification de `project.godot`, il peut la
+  réécrire avec ses anciens réglages : recharger le projet avant de lancer.
 - Tailles imposées, valables pour tout le monde :
 
   | Élément | Taille |
@@ -141,17 +148,20 @@ Seul le joueur a un vrai sprite ; pas encore de tileset dessiné, aucun son.
   rencontres aléatoires dans l'herbe, menu pause et sauvegarde.
 - `assets/sprites/joueur_moustache.png` — le joueur (la Moustache), utilisé par
   `scenes/world/player.tscn` à la place de `placeholder_joueur.png` : 2 foulées × 4
-  directions (bas, haut, gauche, droite), cases de 32×36, perso de 32 px de haut. Réduit
+  directions (bas, haut, gauche, droite), en 4× (cases de 124×139), affiché à `scale = 0.25`
+  dans `player.tscn` : 32 px de haut dans le monde. Réduit
   depuis la planche 8 directions fournie par l'équipe.
 - `scenes/world/pnj.tscn` + `pnj.gd` — PNJ qui se baladent case par case dans toute leur
-  zone, sur les sols listés dans `Zones.SOLS_PNJ`. Le PNJ émet `envie_de_bouger`,
+  zone, par promenades de 2 à 5 pas d'affilée puis une pause, sur les sols listés dans `Zones.SOLS_PNJ`. Le PNJ émet `envie_de_bouger`,
   `world.gd` choisit la case ; joueur et PNJ se bloquent mutuellement. Liste par zone
   dans `zones.gd` (clé `"pnj"`) : départ au hasard (à 5 cases au moins du joueur) à
   chaque entrée dans la zone, sauf `"case"` fixe ; `"rayon"` optionnel pour les tenir
-  près de leur départ. Sprites `assets/sprites/pnj_*.png` (2 foulées × 4 directions,
-  perso de 30 px). Répartition : Presqu'île (Seb, Thibaut, Théophile), Vieux Lyon (Thomas,
+  près de leur départ. Sprites `assets/sprites/pnj_*.png` : 3 images × 4 directions
+  (debout, foulée A, foulée B), en 4× (~120 px de haut), affichés à `scale = 0.25` dans
+  `pnj.tscn` : 30 px dans le monde. Un pas = foulée puis debout, deux pas
+  font le cycle complet ; à l'arrêt, pose debout. Répartition : Presqu'île (Seb, Thibaut, Théophile), Vieux Lyon (Thomas,
   Julian, Emile), Fourvière (Paloma, Guillaume).
-  PnjThibaut n'a qu'une image de face : il ne se tourne pas, sa 2ᵉ foulée est la même
+  PnjThibaut n'a qu'une image de face : il ne se tourne pas, ses foulées sont la même
   image remontée d'1 px. À remplacer quand sa planche 4 directions existera.
 - `scenes/battle/` — combat 1 contre 1 au tour par tour : attaquer / objet / changer /
   fuir, ordre selon la vitesse, capture au Filet à Gone, combat de fin à Fourvière.
