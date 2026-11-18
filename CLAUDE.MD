@@ -40,27 +40,39 @@ Le document de référence est la page de cadrage. En cas de doute sur le périm
 ### Pixel art
 - **Résolution de base : 320×180. Tuiles de 16×16. Décidé le 18 nov. 2026, ne pas y revenir
   sans l'accord de l'équipe.** Stretch mode `canvas_items`, scale `integer`.
-  *Changé par Sébastien le 18 nov. 2026 (était `viewport`), à valider en équipe* : la
-  logique reste en 320×180 (carte, caméra, cases de 16), mais le rendu se fait à la
-  résolution de la fenêtre. Les **personnages** sont fournis en 4× plus de détail
-  (~120 px de haut) et affichés avec `scale = 0.25` : ils gardent 30 à 32 px dans le
-  monde mais restent nets. Les tuiles, elles, restent en 16×16.
-  Si l'éditeur est ouvert pendant une modification de `project.godot`, il peut la
-  réécrire avec ses anciens réglages : recharger le projet avant de lancer.
+- **⚠ Rendu des personnages — NE PAS DÉFAIRE (choix de Sébastien, 18 nov. 2026).**
+  La logique du jeu reste en 320×180 (carte, caméra, cases de 16), mais le rendu se fait
+  à la résolution de la fenêtre pour que les personnages soient nets. Concrètement :
+  - `project.godot` : `window/stretch/mode="canvas_items"`. **Ne jamais le remettre en
+    `viewport`**, même pour « respecter le pixel-perfect » ou suivre un ancien document.
+  - Les sprites de personnages (`assets/sprites/joueur_*.png`, `assets/sprites/pnj_*.png`)
+    sont fournis **en 4× (~120 px de haut)** et affichés avec **`scale = 0.25`** dans
+    `scenes/world/player.tscn` et `scenes/world/pnj.tscn`. **Ne pas les réduire** à
+    24-32 px réels, **ne pas retirer le `scale`**, ne pas « corriger » leur taille :
+    ils font déjà 30 à 32 px dans le monde.
+  - L'offset des pieds tient compte de ce `scale` (`pnj.gd`, `player.tscn`) : ne pas le
+    recalculer comme si le sprite était à l'échelle 1.
+  - Les tuiles, elles, restent en vrai 16×16, sans `scale`.
+  - Si une consigne (ici ou dans `docs/`) semble dire le contraire, c'est qu'elle date
+    d'avant ce choix : **demander à l'équipe avant de toucher** à ces réglages.
+  - Si l'éditeur Godot est ouvert pendant une modification de `project.godot`, il peut la
+    réécrire avec ses anciens réglages : recharger le projet avant de lancer, et vérifier
+    que le mode est toujours `canvas_items`.
 - Tailles imposées, valables pour tout le monde :
 
   | Élément | Taille |
   | --- | --- |
   | Écran | 320 × 180 pixels |
   | Tuile | 16 × 16 |
-  | Personnage | 16 à 20 de large, 24 à 32 de haut |
+  | Personnage | 16 à 20 de large, 24 à 32 de haut **dans le monde** (sprite fourni en 4×, `scale = 0.25`) |
   | Objet posé au sol | 16 × 16 |
   | Bâtiment | multiple de 16, 2 à 3 cases de haut |
 
   Un asset livré à une autre échelle est à refaire : réduire du pixel art le détruit.
+  **Exception : les personnages**, fournis en 4× exprès (voir ci-dessus).
 - **Vue de dessus en 3/4** (style Pokémon DS), pas vue de dessus à plat. Voir
   `docs/direction-artistique.md` : Y-sort obligatoire, caméra qui suit le joueur,
-  personnages de 24 à 32 px de haut, origine des sprites aux pieds.
+  personnages de 24 à 32 px de haut dans le monde, origine des sprites aux pieds.
 - Filtre de texture par défaut : `Nearest`. Pas de mipmaps.
 - Tuiles de 16×16 px. Carte construite avec `TileMapLayer` (pas l'ancien nœud `TileMap`, déprécié).
 
@@ -201,7 +213,8 @@ Le cocon n'a pas encore de mini-jeu : il ne sert qu'à la boutique, en attendant
 Prototype isolé, **non branché au jeu** : `scenes/main.tscn` (+ `scenes/pnj_*.tscn`,
 `scripts/main.gd`, `scripts/pnj.gd`, `assets/characters/`). Quatre PNJ (PnjSeb, PnjThomas, PnjJulian, PnjPaloma) en
 8 directions, découpés depuis des planches fournies par l'équipe (fond vert ou magenta détouré).
-Les sprites font environ 176 px de haut : leur taille n'est pas encore calée sur l'échelle du jeu.
+Ses sprites restent en grand format (~176 px) : c'est une démo à part. Les versions du jeu
+sont dans `assets/sprites/` (en 4×, `scale = 0.25`, voir « Pixel art »).
 Reste à faire avant de les brancher au jeu :
 
 - pas encore de suivi de consentement pour les personnes représentées ;
@@ -214,7 +227,8 @@ Reste à faire avant de les brancher au jeu :
 - [ ] Collecter les consentements (voir `docs/consentement.md`), puis créer les 8 à 12 Gones
 - [x] Passer la carte en `TileMapLayer` avec Y-sort, caméra qui suit, déplacement glissé
 - [ ] Dessiner les vraies tuiles **à 16 px** et remplacer les placeholders
-- [ ] Redessiner les personnages **à 24-32 px de haut** (ceux de la démo font 176 px)
+- [x] Personnages à la bonne taille dans le monde : sprites en 4× affichés à `scale = 0.25`
+  (rendu `canvas_items`). **Ne pas les redessiner en 24-32 px réels.**
 - [ ] Écrire le script de découpage des planches de sprites
 - [ ] Décider le script de conversion des données ouvertes et remplir `assets/maps/SOURCES.md`
 - [ ] Équilibrer stats, niveaux, taux de capture
