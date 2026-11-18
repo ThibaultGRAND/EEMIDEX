@@ -8,7 +8,6 @@ extends Node2D
 
 enum Mode { LIBRE, MENU }
 
-const SOURCE := 0                 # la seule source du TileSet
 const CHANCE_RENCONTRE := 0.14
 
 ## action -> [deplacement, Joueur.Direction]. Les entiers suivent l'ordre de
@@ -67,6 +66,10 @@ func _charger_zone(id: StringName, case_depart: Vector2i) -> void:
 	_joueur.borner_camera(Zones.taille_pixels(id))
 	_label_zone.text = str(zone["titre"])
 
+## Une entree de table vaut [source, case de l'atlas].
+func _poser(couche: TileMapLayer, cellule: Vector2i, entree: Array) -> void:
+	couche.set_cell(cellule, int(entree[0]), entree[1])
+
 func _peindre_zone() -> void:
 	_sol.clear()
 	_decor.clear()
@@ -77,9 +80,11 @@ func _peindre_zone() -> void:
 			var c: String = ligne[x]
 			var cellule := Vector2i(x, y)
 			if Zones.SOLS.has(c):
-				_sol.set_cell(cellule, SOURCE, Zones.SOLS[c])
-			if Zones.DECORS.has(c):
-				_decor.set_cell(cellule, SOURCE, Zones.DECORS[c])
+				_poser(_sol, cellule, Zones.SOLS[c])
+			if c == "R":
+				_decor.set_cell(cellule, Zones.IMPORT, zone["tuile_ressource"])
+			elif Zones.DECORS.has(c):
+				_poser(_decor, cellule, Zones.DECORS[c])
 	# Deuxieme passe : la partie haute des volumes deborde sur la case du dessus.
 	for y in plan.size():
 		var ligne2: String = plan[y]
@@ -90,7 +95,7 @@ func _peindre_zone() -> void:
 			var dessus := Vector2i(x, y - 1)
 			if Zones.case_a(zone_id, dessus) == c2:
 				continue          # un autre bloc du meme volume : rien a coiffer
-			_decor.set_cell(dessus, SOURCE, Zones.DECORS_HAUT[c2])
+			_poser(_decor, dessus, Zones.DECORS_HAUT[c2])
 
 # =============================================================================
 # Deplacement
@@ -165,8 +170,8 @@ func _ramasser_ressource(cellule: Vector2i) -> void:
 	var ressource: StringName = zone["ressource"]
 	GameState.lever_drapeau(cle)
 	GameState.ajouter_ressource(ressource, 2)
-	_decor.set_cell(cellule, -1)          # l'objet disparait du decor
-	_sol.set_cell(cellule, SOURCE, Zones.SOLS["h"])
+	_decor.set_cell(cellule, -1)          # l'objet ramasse disparait
+	_poser(_sol, cellule, Zones.SOLS["h"])
 	_message("+2 %s (total : %d)" % [
 		GameState.RESSOURCES.get(ressource, ressource),
 		GameState.quantite_ressource(ressource),

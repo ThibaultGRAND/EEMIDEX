@@ -197,9 +197,11 @@ def main(dossier):
     atlas.ecrire(os.path.join(RACINE, chemin_png))
 
     # --- ressource TileSet ---------------------------------------------------
+    placeholder = "assets/tilesets/placeholder_tuiles.png"
     sortie = [
-        '[gd_resource type="TileSet" script_class="" load_steps=3 format=3]', '',
-        '[ext_resource type="Texture2D" path="res://%s" id="1_tex"]' % chemin_png, '',
+        '[gd_resource type="TileSet" load_steps=5 format=3]', '',
+        '[ext_resource type="Texture2D" path="res://%s" id="1_tex"]' % chemin_png,
+        '[ext_resource type="Texture2D" path="res://%s" id="2_placeholder"]' % placeholder, '',
         '[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_lyon"]',
         'texture = ExtResource("1_tex")',
         'texture_region_size = Vector2i(%d, %d)' % (TUILE, TUILE),
@@ -209,9 +211,19 @@ def main(dossier):
         sortie.append('%d:%d/0 = 0' % (cx, cy))
         if i in volumes:
             sortie.append('%d:%d/0/y_sort_origin = 16' % (cx, cy))
+    # Source 1 : les placeholders, 8 x 4 tuiles, pour ce qui manque encore.
+    sortie += ['', '[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_placeholder"]',
+               'texture = ExtResource("2_placeholder")',
+               'texture_region_size = Vector2i(%d, %d)' % (TUILE, TUILE)]
+    for cy in range(4):
+        for cx in range(8):
+            sortie.append('%d:%d/0 = 0' % (cx, cy))
+            if cy >= 2:
+                sortie.append('%d:%d/0/y_sort_origin = %d' % (cx, cy, 32 if (cx, cy) in [(1, 2), (6, 2), (1, 3)] else 16))
     sortie += ['', '[resource]',
                'tile_size = Vector2i(%d, %d)' % (TUILE, TUILE),
-               'sources/0 = SubResource("TileSetAtlasSource_lyon")', '']
+               'sources/0 = SubResource("TileSetAtlasSource_lyon")',
+               'sources/1 = SubResource("TileSetAtlasSource_placeholder")', '']
     with open(os.path.join(RACINE, "assets/tilesets/lyon.tres"), "w") as f:
         f.write("\n".join(sortie))
 
