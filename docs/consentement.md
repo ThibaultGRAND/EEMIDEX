@@ -38,22 +38,27 @@ son accord écrit**, et chacun peut se retirer à tout moment, sans avoir à se 
 
 ## Suivi
 
-### PNJ de la carte
+### Personnages nommés
 
-Ces huit-là ne passent **pas** par le garde-fou `consentement_recu` : ce sont des PNJ
+Ceux-ci ne passent **pas** par le garde-fou `consentement_recu` : ce sont des PNJ
 codés dans `scenes/world/zones.gd`, pas des Gones. Leur accord se suit donc ici, à la
 main, et nulle part ailleurs.
 
 | Étudiant | Accord reçu le | Nom en jeu | Sprite validé | Fichiers |
 | --- | --- | --- | --- | --- |
-| Julian | 18 nov. 2026 | Julian | ☐ | `assets/sprites/pnj_julian.png`, `assets/characters/pnj_julian/` |
-| Seb | 18 nov. 2026 | Seb | ☐ | `assets/sprites/pnj_seb.png`, `assets/characters/pnj_seb/` |
-| Thomas | 18 nov. 2026 | Thomas | ☐ | `assets/sprites/pnj_thomas.png`, `assets/characters/pnj_thomas/` |
-| Paloma | 18 nov. 2026 | Paloma | ☐ | `assets/sprites/pnj_paloma.png`, `assets/characters/pnj_paloma/` |
-| Thibaut | 18 nov. 2026 | Thibaut | ☐ | `assets/sprites/pnj_thibaut.png` |
-| Théophile | 18 nov. 2026 | Théophile | ☐ | `assets/sprites/pnj_theophile.png` |
-| Émile | 18 nov. 2026 | Émile | ☐ | `assets/sprites/pnj_emile.png` |
-| Guillaume | 18 nov. 2026 | Guillaume | ☐ | `assets/sprites/pnj_guillaume.png` |
+| Julian | 18 nov. 2026 | Julian | ☐ | `assets/characters/pnj_julian/`, `tools/planches/pnj_julian.jpg` |
+| Seb | 18 nov. 2026 | Seb | ☐ | `assets/characters/pnj_seb/`, `tools/planches/pnj_seb.jpg` |
+| Thomas | 18 nov. 2026 | Thomas | ☐ | `assets/characters/pnj_thomas/`, `tools/planches/pnj_thomas.jpg` |
+| Paloma | 18 nov. 2026 | Paloma | ☐ | `assets/characters/pnj_paloma/`, `tools/planches/pnj_paloma.jpg` |
+| Thibaut | 18 nov. 2026 | Thibaut | ☐ | `assets/characters/pnj_thibaut/`, `tools/planches/pnj_thibaut.png` |
+| Théophile | 18 nov. 2026 | Théophile | ☐ | `assets/characters/pnj_theophile/`, `tools/planches/pnj_theophile.jpg` |
+| Émile | 18 nov. 2026 | Émile | ☐ | `assets/characters/pnj_emile/`, `tools/planches/pnj_emile.jpg` |
+| Guillaume | 18 nov. 2026 | Guillaume | ☐ | `assets/characters/pnj_guillaume/`, `tools/planches/pnj_guillaume.jpg` |
+| Nael | 18 nov. 2026 | Nael — Directeur pédagogique | ☐ | *(boss, pas encore de sprite)* |
+| Tristan | 18 nov. 2026 | Tristan — recruteur | ☐ | *(boss, pas encore de sprite)* |
+| *(prénom à compléter)* | 18 nov. 2026 | Matiti | ☐ | *(pas encore de sprite)* |
+| *(prénom à compléter)* | 18 nov. 2026 | CeCissoussou | ☐ | *(pas encore de sprite)* |
+| *(prénom à compléter)* | 18 nov. 2026 | Paguera | ☐ | *(pas encore de sprite)* |
 
 Il reste à leur faire **valider le sprite final** avant la mise en ligne, et à conserver
 les accords écrits hors du dépôt.
@@ -71,3 +76,14 @@ les accords écrits hors du dépôt.
 - Pas de nom de famille, pas de mail, pas de photo dans le jeu ni dans les `.tres`.
 - Un étudiant qui refuse n'est pas absent du jeu : il est simplement représenté par le
   Gone générique, comme tout le monde au début.
+
+## Les noms de jeu
+
+`docs/histoire.md` donne à chaque étudiant un nom de personnage : Thigoat, Roulian,
+Matiti, Palou, Thomasu, Guignome, Tortheo, E1000, Paguera, Thibouclier, CeCissoussou.
+Un surnom reste une donnée personnelle dès lors qu'il désigne quelqu'un de reconnaissable
+dans sa promo : il relève du même accord que le prénom.
+
+Trois d'entre eux ne sont connus ici que par leur nom de jeu — Matiti, CeCissoussou et
+Paguera. À compléter avec le prénom réel, pour que le retrait soit possible sur simple
+demande.

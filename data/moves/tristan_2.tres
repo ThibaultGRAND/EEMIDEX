@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="MoveData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/move_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"tristan_2"
+display_name = "Invisibilite"
+description = "l'esquive n'est pas implementee"
+type = &"staff"
+cible = 0
+puissance = 15
+precision = 100
+stat_modifiee = &"defense"
+modificateur = 3
+soin = 0

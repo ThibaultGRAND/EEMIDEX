@@ -42,6 +42,9 @@ var case_joueur := Vector2i(12, 10)
 var rencontre_en_attente: GoneData = null
 var niveau_rencontre: int = 4
 var combat_est_boss: bool = false
+## L'alternant de la carte avec qui on se bat, sous la forme "zone_Nom".
+## Recrute, il disparait de la carte : le drapeau du meme nom est leve.
+var pnj_en_combat: StringName = &""
 var gone_a_entrainer: int = 0      # index dans l'équipe
 var dernier_resultat_combat: String = ""
 
@@ -107,7 +110,7 @@ func nouvelle_partie() -> void:
 	case_joueur = Zones.zone(&"perrache")["depart"]
 	partie_commencee = true
 
-	var depart: GoneData = catalogue_gones.get(&"generique_moustachu")
+	var depart: GoneData = catalogue_gones.get(&"thigoat")
 	if depart == null:
 		var dispo := gones_jouables()
 		depart = dispo[0] if not dispo.is_empty() else null

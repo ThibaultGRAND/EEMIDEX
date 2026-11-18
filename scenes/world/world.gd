@@ -15,6 +15,13 @@ const CHANCE_PNJ_REGARDE := 0.3
 ## Un PNJ place au hasard n'apparait pas a moins de cette distance du joueur.
 const DISTANCE_MIN_PNJ := 5
 ## Longueur d'une promenade de PNJ, en pas d'affilee.
+## Ce que fait un alternant sauvage quand le joueur lui marche dessus.
+## Les trois chances se completent : le reste, il hesite et ne se passe rien.
+const CHANCE_ALTERNANT_SE_BAT := 0.6
+const CHANCE_ALTERNANT_FUIT := 0.25
+## Chance qu'un alternant passant a cote du joueur l'attaque de lui-meme.
+const CHANCE_ALTERNANT_ATTAQUE := 0.12
+
 const PAS_PROMENADE_MIN := 2
 const PAS_PROMENADE_MAX := 5
 
@@ -167,9 +174,9 @@ func _case_courante() -> String:
 func _indice_case(c: String) -> String:
 	match c:
 		"S":
-			return "Soins. Entrée pour remettre l'équipe d'aplomb."
+			return "Machine à café. Entrée pour remotiver l'équipe."
 		"B":
-			return "Boutique. Entrée pour échanger des ressources."
+			return "Boutique. Entrée pour dépenser la note de frais."
 		"M":
 			return "Entraînement. Entrée pour lancer un mini-jeu."
 		"X":
@@ -185,6 +192,8 @@ func _placer_pnj() -> void:
 		_pnjs.remove_child(ancien)
 		ancien.queue_free()
 	for fiche: Dictionary in zone.get("pnj", []):
+		if GameState.drapeau(StringName("%s_%s" % [zone_id, fiche.get("nom", "")])):
+			continue              # deja recrute : il est dans l'equipe, plus dehors
 		var depart: Vector2i
 		if fiche.has("case"):
 			depart = fiche["case"]
@@ -239,8 +248,92 @@ func _sur_envie_pnj(pnj: Pnj) -> void:
 	var dans_le_rayon: bool = pnj.rayon < 0 or maxi(ecart.x, ecart.y) <= pnj.rayon
 	if Zones.accepte_pnj(zone_id, cible) and _case_libre(cible) and dans_le_rayon:
 		pnj.avancer_vers(cible, vers)
+		_tenter_agression(pnj)
 	else:
 		pnj.regarder(vers)
+		_tenter_agression(pnj)
+
+# =============================================================================
+# Rencontrer un alternant sauvage
+# =============================================================================
+## Le joueur marche sur un alternant. Il ne decide pas de ce qui suit : l'autre
+## se bat, s'enfuit, ou ne fait rien. C'est son humeur, pas un menu.
+func _aborder(alternant: Pnj) -> void:
+	match reaction(randf()):
+		&"combat":
+			_message("%s ne compte pas se laisser recruter !" % alternant.name)
+			_combattre(alternant)
+		&"fuite":
+			_message("%s file sans demander son reste." % alternant.name)
+			_faire_fuir(alternant)
+		_:
+			_message("%s vous ignore poliment." % alternant.name)
+
+## Ce que decide un alternant aborde, pour un tirage entre 0 et 1. Sortie a part
+## du reste pour pouvoir la verifier sans lancer le jeu.
+static func reaction(hasard: float) -> StringName:
+	if hasard < CHANCE_ALTERNANT_SE_BAT:
+		return &"combat"
+	if hasard < CHANCE_ALTERNANT_SE_BAT + CHANCE_ALTERNANT_FUIT:
+		return &"fuite"
+	return &"ignore"
+
+## Il s'ecarte du joueur et continue sur sa lancee.
+func _faire_fuir(alternant: Pnj) -> void:
+	var ecart: Vector2i = alternant.cellule - _joueur.cellule
+	var deplacement := Vector2i(signi(ecart.x), 0) if absi(ecart.x) >= absi(ecart.y) \
+		else Vector2i(0, signi(ecart.y))
+	if deplacement == Vector2i.ZERO:
+		return
+	var vers: Joueur.Direction = _direction_de(deplacement)
+	var cible: Vector2i = alternant.cellule + deplacement
+	if Zones.accepte_pnj(zone_id, cible) and _case_libre(cible):
+		alternant.pas_restants = PAS_PROMENADE_MAX
+		alternant.avancer_vers(cible, vers)
+	else:
+		alternant.regarder(vers)
+
+## Il attaque de lui-meme en passant a cote du joueur.
+func _tenter_agression(alternant: Pnj) -> bool:
+	if _mode != Mode.LIBRE or _joueur.en_mouvement:
+		return false
+	var ecart: Vector2i = (alternant.cellule - _joueur.cellule).abs()
+	if ecart.x + ecart.y != 1:
+		return false
+	if randf() >= CHANCE_ALTERNANT_ATTAQUE:
+		return false
+	_message("%s vous barre la route !" % alternant.name)
+	_combattre(alternant)
+	return true
+
+func _combattre(alternant: Pnj) -> void:
+	var fiche: GoneData = _fiche_de(alternant)
+	if fiche == null:
+		return
+	GameState.rencontre_en_attente = fiche
+	GameState.niveau_rencontre = randi_range(int(zone["niveau_min"]), int(zone["niveau_max"]))
+	GameState.combat_est_boss = false
+	GameState.pnj_en_combat = StringName("%s_%s" % [zone_id, alternant.name])
+	get_tree().change_scene_to_file(GameState.SCENE_COMBAT)
+
+## La fiche de l'alternant : celle que la zone lui attribue, sinon une au hasard.
+func _fiche_de(alternant: Pnj) -> GoneData:
+	for entree: Dictionary in zone.get("pnj", []):
+		if str(entree.get("nom", "")) != alternant.name:
+			continue
+		if entree.has("gone"):
+			var fiche: GoneData = GameState.catalogue_gones.get(entree["gone"])
+			if fiche != null:
+				return fiche
+		break
+	var sauvages := GameState.gones_sauvages()
+	return sauvages.pick_random() if not sauvages.is_empty() else null
+
+func _direction_de(deplacement: Vector2i) -> Joueur.Direction:
+	for consigne: Array in DIRECTIONS.values():
+		if consigne[0] == deplacement:
+			return consigne[1]
+	return Joueur.Direction.BAS
 
 ## Libre = ni le joueur (ou la case ou il va), ni un PNJ.
 func _case_libre(c: Vector2i) -> bool:
@@ -291,9 +384,9 @@ func _lancer_combat_de_fin() -> void:
 	if GameState.drapeau(&"gardien_battu"):
 		_message("La pointe est calme. Fin du MVP : merci d'avoir joué.")
 		return
-	var gardien: GoneData = GameState.catalogue_gones.get(&"generique_gardien_fourviere")
+	var gardien: GoneData = GameState.catalogue_gones.get(&"nael")
 	if gardien == null:
-		_message("Le gardien est introuvable (data/gones manquant).")
+		_message("Nael est introuvable (data/gones manquant).")
 		return
 	GameState.rencontre_en_attente = gardien
 	GameState.niveau_rencontre = 12
@@ -325,7 +418,7 @@ func _interagir() -> void:
 		"S":
 			GameState.soigner_equipe()
 			GameState.sauvegarde_auto()
-			_message("Toute l'équipe est soignée.")
+			_message("La machine à café a fait son office. Équipe au complet.")
 		"B":
 			_ouvrir_menu(&"boutique", _texte_boutique(), [
 				"3 pralines -> 1 Filet à Gone",
@@ -440,10 +533,16 @@ func _lancer_minijeu(index: int) -> void:
 	get_tree().change_scene_to_file(scene)
 
 func _texte_equipe() -> String:
-	var lignes: Array = ["Équipe (%d/%d)" % [GameState.equipe.size(), GameState.TAILLE_EQUIPE_MAX]]
+	var lignes: Array = ["Équipe (%d/%d alternants)" % [GameState.equipe.size(), GameState.TAILLE_EQUIPE_MAX]]
 	for g in GameState.equipe:
-		lignes.append("%s  Niv.%d  PV %d/%d" % [g.nom(), g.niveau, g.pv, g.pv_max()])
-		lignes.append("   ATT %d  DEF %d  VIT %d" % [g.attaque(), g.defense(), g.vitesse()])
+		var palier: int = g.prochain_palier()
+		lignes.append("%s  %s  Niv.%d%s  Motivation %d/%d" % [
+			g.nom(), g.nom_du_stade(), g.niveau,
+			"  (évolue au %d)" % palier if palier > 0 else "",
+			g.pv, g.pv_max()])
+		lignes.append("   ATT %d (+%d/%d)  DEF %d  VIT %d (+%d/%d)" % [
+			g.attaque(), g.bonus_de(&"attaque"), GoneInstance.BONUS_MAX,
+			g.defense(), g.vitesse(), g.bonus_de(&"vitesse"), GoneInstance.BONUS_MAX])
 	lignes.append("")
 	var sacs: Array = []
 	for objet in GameState.objets_possedes():

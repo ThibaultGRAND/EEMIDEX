@@ -33,6 +33,26 @@ Le document de référence est la page de cadrage. En cas de doute sur le périm
 - Une scène = une responsabilité. Le combat ne connaît pas la carte, les mini-jeux ne connaissent pas le combat : ils renvoient un résultat par signal.
 - Entrées clavier via l'InputMap (`ui_accept`, `move_up`…), jamais via des keycodes en dur.
 
+### Interface
+
+Tout l'habillage passe par un socle commun. Voir `docs/interface.md`.
+
+- **Palette** : `scripts/ui/palette_ui.gd` (`PaletteUi`). Aucune couleur en dur
+  dans un écran, y compris les couleurs de type (Dev, Data, Product, Marketing,
+  Design, Staff, Neutre).
+- **Thème** : `scenes/ui/theme_moustache.tres`, déclaré dans `project.godot`
+  (`gui/theme/custom`). Il s'applique seul à tous les `Control` : ne pas poser de
+  `theme` sur chaque scène, ne pas multiplier les `theme_override_*`.
+- **Composants** dans `scenes/ui/composants/` : `BarreJauge`, `BadgeType`,
+  `FicheCombattant`, `ListeMenu`, `BoiteDialogue`. On les instancie, on écoute
+  leurs signaux. **Ne plus écrire de menu dans un seul `Label`** (« > Attaquer »)
+  ni de PV en texte : c'est `ListeMenu` et `BarreJauge`.
+- Un composant ne décide rien : il émet un signal, l'écran agit.
+- Les cadres sont des `StyleBoxFlat` dessinées en code, sans asset. Les cadres
+  9-slice de l'équipe les remplaceront dans le thème, sans toucher aux écrans.
+- `scenes/ui/apercu_ui.tscn` montre tous les composants d'un coup (F6). C'est un
+  écran de travail, il n'est pas branché au jeu.
+
 ### Fichiers à ne pas toucher
 - Ne jamais modifier `.godot/`, les fichiers `.import` ni les `.uid`. Committer les `.uid`, ignorer `.godot/`.
 - Les `.tscn` et `.tres` : modifications minimales et ciblées. Pour une nouvelle scène complexe, propose la structure de nœuds et laisse l'équipe la construire dans l'éditeur. Après toute édition d'un `.tscn`, signale qu'il faut l'ouvrir dans l'éditeur pour vérifier.
@@ -178,11 +198,15 @@ pour les sols et des placeholders pour les batiments.
   sur le bas de chaque case) et `<id>_frames.tres` (SpriteFrames : `idle_<dir>` et
   `walk_<dir>` pour 8 directions). Le jeu les joue avec un `AnimatedSprite2D` à
   `scale = 0.25` : `player.tscn` (joueur Moustache) et `pnj.tscn` (le `.tres` de chaque
-  PNJ est donné dans `zones.gd`, clé `"frames"`). Idle à l'arrêt, walk en marche.
+  PNJ est donné dans `zones.gd`, clé `"frames"`, à côté de son `"gone"`). Idle à l'arrêt, walk en marche.
   **Ajouter ou refaire un personnage** : déposer la planche d'origine dans
   `tools/planches/`, puis `python3 tools/decouper_planche.py tools/planches/<id>.jpg <id>
   --fond vert|magenta|transparent` (options `--face-en-premier`, `--unique` : voir l'aide
   du script ; il demande Pillow, numpy et scipy).
+- `scripts/ui/` + `scenes/ui/composants/` — le socle d'interface : palette,
+  thème Godot, jauge animée, badge de type, fiche de combattant, liste à curseur,
+  boîte de dialogue qui s'écrit lettre par lettre. `scenes/ui/apercu_ui.tscn` les
+  montre tous. **Les écrans existants ne sont pas encore rebranchés dessus.**
 - `scenes/battle/`, `scenes/minigames/`, `scenes/ui/` — combat au tour par tour,
   Rythme et Frappe chronometree, ecran titre. Toute l'interface est en **ancrages
   proportionnels** : elle suit la resolution sans retouche.
@@ -240,6 +264,8 @@ au jeu (touches Maj et Tab codées en dur, tolérées pour cette démo).
 - [ ] Écrire le script de découpage des planches de sprites
 - [ ] Décider le script de conversion des données ouvertes et remplir `assets/maps/SOURCES.md`
 - [ ] Équilibrer stats, niveaux, taux de capture
+- [ ] Rebrancher combat, HUD de carte, équipe, sac et boutique sur les composants
+      d'interface (voir `docs/interface.md`)
 - [ ] Dialogues, histoire, objectif final
 - [ ] Musique et sons libres de droits (`.ogg`)
 - [ ] Vérifier l'export Web en ligne (GitHub Pages ou itch.io)

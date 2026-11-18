@@ -1,0 +1,28 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scenes/ui/composants/boite_dialogue.gd" id="1_boite"]
+
+[node name="BoiteDialogue" type="PanelContainer"]
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 308.0
+offset_bottom = 42.0
+script = ExtResource("1_boite")
+
+[node name="Contenu" type="MarginContainer" parent="."]
+layout_mode = 2
+
+[node name="Texte" type="Label" parent="Contenu"]
+unique_name_in_owner = true
+layout_mode = 2
+text = ""
+autowrap_mode = 2
+
+[node name="Fleche" type="ColorRect" parent="."]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(4, 4)
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 8
+color = Color(0.913725, 0.772549, 0.419608, 1)

@@ -1,0 +1,60 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scenes/ui/apercu_ui.gd" id="1_apercu"]
+[ext_resource type="Theme" path="res://scenes/ui/theme_moustache.tres" id="2_theme"]
+[ext_resource type="PackedScene" path="res://scenes/ui/composants/fiche_combattant.tscn" id="3_fiche"]
+[ext_resource type="PackedScene" path="res://scenes/ui/composants/liste_menu.tscn" id="4_liste"]
+[ext_resource type="PackedScene" path="res://scenes/ui/composants/boite_dialogue.tscn" id="5_boite"]
+
+[node name="ApercuUi" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme = ExtResource("2_theme")
+script = ExtResource("1_apercu")
+
+[node name="Fond" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.0627451, 0.0784314, 0.109804, 1)
+
+[node name="FicheEnnemi" parent="." instance=ExtResource("3_fiche")]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 0
+offset_left = 6.0
+offset_top = 6.0
+offset_right = 138.0
+offset_bottom = 30.0
+montrer_chiffres = false
+
+[node name="FicheJoueur" parent="." instance=ExtResource("3_fiche")]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 0
+offset_left = 176.0
+offset_top = 50.0
+offset_right = 308.0
+offset_bottom = 84.0
+
+[node name="Boite" parent="." instance=ExtResource("5_boite")]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 0
+offset_left = 6.0
+offset_top = 118.0
+offset_right = 198.0
+offset_bottom = 160.0
+
+[node name="Menu" parent="." instance=ExtResource("4_liste")]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 0
+offset_left = 204.0
+offset_top = 118.0
+offset_right = 314.0
+offset_bottom = 174.0
+colonnes = 2

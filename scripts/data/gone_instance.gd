@@ -6,6 +6,7 @@ extends RefCounted
 var data: GoneData
 var niveau: int = 5
 var pv: int = 0
+var cafe: int = 0
 var bonus_pv: int = 0
 var bonus_attaque: int = 0
 var bonus_defense: int = 0
@@ -15,29 +16,73 @@ func _init(p_data: GoneData = null, p_niveau: int = 5) -> void:
 	data = p_data
 	niveau = p_niveau
 	pv = pv_max()
+	cafe = cafe_max()
+
+## Les trois stades d'une carriere, et le niveau qui les declenche.
+## Le palier est volontairement a portee : un alternant part au niveau 5 et
+## plafonne vers 15, donc les deux evolutions sont atteignables en jouant.
+const PALIERS: Array[int] = [1, 8, 14]
+const STADES: Array[String] = ["Chômeur", "Stagiaire", "Alternant"]
+
+## Chaque stade franchi ajoute ceci, en plus du gain de niveau ordinaire.
+const EVOLUTION_MOTIVATION := 4
+const EVOLUTION_AUTRES := 2
 
 func nom() -> String:
 	return data.display_name if data != null else "???"
 
+## 0 chomeur, 1 stagiaire, 2 alternant.
+func stade() -> int:
+	var atteint := 0
+	for i in PALIERS.size():
+		if niveau >= PALIERS[i]:
+			atteint = i
+	return atteint
+
+func nom_du_stade() -> String:
+	return STADES[stade()]
+
+## Le niveau qui declenche l'evolution suivante, 0 s'il n'y en a plus.
+func prochain_palier() -> int:
+	var prochain := stade() + 1
+	return PALIERS[prochain] if prochain < PALIERS.size() else 0
+
 func pv_max() -> int:
 	if data == null:
 		return 1
-	return data.base_pv + bonus_pv + (niveau - 1) * 2
+	return data.base_pv + bonus_pv + (niveau - 1) * 2 + stade() * EVOLUTION_MOTIVATION
+
+## L'energie disponible pour attaquer.
+func cafe_max() -> int:
+	return 20 + (niveau - 1) * 2
+
+func depenser_cafe(montant: int) -> void:
+	cafe = maxi(0, cafe - montant)
+
+func recuperer_cafe(montant: int) -> void:
+	cafe = mini(cafe_max(), cafe + montant)
+
+func cafe_plein() -> void:
+	cafe = cafe_max()
+
+## Peut-il se payer cette attaque ?
+func peut_lancer(attaque: MoveData) -> bool:
+	return attaque != null and cafe >= attaque.cout_cafe()
 
 func attaque() -> int:
 	if data == null:
 		return 1
-	return data.base_attaque + bonus_attaque + (niveau - 1)
+	return data.base_attaque + bonus_attaque + (niveau - 1) + stade() * EVOLUTION_AUTRES
 
 func defense() -> int:
 	if data == null:
 		return 1
-	return data.base_defense + bonus_defense + (niveau - 1)
+	return data.base_defense + bonus_defense + (niveau - 1) + stade() * EVOLUTION_AUTRES
 
 func vitesse() -> int:
 	if data == null:
 		return 1
-	return data.base_vitesse + bonus_vitesse + (niveau - 1)
+	return data.base_vitesse + bonus_vitesse + (niveau - 1) + stade() * EVOLUTION_AUTRES
 
 func est_ko() -> bool:
 	return pv <= 0
@@ -50,6 +95,7 @@ func subir(montant: int) -> void:
 
 func soigner_tout() -> void:
 	pv = pv_max()
+	cafe = cafe_max()
 
 ## Les attaques disponibles en combat : l'attaque de base, puis le pouvoir.
 func attaques() -> Array:
@@ -62,8 +108,38 @@ func attaques() -> Array:
 		liste.append(data.pouvoir_signature)
 	return liste
 
-## Applique le score d'un mini-jeu à une stat. Renvoie le gain réellement accordé.
+## Plafond du bonus permanent, par stat. Sans lui, rejouer un mini-jeu vingt
+## fois donnerait un alternant invincible. Voir docs/regles.md.
+const BONUS_MAX := 10
+
+## Le bonus permanent deja acquis sur une stat.
+func bonus_de(stat: StringName) -> int:
+	match stat:
+		&"pv":
+			return bonus_pv
+		&"attaque":
+			return bonus_attaque
+		&"defense":
+			return bonus_defense
+		&"vitesse":
+			return bonus_vitesse
+	return 0
+
+## Ce qu'un entrainement peut encore rapporter sur cette stat.
+func marge_entrainement(stat: StringName) -> int:
+	return maxi(0, BONUS_MAX - bonus_de(stat))
+
+## Applique le score d'un mini-jeu. Le gain est rogne par le plafond, et c'est
+## le gain reellement accorde qui est renvoye : le mini-jeu annonce la verite.
 func appliquer_entrainement(stat: StringName, gain: int) -> int:
+	var accorde := mini(gain, marge_entrainement(stat))
+	if accorde <= 0:
+		return 0
+	return modifier_stat(stat, accorde)
+
+## Modificateur brut, sans plafond : sert aux bonus temporaires du combat, qui
+## sont annules a la fin et doivent pouvoir redescendre exactement.
+func modifier_stat(stat: StringName, gain: int) -> int:
 	match stat:
 		&"pv":
 			bonus_pv += gain
@@ -83,6 +159,7 @@ func to_dict() -> Dictionary:
 		"gone_id": String(data.id) if data != null else "",
 		"niveau": niveau,
 		"pv": pv,
+		"cafe": cafe,
 		"bonus_pv": bonus_pv,
 		"bonus_attaque": bonus_attaque,
 		"bonus_defense": bonus_defense,
@@ -97,4 +174,5 @@ static func from_dict(d: Dictionary, catalogue: Dictionary) -> GoneInstance:
 	g.bonus_defense = int(d.get("bonus_defense", 0))
 	g.bonus_vitesse = int(d.get("bonus_vitesse", 0))
 	g.pv = clampi(int(d.get("pv", g.pv_max())), 0, g.pv_max())
+	g.cafe = clampi(int(d.get("cafe", g.cafe_max())), 0, g.cafe_max())
 	return g

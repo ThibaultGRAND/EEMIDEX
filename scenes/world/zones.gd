@@ -132,7 +132,7 @@ const ZONES := {
 		"ressource": &"praline",
 		"tuile_ressource": Vector2i(3, 13),
 		## Pas d'herbe haute a Perrache : on ne croise rien sur le parvis.
-		"rencontres": [],
+		"rencontres": [&"thigoat", &"seb", &"thibouclier"],
 		"niveau_min": 3,
 		"niveau_max": 5,
 		"depart": Vector2i(12, 10),
@@ -163,12 +163,13 @@ const ZONES := {
 			"www#########22###vvvv########www",
 		],
 		"sorties": {"2": ["sainte_blandine", 12, 1]},
-		## PNJ qui se baladent dans toute la zone. Cles optionnelles :
-		## "case" (depart fixe, sinon une case libre au hasard) et "rayon"
-		## (distance max a sa case de depart, sinon aucune limite).
+		## Alternants sauvages qui se baladent. Cles optionnelles :
+		## "case" (depart fixe, sinon une case libre au hasard), "rayon"
+		## (distance max a sa case de depart, sinon aucune limite) et "gone"
+		## (sa fiche dans data/gones, sinon un sauvage au hasard).
 		"pnj": [
-			{"nom": "PnjSeb", "frames": "res://assets/characters/pnj_seb/pnj_seb_frames.tres"},
-			{"nom": "PnjThibaut", "frames": "res://assets/characters/pnj_thibaut/pnj_thibaut_frames.tres"},
+			{"nom": "Thigoat", "frames": "res://assets/characters/pnj_thibaut/pnj_thibaut_frames.tres", "gone": &"thigoat"},
+			{"nom": "Seb", "frames": "res://assets/characters/pnj_seb/pnj_seb_frames.tres", "gone": &"seb"},
 		],
 	},
 
@@ -176,7 +177,7 @@ const ZONES := {
 		"titre": "Sainte-Blandine — le faubourg et le quai Rambaud",
 		"ressource": &"cocon",
 		"tuile_ressource": Vector2i(4, 13),
-		"rencontres": [&"generique_gone", &"generique_traboulin"],
+		"rencontres": [&"roulian", &"matiti", &"e1000"],
 		"niveau_min": 4,
 		"niveau_max": 7,
 		"depart": Vector2i(12, 1),
@@ -209,12 +210,13 @@ const ZONES := {
 			"www#########22###vvvv########www",
 		],
 		"sorties": {"1": ["perrache", 12, 22], "2": ["darse", 12, 1]},
-		## PNJ qui se baladent dans toute la zone. Cles optionnelles :
-		## "case" (depart fixe, sinon une case libre au hasard) et "rayon"
-		## (distance max a sa case de depart, sinon aucune limite).
+		## Alternants sauvages qui se baladent. Cles optionnelles :
+		## "case" (depart fixe, sinon une case libre au hasard), "rayon"
+		## (distance max a sa case de depart, sinon aucune limite) et "gone"
+		## (sa fiche dans data/gones, sinon un sauvage au hasard).
 		"pnj": [
-			{"nom": "PnjThomas", "frames": "res://assets/characters/pnj_thomas/pnj_thomas_frames.tres"},
-			{"nom": "PnjTheophile", "frames": "res://assets/characters/pnj_theophile/pnj_theophile_frames.tres"},
+			{"nom": "Roulian", "frames": "res://assets/characters/pnj_julian/pnj_julian_frames.tres", "gone": &"roulian"},
+			{"nom": "E1000", "frames": "res://assets/characters/pnj_emile/pnj_emile_frames.tres", "gone": &"e1000"},
 		],
 	},
 
@@ -222,7 +224,7 @@ const ZONES := {
 		"titre": "La Darse — le bassin de la Confluence",
 		"ressource": &"quenelle",
 		"tuile_ressource": Vector2i(5, 13),
-		"rencontres": [&"generique_quenellon", &"generique_gone"],
+		"rencontres": [&"palou", &"tortheo", &"cecissoussou"],
 		"niveau_min": 7,
 		"niveau_max": 10,
 		"depart": Vector2i(12, 1),
@@ -257,12 +259,13 @@ const ZONES := {
 			"www#########22###vvvv########www",
 		],
 		"sorties": {"1": ["sainte_blandine", 12, 24], "2": ["pointe", 12, 1]},
-		## PNJ qui se baladent dans toute la zone. Cles optionnelles :
-		## "case" (depart fixe, sinon une case libre au hasard) et "rayon"
-		## (distance max a sa case de depart, sinon aucune limite).
+		## Alternants sauvages qui se baladent. Cles optionnelles :
+		## "case" (depart fixe, sinon une case libre au hasard), "rayon"
+		## (distance max a sa case de depart, sinon aucune limite) et "gone"
+		## (sa fiche dans data/gones, sinon un sauvage au hasard).
 		"pnj": [
-			{"nom": "PnjJulian", "frames": "res://assets/characters/pnj_julian/pnj_julian_frames.tres"},
-			{"nom": "PnjEmile", "frames": "res://assets/characters/pnj_emile/pnj_emile_frames.tres"},
+			{"nom": "Palou", "frames": "res://assets/characters/pnj_paloma/pnj_paloma_frames.tres", "gone": &"palou"},
+			{"nom": "Tortheo", "frames": "res://assets/characters/pnj_theophile/pnj_theophile_frames.tres", "gone": &"tortheo"},
 		],
 	},
 
@@ -270,7 +273,7 @@ const ZONES := {
 		"titre": "La Pointe — le musée et le confluent",
 		"ressource": &"cocon",
 		"tuile_ressource": Vector2i(4, 13),
-		"rencontres": [&"generique_traboulin", &"generique_quenellon"],
+		"rencontres": [&"thomasu", &"paguera", &"guignome"],
 		"niveau_min": 10,
 		"niveau_max": 13,
 		"depart": Vector2i(12, 1),
@@ -303,12 +306,13 @@ const ZONES := {
 			"wwwwwwwwwwwwwwsssswwwwwwwwwwwwww",
 		],
 		"sorties": {"1": ["darse", 12, 26]},
-		## PNJ qui se baladent dans toute la zone. Cles optionnelles :
-		## "case" (depart fixe, sinon une case libre au hasard) et "rayon"
-		## (distance max a sa case de depart, sinon aucune limite).
+		## Alternants sauvages qui se baladent. Cles optionnelles :
+		## "case" (depart fixe, sinon une case libre au hasard), "rayon"
+		## (distance max a sa case de depart, sinon aucune limite) et "gone"
+		## (sa fiche dans data/gones, sinon un sauvage au hasard).
 		"pnj": [
-			{"nom": "PnjPaloma", "frames": "res://assets/characters/pnj_paloma/pnj_paloma_frames.tres"},
-			{"nom": "PnjGuillaume", "frames": "res://assets/characters/pnj_guillaume/pnj_guillaume_frames.tres"},
+			{"nom": "Thomasu", "frames": "res://assets/characters/pnj_thomas/pnj_thomas_frames.tres", "gone": &"thomasu"},
+			{"nom": "Guignome", "frames": "res://assets/characters/pnj_guillaume/pnj_guillaume_frames.tres", "gone": &"guignome"},
 		],
 	},
 }

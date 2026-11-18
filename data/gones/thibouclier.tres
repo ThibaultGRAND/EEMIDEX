@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="GoneData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/gone_data.gd" id="1_script"]
+[ext_resource type="Resource" path="res://data/moves/thibouclier_1.tres" id="2_base"]
+[ext_resource type="Resource" path="res://data/moves/thibouclier_2.tres" id="3_signature"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"thibouclier"
+display_name = "Thibouclier"
+description = "Thibouclier, alternant dev de la promo."
+type = &"dev"
+couleur = Color(0.35, 0.62, 0.86, 1)
+base_pv = 28
+base_attaque = 8
+base_defense = 16
+base_vitesse = 9
+taux_capture = 42
+sauvage = true
+consentement_recu = true
+note_consentement = "Accord note dans docs/consentement.md."
+attaque_de_base = ExtResource("2_base")
+pouvoir_signature = ExtResource("3_signature")

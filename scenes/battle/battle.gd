@@ -20,6 +20,10 @@ var _attente_touche: bool = false
 var _fini: bool = false
 ## Bonus temporaires accordés pendant le combat, remis à zéro à la fin.
 var _modificateurs: Array = []
+## Les attaques proposees au tour en cours, dans l'ordre du menu.
+var _attaques_offertes: Array = []
+## Ce que rapporte un tour sans attaquer : objet, changement, defense.
+const CAFE_PAR_TOUR_SANS_ATTAQUE := 2
 
 @onready var _ennemi_nom: Label = %EnnemiNom
 @onready var _ennemi_pv: Label = %EnnemiPv
@@ -48,7 +52,7 @@ func _ready() -> void:
 	if GameState.combat_est_boss:
 		await _dire("%s vous barre la route !" % _ennemi.nom())
 	else:
-		await _dire("Un %s sauvage apparaît !" % _ennemi.nom())
+		await _dire("%s cherche une alternance !" % _ennemi.nom())
 	_menu_racine()
 
 # =============================================================================
@@ -56,9 +60,10 @@ func _ready() -> void:
 # =============================================================================
 func _rafraichir() -> void:
 	_ennemi_nom.text = "%s  Niv.%d" % [_ennemi.nom(), _ennemi.niveau]
-	_ennemi_pv.text = "PV %d/%d  %s" % [_ennemi.pv, _ennemi.pv_max(), _barre(_ennemi)]
+	_ennemi_pv.text = "Motivation %d/%d  %s" % [_ennemi.pv, _ennemi.pv_max(), _barre(_ennemi)]
 	_joueur_nom.text = "%s  Niv.%d" % [_actif.nom(), _actif.niveau]
-	_joueur_pv.text = "PV %d/%d  %s" % [_actif.pv, _actif.pv_max(), _barre(_actif)]
+	_joueur_pv.text = "Motivation %d/%d  Café %d/%d" % [
+		_actif.pv, _actif.pv_max(), _actif.cafe, _actif.cafe_max()]
 	if _ennemi.data != null:
 		_ennemi_sprite.color = _ennemi.data.couleur
 	if _actif.data != null:
@@ -124,9 +129,8 @@ func _valider() -> void:
 		&"racine":
 			_choisir_action()
 		&"attaques":
-			var attaques := _actif.attaques()
-			if _index < attaques.size():
-				_tour_complet(attaques[_index])
+			if _index < _attaques_offertes.size():
+				_tour_complet(_attaques_offertes[_index])
 			else:
 				_menu_racine()
 		&"objets":
@@ -144,9 +148,13 @@ func _valider() -> void:
 func _choisir_action() -> void:
 	match _index:
 		0:
+			_attaques_offertes = _attaques_possibles(_actif)
 			var noms: Array = []
-			for m in _actif.attaques():
-				noms.append("%s (%d)" % [m.display_name, m.puissance])
+			for m: MoveData in _attaques_offertes:
+				var cout := m.cout_cafe()
+				noms.append("%s  %d dégâts  %s" % [
+					m.display_name, m.puissance,
+					"gratuit" if cout == 0 else "%d café" % cout])
 			noms.append("Retour")
 			_afficher_menu(&"attaques", "Quelle attaque ?", noms)
 		1:
@@ -184,12 +192,14 @@ func _tour_complet(attaque: MoveData) -> void:
 	await _apres_tour()
 
 func _tour_ennemi() -> void:
-	var attaques := _ennemi.attaques()
+	var attaques := _attaques_possibles(_ennemi)
 	if attaques.is_empty():
 		return
 	await _executer(_ennemi, _actif, attaques[randi() % attaques.size()])
 
 func _executer(attaquant: GoneInstance, cible: GoneInstance, attaque: MoveData) -> void:
+	attaquant.depenser_cafe(attaque.cout_cafe())
+	_rafraichir()
 	await _dire("%s utilise %s !" % [attaquant.nom(), attaque.display_name])
 	if randi() % 100 >= attaque.precision:
 		await _dire("Raté !")
@@ -199,10 +209,12 @@ func _executer(attaquant: GoneInstance, cible: GoneInstance, attaque: MoveData) 
 			attaquant.soigner(attaque.soin)
 			await _dire("%s récupère %d PV." % [attaquant.nom(), attaque.soin])
 	elif attaque.puissance > 0:
-		var degats := _degats(attaquant, cible, attaque)
+		var affinite := Affinites.multiplicateur(attaque.type, cible.data.type)
+		var degats := _degats(attaquant, cible, attaque, affinite)
 		cible.subir(degats)
 		_rafraichir()
-		await _dire("%d dégâts." % degats)
+		var commentaire := Affinites.commentaire(affinite)
+		await _dire("%d de Motivation en moins.%s" % [degats, "  " + commentaire if commentaire != "" else ""])
 	if attaque.stat_modifiee != &"" and attaque.modificateur != 0:
 		var beneficiaire := attaquant if attaque.cible == MoveData.Cible.SOI else cible
 		_appliquer_modificateur(beneficiaire, attaque.stat_modifiee, attaque.modificateur * 2)
@@ -213,17 +225,31 @@ func _executer(attaquant: GoneInstance, cible: GoneInstance, attaque: MoveData) 
 		])
 	_rafraichir()
 
-func _degats(attaquant: GoneInstance, cible: GoneInstance, attaque: MoveData) -> int:
+## Les attaques qu'un alternant peut encore se payer. A sec, il ne lui reste
+## que "Trainer des pieds" : il n'est jamais bloque, seulement diminue.
+func _attaques_possibles(alternant: GoneInstance) -> Array:
+	var possibles: Array = []
+	for m: MoveData in alternant.attaques():
+		if alternant.peut_lancer(m):
+			possibles.append(m)
+	if possibles.is_empty():
+		var repli: MoveData = GameState.catalogue_attaques.get(&"trainer_des_pieds")
+		if repli != null:
+			possibles.append(repli)
+	return possibles
+
+func _degats(attaquant: GoneInstance, cible: GoneInstance, attaque: MoveData,
+		affinite: float = Affinites.NORMAL) -> int:
 	var base := float(attaque.puissance) * float(attaquant.attaque()) / float(maxi(1, cible.defense()))
-	return maxi(1, int(base * randf_range(0.85, 1.0)))
+	return maxi(1, int(base * affinite * randf_range(0.85, 1.0)))
 
 func _appliquer_modificateur(sur: GoneInstance, stat: StringName, valeur: int) -> void:
-	sur.appliquer_entrainement(stat, valeur)
+	sur.modifier_stat(stat, valeur)
 	_modificateurs.append({"gone": sur, "stat": stat, "valeur": valeur})
 
 func _retirer_modificateurs() -> void:
 	for m in _modificateurs:
-		m["gone"].appliquer_entrainement(m["stat"], -int(m["valeur"]))
+		m["gone"].modifier_stat(m["stat"], -int(m["valeur"]))
 	_modificateurs.clear()
 
 func _apres_tour() -> void:
@@ -251,6 +277,7 @@ func _utiliser_objet(objet: ItemData) -> void:
 		ItemData.Genre.SOIN:
 			GameState.consommer_objet(objet.id)
 			_actif.soigner(objet.valeur)
+			_actif.recuperer_cafe(CAFE_PAR_TOUR_SANS_ATTAQUE)
 			_rafraichir()
 			await _dire("%s rend %d PV à %s." % [objet.display_name, objet.valeur, _actif.nom()])
 			await _tour_ennemi()
@@ -263,15 +290,15 @@ func _utiliser_objet(objet: ItemData) -> void:
 
 func _tenter_capture(objet: ItemData) -> void:
 	if GameState.combat_est_boss:
-		await _dire("On ne capture pas le gardien de la colline.")
+		await _dire("On ne recrute pas le directeur comme ça.")
 		_menu_racine()
 		return
 	if GameState.equipe_est_pleine():
-		await _dire("L'équipe est déjà complète (%d Gones)." % GameState.TAILLE_EQUIPE_MAX)
+		await _dire("L'équipe est déjà complète (%d alternants)." % GameState.TAILLE_EQUIPE_MAX)
 		_menu_racine()
 		return
 	GameState.consommer_objet(objet.id)
-	await _dire("Vous lancez un %s..." % objet.display_name)
+	await _dire("Vous tendez un %s..." % objet.display_name)
 	var part_pv := float(_ennemi.pv) / float(maxi(1, _ennemi.pv_max()))
 	var chance := int(_ennemi.data.taux_capture * (1.0 - 0.7 * part_pv) + objet.valeur * 0.5)
 	chance = clampi(chance, 5, 95)
@@ -279,10 +306,12 @@ func _tenter_capture(objet: ItemData) -> void:
 		_retirer_modificateurs()
 		_ennemi.soigner_tout()
 		GameState.ajouter_a_equipe(_ennemi)
-		await _dire("%s rejoint l'équipe !" % _ennemi.nom())
+		if GameState.pnj_en_combat != &"":
+			GameState.lever_drapeau(GameState.pnj_en_combat)
+		await _dire("%s signe ! Il rejoint l'équipe." % _ennemi.nom())
 		_quitter("%s a rejoint l'équipe." % _ennemi.nom())
 	else:
-		await _dire("Raté, il s'échappe du filet.")
+		await _dire("Il relit les clauses… et refuse de signer.")
 		await _tour_ennemi()
 		await _apres_tour()
 
@@ -296,6 +325,7 @@ func _changer_de_gone(index: int) -> void:
 		return
 	_mode = Mode.MESSAGE
 	_actif = cible
+	_actif.recuperer_cafe(CAFE_PAR_TOUR_SANS_ATTAQUE)
 	_rafraichir()
 	await _dire("En avant, %s !" % _actif.nom())
 	await _tour_ennemi()
@@ -322,9 +352,15 @@ func _fuir() -> void:
 func _victoire() -> void:
 	await _dire("%s est hors de combat !" % _ennemi.nom())
 	if _actif.niveau < _ennemi.niveau + 3:
+		var stade_avant := _actif.stade()
 		_actif.niveau += 1
 		_actif.soigner(2)
 		await _dire("%s passe au niveau %d !" % [_actif.nom(), _actif.niveau])
+		if _actif.stade() > stade_avant:
+			_actif.soigner_tout()
+			_rafraichir()
+			await _dire("%s finit son année : il devient %s !"
+				% [_actif.nom(), _actif.nom_du_stade()])
 	if GameState.combat_est_boss:
 		GameState.lever_drapeau(&"gardien_battu")
 		await _dire("La pointe est à vous. Fin du MVP : merci d'avoir joué.")
@@ -346,6 +382,7 @@ func _quitter(message: String) -> void:
 	_retirer_modificateurs()
 	GameState.rencontre_en_attente = null
 	GameState.combat_est_boss = false
+	GameState.pnj_en_combat = &""
 	GameState.dernier_resultat_combat = message
 	GameState.sauvegarde_auto()
 	GameState.equipe_modifiee.emit()

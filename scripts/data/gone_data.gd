@@ -16,8 +16,8 @@ extends Resource
 @export var couleur: Color = Color(0.9, 0.77, 0.42)
 
 @export_group("Stats de base")
-@export_range(10, 60) var base_pv: int = 24
-@export_range(1, 30) var base_attaque: int = 10
+@export_range(10, 250) var base_pv: int = 24
+@export_range(1, 60) var base_attaque: int = 10
 @export_range(1, 30) var base_defense: int = 10
 @export_range(1, 30) var base_vitesse: int = 10
 
