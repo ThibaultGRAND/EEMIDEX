@@ -79,6 +79,10 @@ func _eclairer(portrait: TextureRect, nom: Label, choisi: bool) -> void:
 
 func _jouer_prologue() -> void:
 	_titre.text = "Gare de Perrache — quai B, 8 h 12"
+	# La premiere replique annonce le TGV : on l'entend entrer. L'ambiance de
+	# la gare demarre ici et continue sans coupure sur la carte.
+	GameState.jouer_ambiance(&"ambiance_gare")
+	GameState.jouer_son(&"train_en_gare", -10.0)
 	for replique: Array in _repliques():
 		await _boite.afficher(replique[1], replique[0])
 

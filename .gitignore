@@ -13,3 +13,6 @@
 *.swp
 .idea/
 .vscode/
+
+# Harnais de test temporaires (rendu, clics simules)
+/tmp_*

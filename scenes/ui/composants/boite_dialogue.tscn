@@ -10,8 +10,16 @@ offset_right = 308.0
 offset_bottom = 42.0
 script = ExtResource("1_boite")
 
-[node name="Contenu" type="MarginContainer" parent="."]
+[node name="Contenu" type="VBoxContainer" parent="."]
 layout_mode = 2
+theme_override_constants/separation = 1
+
+[node name="Locuteur" type="Label" parent="Contenu"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.913725, 0.772549, 0.419608, 1)
+text = ""
 
 [node name="Texte" type="Label" parent="Contenu"]
 unique_name_in_owner = true

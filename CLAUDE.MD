@@ -127,6 +127,12 @@ Les trois tables (`MUSIQUES`, `SONS`, `BOUCLES`) sont en haut de
 `game_state.gd` : **ajouter un son, c'est ajouter une ligne et un `.ogg`**,
 jamais un lecteur.
 
+**Provenance et licence : `assets/audio/SOURCES.md`**, comme pour les données
+de carte. Un son qui entre dans le dépôt y est inscrit le jour même, avec son
+auteur et sa licence. Aujourd'hui les 16 fichiers sont là sans auteur ni
+licence : tant que ce n'est pas rempli, on ne sait pas si le jeu a le droit de
+les diffuser.
+
 #### Musique
 
 - Les trois pistes : `exploration.ogg`, `combat.ogg`, `boutique.ogg`.
@@ -369,8 +375,9 @@ au jeu (touches Maj et Tab codées en dur, tolérées pour cette démo).
 - [ ] Histoire et objectif final : Gerard n'est pas sur la carte (ni case ni sprite)
 - [x] Musique de fond : 3 pistes en `.ogg` jouées par `GameState` (exploration,
       combat, boutique)
-- [ ] **Noter la provenance et la licence des 16 fichiers audio** (fournis par
-      l'équipe le 18 nov. 2026) et les mettre dans les crédits du jeu
+- [ ] **Remplir auteur et licence dans `assets/audio/SOURCES.md`** : le fichier
+      et la liste des 16 sons existent, les deux colonnes sont vides. Seule
+      l'équipe a l'information. Puis reprendre ces crédits dans le jeu.
 - [x] Bruitages : 11 sons branchés (menus, dialogues, combat, boutique, pas,
       zones) plus l'ambiance de la gare de Perrache
 - [ ] Régler les volumes à l'oreille en jouant (`VOLUME_SONS_DB`,

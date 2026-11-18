@@ -50,6 +50,8 @@ func _ready() -> void:
 	_menu.annule.connect(_sur_annulation)
 	GameState.assurer_partie()
 	GameState.jouer_musique(&"combat")
+	# Le brouhaha de la gare reste sur la carte : le combat se joue ailleurs.
+	GameState.arreter_ambiance()
 	var fiche: GoneData = GameState.rencontre_en_attente
 	if fiche == null:
 		var sauvages := GameState.gones_sauvages()
@@ -286,6 +288,7 @@ func _executer(attaquant: GoneInstance, cible: GoneInstance, attaque: MoveData) 
 		var critique := attaque.chance_critique > 0 and randi() % 100 < attaque.chance_critique
 		if critique:
 			degats = int(degats * 1.5)
+		GameState.jouer_son(&"attaque")
 		cible.subir(degats)
 		_rafraichir()
 		var commentaire := Affinites.commentaire(affinite)
@@ -407,6 +410,7 @@ func _tenter_capture(objet: ItemData) -> void:
 		GameState.ajouter_a_equipe(_ennemi)
 		if GameState.pnj_en_combat != &"":
 			GameState.lever_drapeau(GameState.pnj_en_combat)
+		GameState.jouer_son(&"niveau_gagne")
 		await _dire("%s signe ! Il rejoint l'équipe." % _ennemi.nom())
 		_quitter("%s a rejoint l'équipe." % _ennemi.nom())
 	else:
@@ -449,15 +453,21 @@ func _fuir() -> void:
 # Fin de combat
 # =============================================================================
 func _victoire() -> void:
+	# La musique de combat s'efface : le jingle de victoire joue seul, et la
+	# carte relancera l'exploration en reprenant la main.
+	GameState.arreter_musique()
+	GameState.jouer_son(&"victoire")
 	await _dire("%s est hors de combat !" % _ennemi.nom())
 	if _actif.niveau < _ennemi.niveau + GameState.marge_de_niveau():
 		var stade_avant := _actif.stade()
 		_actif.niveau += 1
 		_actif.soigner(2)
+		GameState.jouer_son(&"niveau_gagne")
 		await _dire("%s passe au niveau %d !" % [_actif.nom(), _actif.niveau])
 		if _actif.stade() > stade_avant:
 			_actif.soigner_tout()
 			_rafraichir()
+			GameState.jouer_son(&"niveau_gagne")
 			await _dire("%s finit son année : il devient %s !"
 				% [_actif.nom(), _actif.nom_du_stade()])
 	if GameState.combat_est_boss:
@@ -473,6 +483,8 @@ func _victoire() -> void:
 	_quitter("%s a été battu." % _ennemi.nom())
 
 func _defaite() -> void:
+	GameState.arreter_musique()
+	GameState.jouer_son(&"defaite")
 	await _dire("Toute l'équipe est hors de combat...")
 	GameState.soigner_equipe()
 	GameState.zone_courante = &"perrache"

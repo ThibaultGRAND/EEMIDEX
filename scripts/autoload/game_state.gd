@@ -1,10 +1,10 @@
 extends Node
-## Autoload unique du projet : équipe, inventaire, ressources, progression
+## Autoload unique du projet : équipe, inventaire, note de frais, progression
 ## et sauvegarde. Tout le reste communique par signaux ou passe par ici.
 
 signal equipe_modifiee
 signal inventaire_modifie
-signal ressources_modifiees
+signal note_de_frais_modifiee
 
 const CHEMIN_SAUVEGARDE := "user://sauvegarde_gones.json"
 const TAILLE_EQUIPE_MAX := 3
@@ -29,6 +29,37 @@ const VOLUME_MUSIQUE_DB := -12.0
 const DUREE_FONDU := 0.5
 ## Volume d'une piste qui s'efface. -80 dB, c'est le silence pour Godot.
 const VOLUME_SILENCE_DB := -80.0
+
+## Les bruitages : courts, joues par-dessus la musique, plusieurs a la fois.
+const SONS := {
+	&"clic": "res://assets/audio/clic.ogg",
+	&"dialogue_suivant": "res://assets/audio/dialogue_suivant.ogg",
+	&"attaque": "res://assets/audio/attaque.ogg",
+	&"victoire": "res://assets/audio/victoire.ogg",
+	&"defaite": "res://assets/audio/defaite.ogg",
+	&"niveau_gagne": "res://assets/audio/niveau_gagne.ogg",
+	&"achat": "res://assets/audio/achat.ogg",
+	&"entree_boutique": "res://assets/audio/entree_boutique.ogg",
+	&"entree_lieu": "res://assets/audio/entree_lieu.ogg",
+	&"marche": "res://assets/audio/marche.ogg",
+	&"train_en_gare": "res://assets/audio/train_en_gare.ogg",
+}
+## Les sons en boucle, sous la musique : l'ambiance d'une zone, et la machine
+## a ecrire de la boite de dialogue.
+const BOUCLES := {
+	&"ambiance_gare": "res://assets/audio/ambiance_gare.ogg",
+	&"texte": "res://assets/audio/texte.ogg",
+}
+## Volume des bruitages, de l'ambiance de zone et de la machine a ecrire.
+## L'ambiance et le texte passent sous la musique : on doit les deviner, pas
+## les entendre.
+const VOLUME_SONS_DB := -8.0
+const VOLUME_AMBIANCE_DB := -20.0
+const VOLUME_TEXTE_DB := -18.0
+## Le train de Perrache passe au loin : encore plus bas que l'ambiance.
+const VOLUME_TRAIN_DB := -22.0
+## Nombre de bruitages qui peuvent se chevaucher sans se couper.
+const LECTEURS_SONS := 6
 
 ## Les deux patrons jouables. Celui qu'on ne choisit pas devient le rival.
 ## Voir docs/histoire.md section 2.
@@ -55,11 +86,16 @@ const HEROS := {
 	},
 }
 
-## Les 3 ressources ramassées sur la carte. Chacune alimente un mini-jeu.
-const RESSOURCES := {
-	&"praline": "Praline",
-	&"cocon": "Cocon de soie",
-	&"quenelle": "Quenelle",
+## Ce que rapporte un objet ramasse sur la carte.
+const GAIN_RAMASSAGE := 25
+
+## Le catalogue de la boutique : objet -> prix en Note de Frais.
+const BOUTIQUE := {
+	&"filet_a_gone": 30,
+	&"contrat_tickets_resto": 70,
+	&"contrat_teletravail": 140,
+	&"mache_praline": 25,
+	&"barre_de_cocon": 55,
 }
 
 # --- Catalogues chargés depuis data/ au démarrage -----------------------------
@@ -70,7 +106,8 @@ var catalogue_objets: Dictionary = {}
 # --- État de la partie --------------------------------------------------------
 var equipe: Array = []           # Array[GoneInstance], 3 max
 var inventaire: Dictionary = {}  # item_id (StringName) -> quantité (int)
-var ressources: Dictionary = {}  # ressource_id (StringName) -> quantité (int)
+## La monnaie du jeu. En tant que patron, on en a beaucoup.
+var note_de_frais: int = 0
 var drapeaux: Dictionary = {}    # progression : objets ramassés, boss battu...
 var partie_commencee: bool = false
 ## La Bienveillance RH : le compteur cache qui decide de la fin.
@@ -100,9 +137,17 @@ var musique_courante: StringName = &""
 var _lecteur_musique: AudioStreamPlayer = null
 var _fondu: Tween = null
 
+# --- Sons ---------------------------------------------------------------------
+var ambiance_courante: StringName = &""
+var _lecteurs_sons: Array[AudioStreamPlayer] = []
+var _prochain_lecteur: int = 0
+var _lecteur_ambiance: AudioStreamPlayer = null
+var _lecteur_texte: AudioStreamPlayer = null
+
 func _ready() -> void:
 	_charger_catalogues()
 	_preparer_musique()
+	_preparer_sons()
 
 # =============================================================================
 # Musique
@@ -177,6 +222,100 @@ func _exit_tree() -> void:
 	if _lecteur_musique != null:
 		_lecteur_musique.stop()
 		_lecteur_musique.stream = null
+	for lecteur in _lecteurs_sons:
+		lecteur.stop()
+		lecteur.stream = null
+	for lecteur in [_lecteur_ambiance, _lecteur_texte]:
+		if lecteur != null:
+			lecteur.stop()
+			lecteur.stream = null
+
+# =============================================================================
+# Bruitages et ambiance
+# =============================================================================
+func _preparer_sons() -> void:
+	for i in LECTEURS_SONS:
+		_lecteurs_sons.append(_fabriquer_lecteur("Son%d" % i, VOLUME_SONS_DB))
+	_lecteur_ambiance = _fabriquer_lecteur("Ambiance", VOLUME_AMBIANCE_DB)
+	_lecteur_texte = _fabriquer_lecteur("Texte", VOLUME_TEXTE_DB)
+
+func _fabriquer_lecteur(nom: String, volume_db: float) -> AudioStreamPlayer:
+	var lecteur := AudioStreamPlayer.new()
+	lecteur.name = nom
+	lecteur.volume_db = volume_db
+	# Les sons continuent pendant les menus et les changements de scene.
+	lecteur.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(lecteur)
+	return lecteur
+
+## Joue un bruitage de SONS. Plusieurs peuvent se chevaucher ; au-dela de
+## LECTEURS_SONS, le plus ancien laisse sa place.
+func jouer_son(id: StringName, volume_db: float = VOLUME_SONS_DB) -> void:
+	if _lecteurs_sons.is_empty():
+		return
+	if not SONS.has(id):
+		push_warning("Son inconnu : %s" % id)
+		return
+	var piste: AudioStream = load(SONS[id])
+	if piste == null:
+		push_warning("Son introuvable : %s" % SONS[id])
+		return
+	var lecteur := _lecteur_libre()
+	lecteur.stream = piste
+	lecteur.volume_db = volume_db
+	lecteur.play()
+
+func _lecteur_libre() -> AudioStreamPlayer:
+	for lecteur in _lecteurs_sons:
+		if not lecteur.playing:
+			return lecteur
+	# Tous occupes : on recycle a tour de role, pour ne pas toujours couper
+	# le meme son.
+	var recycle := _lecteurs_sons[_prochain_lecteur]
+	_prochain_lecteur = (_prochain_lecteur + 1) % _lecteurs_sons.size()
+	return recycle
+
+## Pose l'ambiance d'une zone, en boucle, sous la musique. Redemander celle
+## qui tourne deja ne la recommence pas.
+func jouer_ambiance(id: StringName) -> void:
+	if _lecteur_ambiance == null:
+		return
+	if id == ambiance_courante and _lecteur_ambiance.playing:
+		return
+	if not BOUCLES.has(id):
+		push_warning("Ambiance inconnue : %s" % id)
+		return
+	var piste: AudioStream = load(BOUCLES[id])
+	if piste == null:
+		return
+	if piste is AudioStreamOggVorbis:
+		piste.loop = true
+	ambiance_courante = id
+	_lecteur_ambiance.stream = piste
+	_lecteur_ambiance.volume_db = VOLUME_AMBIANCE_DB
+	_lecteur_ambiance.play()
+
+func arreter_ambiance() -> void:
+	ambiance_courante = &""
+	if _lecteur_ambiance != null:
+		_lecteur_ambiance.stop()
+
+## La machine a ecrire de la boite de dialogue : une boucle qui tourne tant
+## que le texte s'ecrit. A arreter des que la page est posee.
+func demarrer_son_texte() -> void:
+	if _lecteur_texte == null or _lecteur_texte.playing:
+		return
+	var piste: AudioStream = load(BOUCLES[&"texte"])
+	if piste == null:
+		return
+	if piste is AudioStreamOggVorbis:
+		piste.loop = true
+	_lecteur_texte.stream = piste
+	_lecteur_texte.play()
+
+func arreter_son_texte() -> void:
+	if _lecteur_texte != null:
+		_lecteur_texte.stop()
 
 # =============================================================================
 # Catalogues
@@ -229,9 +368,7 @@ func gones_sauvages() -> Array:
 func nouvelle_partie() -> void:
 	equipe.clear()
 	inventaire = {&"filet_a_gone": 5, &"mache_praline": 2}
-	ressources = {}
-	for id in RESSOURCES:
-		ressources[id] = 0
+	note_de_frais = 120
 	drapeaux.clear()
 	bienveillance = 0
 	zone_courante = &"perrache"
@@ -247,7 +384,7 @@ func nouvelle_partie() -> void:
 
 	equipe_modifiee.emit()
 	inventaire_modifie.emit()
-	ressources_modifiees.emit()
+	note_de_frais_modifiee.emit()
 
 ## Fait bouger la Bienveillance. Le detail sert au journal, pas au joueur :
 ## le compteur reste cache, c'est ce qui l'empeche d'etre optimise.
@@ -312,7 +449,7 @@ func soigner_equipe() -> void:
 	equipe_modifiee.emit()
 
 # =============================================================================
-# Inventaire et ressources
+# Inventaire et note de frais
 # =============================================================================
 func quantite_objet(id: StringName) -> int:
 	return int(inventaire.get(id, 0))
@@ -338,28 +475,25 @@ func objets_possedes() -> Array:
 			liste.append(objet)
 	return liste
 
-func quantite_ressource(id: StringName) -> int:
-	return int(ressources.get(id, 0))
+func ajouter_note_de_frais(montant: int) -> void:
+	note_de_frais = maxi(0, note_de_frais + montant)
+	note_de_frais_modifiee.emit()
 
-func ajouter_ressource(id: StringName, nombre: int = 1) -> void:
-	ressources[id] = quantite_ressource(id) + nombre
-	ressources_modifiees.emit()
-
-func consommer_ressource(id: StringName, nombre: int = 1) -> bool:
-	if quantite_ressource(id) < nombre:
+func depenser_note_de_frais(montant: int) -> bool:
+	if note_de_frais < montant:
 		return false
-	ressources[id] = quantite_ressource(id) - nombre
-	ressources_modifiees.emit()
+	note_de_frais -= montant
+	note_de_frais_modifiee.emit()
 	return true
 
-## Niveau de difficulté débloqué dans les mini-jeux : 1, 2 ou 3 selon la ressource.
-func niveau_minijeu(ressource: StringName) -> int:
-	var n := quantite_ressource(ressource)
-	if n >= 8:
-		return 3
-	if n >= 3:
-		return 2
-	return 1
+## Le prix d'un objet en boutique, 0 s'il n'y est pas vendu.
+func prix(id: StringName) -> int:
+	return int(BOUTIQUE.get(id, 0))
+
+## La difficulte d'un mini-jeu suit le stade de l'alternant entraine : un
+## Chomeur s'entraine doucement, un Alternant encaisse le niveau 3.
+func niveau_minijeu(alternant: GoneInstance) -> int:
+	return clampi(alternant.stade() + 1, 1, 3) if alternant != null else 1
 
 # =============================================================================
 # Drapeaux de progression
@@ -390,9 +524,6 @@ func sauvegarder() -> bool:
 	var inv: Dictionary = {}
 	for id in inventaire:
 		inv[String(id)] = inventaire[id]
-	var res: Dictionary = {}
-	for id in ressources:
-		res[String(id)] = ressources[id]
 	var dra: Dictionary = {}
 	for id in drapeaux:
 		dra[String(id)] = drapeaux[id]
@@ -401,7 +532,7 @@ func sauvegarder() -> bool:
 		"version": 1,
 		"equipe": equipe_brute,
 		"inventaire": inv,
-		"ressources": res,
+		"note_de_frais": note_de_frais,
 		"drapeaux": dra,
 		"heros": String(heros),
 		"bienveillance": bienveillance,
@@ -439,11 +570,7 @@ func charger() -> bool:
 	inventaire.clear()
 	for id in donnees.get("inventaire", {}):
 		inventaire[StringName(id)] = int(donnees["inventaire"][id])
-	ressources.clear()
-	for id in RESSOURCES:
-		ressources[id] = 0
-	for id in donnees.get("ressources", {}):
-		ressources[StringName(id)] = int(donnees["ressources"][id])
+	note_de_frais = int(donnees.get("note_de_frais", 0))
 	drapeaux.clear()
 	for id in donnees.get("drapeaux", {}):
 		drapeaux[StringName(id)] = bool(donnees["drapeaux"][id])
@@ -456,7 +583,7 @@ func charger() -> bool:
 
 	equipe_modifiee.emit()
 	inventaire_modifie.emit()
-	ressources_modifiees.emit()
+	note_de_frais_modifiee.emit()
 	return true
 
 func effacer_sauvegarde() -> void:

@@ -9,6 +9,8 @@ extends Control
 
 func _ready() -> void:
 	_fond.color = PaletteUi.FOND
+	GameState.arreter_ambiance()
+	GameState.jouer_musique(&"exploration")
 	var bienveillante := GameState.fin_bienveillante()
 	_titre.text = "Un partenariat avec l'EEMI" if bienveillante else "Des bureaux vides"
 	_titre.add_theme_color_override("font_color",

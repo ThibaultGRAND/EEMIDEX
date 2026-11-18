@@ -1,9 +1,10 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scenes/battle/battle.gd" id="1_battle"]
 [ext_resource type="PackedScene" path="res://scenes/ui/composants/fiche_combattant.tscn" id="2_fiche"]
 [ext_resource type="PackedScene" path="res://scenes/ui/composants/boite_dialogue.tscn" id="3_boite"]
 [ext_resource type="PackedScene" path="res://scenes/ui/composants/liste_menu.tscn" id="4_menu"]
+[ext_resource type="PackedScene" path="res://scenes/battle/fond_combat.tscn" id="5_fond"]
 
 [node name="Battle" type="Control"]
 layout_mode = 3
@@ -12,20 +13,8 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 script = ExtResource("1_battle")
 
-[node name="Fond" type="ColorRect" parent="."]
+[node name="Fond" parent="." instance=ExtResource("5_fond")]
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-color = Color(0.235294, 0.278431, 0.305882, 1)
-
-[node name="Sol" type="ColorRect" parent="."]
-layout_mode = 1
-anchors_preset = -1
-anchor_top = 0.355
-anchor_right = 1.0
-anchor_bottom = 0.666
-color = Color(0.321569, 0.341176, 0.282353, 1)
 
 [node name="EnnemiSprite" type="ColorRect" parent="."]
 unique_name_in_owner = true
@@ -65,25 +54,25 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 expand_mode = 1
 stretch_mode = 5
-[node name="FicheEnnemi" parent="." instance=ExtResource("2_fiche")]
+[node name="FicheJoueur" parent="." instance=ExtResource("2_fiche")]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 0
 offset_left = 6.0
 offset_top = 8.0
-offset_right = 138.0
-offset_bottom = 32.0
-montrer_chiffres = false
+offset_right = 144.0
+offset_bottom = 44.0
+montrer_cafe = true
 
-[node name="FicheJoueur" parent="." instance=ExtResource("2_fiche")]
+[node name="FicheEnnemi" parent="." instance=ExtResource("2_fiche")]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 0
-offset_left = 176.0
-offset_top = 76.0
+offset_left = 182.0
+offset_top = 84.0
 offset_right = 314.0
-offset_bottom = 112.0
-montrer_cafe = true
+offset_bottom = 108.0
+montrer_chiffres = false
 
 [node name="Boite" parent="." instance=ExtResource("3_boite")]
 unique_name_in_owner = true

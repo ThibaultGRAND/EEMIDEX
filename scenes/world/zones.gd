@@ -130,6 +130,9 @@ const ZONES := {
 	&"perrache": {
 		"titre": "Perrache — la gare et les voûtes",
 		"ressource": &"praline",
+		## Boucle de GameState.BOUCLES jouee sous la musique. Les zones sans
+		## "ambiance" sont silencieuses.
+		"ambiance": &"ambiance_gare",
 		"tuile_ressource": Vector2i(3, 13),
 		## Pas d'herbe haute a Perrache : on ne croise rien sur le parvis.
 		"rencontres": [&"thigoat", &"seb", &"thibouclier"],

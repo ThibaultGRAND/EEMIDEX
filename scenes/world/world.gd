@@ -6,7 +6,7 @@ extends Node2D
 ## Quand l'equipe aura dessine les vraies tuiles, il suffira de remplacer le PNG
 ## du tileset : les plans et le code ne bougent pas.
 
-enum Mode { LIBRE, MENU }
+enum Mode { LIBRE, MENU, DIALOGUE }
 
 const CHANCE_RENCONTRE := 0.14
 const SCENE_PNJ: PackedScene = preload("res://scenes/world/pnj.tscn")
@@ -24,6 +24,13 @@ const CHANCE_ALTERNANT_ATTAQUE := 0.12
 
 const PAS_PROMENADE_MIN := 2
 const PAS_PROMENADE_MAX := 5
+
+## Le train de la gare de Perrache passe au loin, a intervalle irregulier,
+## tant que le joueur est dans une zone qui declare une "ambiance".
+const TRAIN_ATTENTE_MIN := 25.0
+const TRAIN_ATTENTE_MAX := 70.0
+## Les pas reviennent a chaque case : ils passent sous le reste du jeu.
+const VOLUME_PAS_DB := -16.0
 
 ## action -> [deplacement, Joueur.Direction]. Les entiers suivent l'ordre de
 ## l'enum Direction de player.gd : BAS, HAUT, GAUCHE, DROITE.
@@ -43,6 +50,15 @@ var _menu_titre: String = ""
 var _menu_options: Array = []
 var _menu_index: int = 0
 var _minijeu_choisi: StringName = &""
+## Minuteur du train qui entre en gare. Cree au demarrage, relance a chaque
+## zone qui declare une ambiance.
+var _train: Timer = null
+## Les identifiants des articles affiches en boutique, dans l'ordre du menu.
+var _articles: Array = []
+## Les temps du dialogue en cours, le premier etant celui a l'ecran.
+var _dialogue: Array = []
+## L'alternant a qui on parle, pour pouvoir le combattre a la fin.
+var _interlocuteur: Pnj = null
 
 @onready var _sol: TileMapLayer = %Sol
 @onready var _decor: TileMapLayer = %Decor
@@ -55,7 +71,15 @@ var _minijeu_choisi: StringName = &""
 
 func _ready() -> void:
 	GameState.assurer_partie()
+	# Une replique de dialogue est plus longue qu'une ligne de menu : sans ca,
+	# elle sortirait du volet par la droite.
+	_overlay.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_label_message.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	GameState.jouer_musique(&"exploration")
+	_train = Timer.new()
+	_train.one_shot = true
+	_train.timeout.connect(_sur_train)
+	add_child(_train)
 	_joueur.deplacement_fini.connect(_sur_case_atteinte)
 	_charger_zone(GameState.zone_courante, GameState.case_joueur)
 	if GameState.dernier_resultat_combat != "":
@@ -83,6 +107,29 @@ func _charger_zone(id: StringName, case_depart: Vector2i) -> void:
 	_placer_pnj()
 	_joueur.borner_camera(Zones.taille_pixels(id))
 	_label_zone.text = str(zone["titre"])
+	_poser_ambiance()
+
+## Le fond sonore de la zone : la gare a le sien, les autres sont muettes.
+## C'est une donnee de zone (cle "ambiance" dans zones.gd), pas une liste ici.
+func _poser_ambiance() -> void:
+	# La carte peut etre en train de quitter l'arbre (retour au titre pendant
+	# un changement de zone) : un minuteur hors de l'arbre refuse de partir.
+	if _train == null or not _train.is_inside_tree():
+		return
+	var ambiance := StringName(zone.get("ambiance", &""))
+	if ambiance == &"":
+		GameState.arreter_ambiance()
+		_train.stop()
+		return
+	GameState.jouer_ambiance(ambiance)
+	_train.start(randf_range(TRAIN_ATTENTE_MIN, TRAIN_ATTENTE_MAX))
+
+## Un train entre en gare, puis on en attend un autre.
+func _sur_train() -> void:
+	if not _train.is_inside_tree():
+		return
+	GameState.jouer_son(&"train_en_gare", GameState.VOLUME_TRAIN_DB)
+	_train.start(randf_range(TRAIN_ATTENTE_MIN, TRAIN_ATTENTE_MAX))
 
 ## Une entree de table vaut [source, case de l'atlas].
 func _poser(couche: TileMapLayer, cellule: Vector2i, entree: Array) -> void:
@@ -140,6 +187,7 @@ func _tenter_pas(action: String) -> void:
 	var consigne: Array = DIRECTIONS[action]
 	var cible: Vector2i = _joueur.cellule + consigne[0]
 	if Zones.est_traversable(zone_id, cible) and _pnj_sur(cible) == null:
+		GameState.jouer_son(&"marche", VOLUME_PAS_DB)
 		_joueur.avancer_vers(cible, consigne[1])
 	else:
 		_joueur.regarder(consigne[1])
@@ -150,6 +198,7 @@ func _sur_case_atteinte(cellule: Vector2i) -> void:
 	var sorties: Dictionary = zone["sorties"]
 	if sorties.has(c):
 		var sortie: Array = sorties[c]
+		GameState.jouer_son(&"entree_lieu")
 		_charger_zone(StringName(sortie[0]), Vector2i(int(sortie[1]), int(sortie[2])))
 		_message("Vous arrivez : %s" % zone["titre"])
 		GameState.sauvegarde_auto()
@@ -157,6 +206,7 @@ func _sur_case_atteinte(cellule: Vector2i) -> void:
 	match c:
 		"T":
 			var sortie_traboule := Zones.autre_traboule(zone_id, cellule)
+			GameState.jouer_son(&"entree_lieu")
 			_joueur.placer(sortie_traboule)
 			GameState.case_joueur = sortie_traboule
 			_message("Un passage sous les voies ferrées.")
@@ -360,15 +410,13 @@ func _ramasser_ressource(cellule: Vector2i) -> void:
 	var cle := StringName("ramasse_%s_%d_%d" % [zone_id, cellule.x, cellule.y])
 	if GameState.drapeau(cle):
 		return
-	var ressource: StringName = zone["ressource"]
 	GameState.lever_drapeau(cle)
-	GameState.ajouter_ressource(ressource, 2)
+	GameState.jouer_son(&"achat")
+	GameState.ajouter_note_de_frais(GameState.GAIN_RAMASSAGE)
 	_decor.set_cell(cellule, -1)          # l'objet ramasse disparait
 	_poser(_sol, cellule, Zones.SOLS["h"])
-	_message("+2 %s (total : %d)" % [
-		GameState.RESSOURCES.get(ressource, ressource),
-		GameState.quantite_ressource(ressource),
-	])
+	_message("Note de frais : +%d (total %d)"
+		% [GameState.GAIN_RAMASSAGE, GameState.note_de_frais])
 
 func _tenter_rencontre() -> void:
 	if randf() > CHANCE_RENCONTRE:
@@ -408,6 +456,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	if _mode == Mode.MENU:
 		_input_menu(event)
 		return
+	if _mode == Mode.DIALOGUE:
+		_input_dialogue(event)
+		return
 	if event.is_action_pressed("ui_cancel"):
 		_ouvrir_menu(&"pause", "Menu", ["Équipe", "Sauvegarder", "Retour au titre", "Reprendre"])
 		return
@@ -427,21 +478,17 @@ func _interagir() -> void:
 	# l'autre decide de se battre, de fuir ou d'ignorer.
 	var alternant := _pnj_sur(_case_devant())
 	if alternant != null:
-		_message("Vous abordez %s sans lui laisser le choix." % alternant.name)
-		_combattre(alternant)
+		_parler_a(alternant)
 		return
 	match _case_courante():
 		"S":
 			GameState.soigner_equipe()
+			GameState.jouer_son(&"niveau_gagne")
 			GameState.ajuster_bienveillance(1, "machine à café")
 			GameState.sauvegarde_auto()
 			_message("La machine à café a fait son office. Équipe au complet.")
 		"B":
-			_ouvrir_menu(&"boutique", _texte_boutique(), [
-				"3 pralines -> 1 Filet à Gone",
-				"4 cocons -> 1 Barre de cocon",
-				"Annuler",
-			])
+			_ouvrir_boutique()
 		"M":
 			_ouvrir_menu(&"entrainement", "Quel entraînement ?", [
 				"Rythme (vitesse)",
@@ -453,8 +500,102 @@ func _interagir() -> void:
 		_:
 			_message("Rien à faire ici.")
 
+
+# =============================================================================
+# Dialogues de la carte
+# =============================================================================
+## Aborder un alternant : il parle, le joueur repond, et c'est seulement
+## ensuite qu'il est question de lui tendre un contrat.
+func _parler_a(alternant: Pnj) -> void:
+	var fiche := _fiche_de(alternant)
+	var id: StringName = fiche.id if fiche != null else &""
+	var cle := StringName("parle_%s" % id)
+	_interlocuteur = alternant
+	_dialogue = Dialogues.pour(id, alternant.name, GameState.drapeau(cle))
+	GameState.lever_drapeau(cle)
+	_mode = Mode.DIALOGUE
+	_menu_index = 0
+	_afficher_temps()
+
+## Met a l'ecran le temps courant : une replique, ou une question a choix.
+func _afficher_temps() -> void:
+	if _dialogue.is_empty():
+		_fermer_dialogue()
+		return
+	var temps: Dictionary = _dialogue[0]
+	var lignes: Array = []
+	if temps.has("question"):
+		lignes.append(str(temps["question"]))
+		lignes.append("")
+		var choix: Array = temps["choix"]
+		for i in choix.size():
+			var texte: String = str(choix[i]["texte"])
+			lignes.append(("> %s" % texte) if i == _menu_index else ("  %s" % texte))
+	else:
+		var locuteur := str(temps.get("locuteur", ""))
+		if not locuteur.is_empty():
+			lignes.append(locuteur.to_upper())
+		lignes.append(str(temps["texte"]))
+		lignes.append("")
+		lignes.append("  [Entrée]")
+	_overlay.text = "\n".join(lignes)
+	_volet.visible = true
+	_overlay.visible = true
+
+func _input_dialogue(event: InputEvent) -> void:
+	var temps: Dictionary = _dialogue[0] if not _dialogue.is_empty() else {}
+	var choix: Array = temps.get("choix", [])
+	if not choix.is_empty():
+		if event.is_action_pressed("ui_down"):
+			_menu_index = (_menu_index + 1) % choix.size()
+			GameState.jouer_son(&"clic")
+			_afficher_temps()
+			return
+		if event.is_action_pressed("ui_up"):
+			_menu_index = (_menu_index - 1 + choix.size()) % choix.size()
+			GameState.jouer_son(&"clic")
+			_afficher_temps()
+			return
+	if not event.is_action_pressed("ui_accept"):
+		return
+	GameState.jouer_son(&"dialogue_suivant")
+	_dialogue.pop_front()
+	if choix.is_empty():
+		_menu_index = 0
+		_afficher_temps()
+		return
+	_repondre(choix[_menu_index])
+
+## Applique la reponse choisie : la Bienveillance, puis la replique du patron,
+## puis l'action eventuelle (aujourd'hui, le combat).
+func _repondre(reponse: Dictionary) -> void:
+	var variation := int(reponse.get("bienveillance", 0))
+	if variation != 0:
+		GameState.ajuster_bienveillance(variation, "réponse à un alternant")
+	var action: StringName = reponse.get("action", &"rien")
+	if action == &"combat":
+		var alternant := _interlocuteur
+		_fermer_dialogue()
+		if alternant != null:
+			_combattre(alternant)
+		return
+	var replique := str(reponse.get("reponse", ""))
+	if not replique.is_empty():
+		_dialogue.push_front({"texte": replique})
+	_menu_index = 0
+	_afficher_temps()
+
+func _fermer_dialogue() -> void:
+	_dialogue.clear()
+	_interlocuteur = null
+	_mode = Mode.LIBRE
+	_menu_index = 0
+	_volet.visible = false
+	_overlay.visible = false
+
 func _ouvrir_menu(contexte: StringName, titre: String, options: Array) -> void:
 	if contexte == &"boutique":
+		GameState.jouer_son(&"entree_boutique")
 		GameState.jouer_musique(&"boutique")
 	_menu_contexte = contexte
 	_menu_titre = titre
@@ -482,13 +623,17 @@ func _rafraichir_overlay() -> void:
 func _input_menu(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_down"):
 		_menu_index = (_menu_index + 1) % _menu_options.size()
+		GameState.jouer_son(&"clic")
 		_rafraichir_overlay()
 	elif event.is_action_pressed("ui_up"):
 		_menu_index = (_menu_index - 1 + _menu_options.size()) % _menu_options.size()
+		GameState.jouer_son(&"clic")
 		_rafraichir_overlay()
 	elif event.is_action_pressed("ui_cancel"):
+		GameState.jouer_son(&"dialogue_suivant")
 		_fermer_menu()
 	elif event.is_action_pressed("ui_accept"):
+		GameState.jouer_son(&"dialogue_suivant")
 		_valider_menu()
 
 func _valider_menu() -> void:
@@ -520,20 +665,35 @@ func _menu_pause(choix: String) -> void:
 			GameState.sauvegarder()
 			get_tree().change_scene_to_file(GameState.SCENE_MENU)
 
+## La boutique liste le catalogue de GameState, avec son prix.
+func _ouvrir_boutique() -> void:
+	_articles.clear()
+	var lignes: Array = []
+	for id: StringName in GameState.BOUTIQUE:
+		var objet: ItemData = GameState.catalogue_objets.get(id)
+		if objet == null:
+			continue                      # un objet retire de data/ ne s'affiche pas
+		_articles.append(id)
+		lignes.append("%s — %d" % [objet.display_name, GameState.prix(id)])
+	lignes.append("Annuler")
+	_ouvrir_menu(&"boutique", "Note de frais : %d" % GameState.note_de_frais, lignes)
+
 func _menu_boutique() -> void:
+	if _menu_index < 0 or _menu_index >= _articles.size():
+		_fermer_menu()
+		return
+	var id: StringName = _articles[_menu_index]
+	var objet: ItemData = GameState.catalogue_objets.get(id)
 	var message := ""
-	if _menu_index == 0:
-		if GameState.consommer_ressource(&"praline", 3):
-			GameState.ajouter_objet(&"filet_a_gone", 1)
-			message = "Un Filet à Gone de plus."
-		else:
-			message = "Pas assez de pralines."
-	elif _menu_index == 1:
-		if GameState.consommer_ressource(&"cocon", 4):
-			GameState.ajouter_objet(&"barre_de_cocon", 1)
-			message = "Une Barre de cocon de plus."
-		else:
-			message = "Pas assez de cocons."
+	if objet == null:
+		message = "Cet article n'existe plus."
+	elif GameState.depenser_note_de_frais(GameState.prix(id)):
+		GameState.ajouter_objet(id, 1)
+		GameState.jouer_son(&"achat")
+		message = "%s acheté. Il reste %d de note de frais." % [
+			objet.display_name, GameState.note_de_frais]
+	else:
+		message = "Pas assez de note de frais."
 	_fermer_menu()
 	_message(message)
 
@@ -568,13 +728,8 @@ func _texte_equipe() -> String:
 	var sacs: Array = []
 	for objet in GameState.objets_possedes():
 		sacs.append("%s x%d" % [objet.display_name, GameState.quantite_objet(objet.id)])
+	lignes.append("Note de frais : %d" % GameState.note_de_frais)
 	lignes.append("Sac : " + (", ".join(sacs) if not sacs.is_empty() else "vide"))
-	return "\n".join(lignes)
-
-func _texte_boutique() -> String:
-	var lignes: Array = ["Boutique"]
-	for id in GameState.RESSOURCES:
-		lignes.append("%s : %d" % [GameState.RESSOURCES[id], GameState.quantite_ressource(id)])
 	return "\n".join(lignes)
 
 func _message(texte: String) -> void:

@@ -1,9 +1,8 @@
 extends Node2D
 ## Mini-jeu « Frappe chronométrée » — entraîne l'ATTAQUE.
 ## On arrête un curseur qui fait des allers-retours, dans la zone cible.
-## La ressource « quenelle » débloque les niveaux de difficulté (plus dur, plus payant).
+## La difficulté suit le stade de l'alternant entraîné (Chômeur, Stagiaire, Alternant).
 
-const RESSOURCE := &"quenelle"
 const STAT := &"attaque"
 const COUPS := 3
 ## La barre est decrite en proportions de l'ecran, pour que le mini-jeu
@@ -35,7 +34,7 @@ func _ready() -> void:
 		_retour()
 		return
 	_gone = GameState.equipe[index]
-	_niveau = GameState.niveau_minijeu(RESSOURCE)
+	_niveau = GameState.niveau_minijeu(_gone)
 	_vitesse = 0.9 + 0.4 * float(_niveau)
 	_demi_largeur = 0.17 - 0.04 * float(_niveau)
 	_titre.text = "Frappe chronométrée — %s (difficulté %d/3)" % [_gone.nom(), _niveau]
@@ -79,6 +78,8 @@ func _frapper() -> void:
 		points = 2
 	elif ecart <= _demi_largeur:
 		points = 1
+	if points > 0:
+		GameState.jouer_son(&"attaque")
 	_score += points
 	_coups_restants -= 1
 	_nouvelle_cible()
@@ -92,6 +93,7 @@ func _terminer() -> void:
 	var gain := clampi(int(floor(float(_score) * float(_niveau) / 4.0)), 0, 3)
 	if gain > 0:
 		gain = _gone.appliquer_entrainement(STAT, gain)
+		GameState.jouer_son(&"niveau_gagne")
 		GameState.equipe_modifiee.emit()
 	_info.text = "Score : %d / %d" % [_score, COUPS * 3]
 	if gain > 0:

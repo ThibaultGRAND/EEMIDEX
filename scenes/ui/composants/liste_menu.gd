@@ -14,6 +14,10 @@ signal choix_valide(index: int, id: StringName)
 ## Le joueur a appuyé sur Échap / retour. L'écran décide s'il ferme ou non.
 signal annule
 
+## Hauteur d'une ligne, en pixels. La police fait 8 : le reste est de la marge
+## pour que la ligne reste cliquable sans viser au pixel près.
+const HAUTEUR_LIGNE := 10
+
 ## 2 pour le menu de combat (Attaquer / Sac — Équipe / Fuite), 1 ailleurs.
 @export_range(1, 4) var colonnes: int = 1:
 	set(valeur):
@@ -46,8 +50,8 @@ func definir_options(options: Array) -> void:
 		# des lignes qui n'ont plus d'option en face.
 		_grille.remove_child(enfant)
 		enfant.queue_free()
-	for option in _options:
-		_grille.add_child(_fabriquer_ligne(option))
+	for i in _options.size():
+		_grille.add_child(_fabriquer_ligne(i, _options[i]))
 	_index = _premier_actif()
 	_rafraichir()
 
@@ -63,8 +67,13 @@ func option_courante() -> Dictionary:
 func choisir(nouvel_index: int) -> void:
 	if _options.is_empty():
 		return
+	var avant := _index
 	_index = clampi(nouvel_index, 0, _options.size() - 1)
 	_rafraichir()
+	# Le curseur ne claque que s'il a vraiment bouge : un clic sur la ligne
+	# deja sous le curseur ne doit pas sonner deux fois.
+	if _index != avant:
+		GameState.jouer_son(&"clic")
 	choix_change.emit(_index, option_courante().get("id", &""))
 
 ## Valide l'option sous le curseur, comme si le joueur appuyait sur Entrée.
@@ -72,6 +81,7 @@ func valider() -> void:
 	var option := option_courante()
 	if option.is_empty() or not option.get("actif", true):
 		return
+	GameState.jouer_son(&"dialogue_suivant")
 	choix_valide.emit(_index, option.get("id", &""))
 
 func _normaliser(brute: Variant) -> Dictionary:
@@ -85,9 +95,15 @@ func _normaliser(brute: Variant) -> Dictionary:
 	var texte := String(brute)
 	return {"id": StringName(texte), "texte": texte, "actif": true, "detail": ""}
 
-func _fabriquer_ligne(option: Dictionary) -> HBoxContainer:
+func _fabriquer_ligne(index: int, option: Dictionary) -> HBoxContainer:
 	var ligne := HBoxContainer.new()
 	ligne.add_theme_constant_override("separation", 2)
+	ligne.custom_minimum_size = Vector2(0, HAUTEUR_LIGNE)
+	ligne.mouse_filter = Control.MOUSE_FILTER_STOP
+	ligne.mouse_default_cursor_shape = (
+		Control.CURSOR_POINTING_HAND if option["actif"] else Control.CURSOR_ARROW)
+	ligne.mouse_entered.connect(_sur_survol_souris.bind(index))
+	ligne.gui_input.connect(_sur_clic.bind(index))
 	var curseur := Label.new()
 	curseur.name = "Curseur"
 	curseur.text = " "
@@ -141,8 +157,36 @@ func _deplacer(pas: int) -> void:
 			choisir(i)
 			return
 
+## La souris survole une ligne : le curseur la suit, sans rien valider. Le
+## clavier et la souris bougent le même curseur, il n'y en a jamais deux.
+func _sur_survol_souris(index: int) -> void:
+	if not _utilisable() or index == _index:
+		return
+	if not _options[index].get("actif", true):
+		return
+	choisir(index)
+
+## Clic gauche sur une ligne : le curseur y va, puis on valide. C'est
+## exactement ce que font les flèches suivies d'Entrée.
+func _sur_clic(event: InputEvent, index: int) -> void:
+	if not _utilisable() or not (event is InputEventMouseButton):
+		return
+	var clic: InputEventMouseButton = event
+	if clic.button_index != MOUSE_BUTTON_LEFT or not clic.pressed:
+		return
+	if not _options[index].get("actif", true):
+		return
+	choisir(index)
+	var vue := get_viewport()
+	valider()
+	if vue != null:
+		vue.set_input_as_handled()
+
+func _utilisable() -> bool:
+	return interactif and is_visible_in_tree() and not _options.is_empty()
+
 func _unhandled_input(event: InputEvent) -> void:
-	if not interactif or not is_visible_in_tree() or _options.is_empty():
+	if not _utilisable():
 		return
 	if event.is_action_pressed("ui_down"):
 		_deplacer(colonnes)
@@ -153,9 +197,17 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event.is_action_pressed("ui_left") and colonnes > 1:
 		_deplacer(-1)
 	elif event.is_action_pressed("ui_accept"):
+		# Comme pour la boîte : valider() peut changer de scène, et la liste
+		# n'est alors plus dans l'arbre quand on marque l'événement.
+		var vue_accept := get_viewport()
 		valider()
+		if vue_accept != null:
+			vue_accept.set_input_as_handled()
+		return
 	elif event.is_action_pressed("ui_cancel"):
 		annule.emit()
 	else:
 		return
-	get_viewport().set_input_as_handled()
+	var vue := get_viewport()
+	if vue != null:
+		vue.set_input_as_handled()

@@ -11,6 +11,8 @@ var _index: int = 0
 @onready var _menu: Label = %Menu
 
 func _ready() -> void:
+	# On revient du jeu : le fond sonore d'une zone ne suit pas jusqu'au titre.
+	GameState.arreter_ambiance()
 	_options.clear()
 	if GameState.sauvegarde_existe():
 		_options.append(ENTREE_CONTINUER)
@@ -31,11 +33,14 @@ func _unhandled_input(event: InputEvent) -> void:
 		GameState.jouer_musique(&"exploration")
 	if event.is_action_pressed("ui_down"):
 		_index = (_index + 1) % _options.size()
+		GameState.jouer_son(&"clic")
 		_rafraichir()
 	elif event.is_action_pressed("ui_up"):
 		_index = (_index - 1 + _options.size()) % _options.size()
+		GameState.jouer_son(&"clic")
 		_rafraichir()
 	elif event.is_action_pressed("ui_accept"):
+		GameState.jouer_son(&"dialogue_suivant")
 		_valider()
 
 func _valider() -> void:

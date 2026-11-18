@@ -1,9 +1,8 @@
 extends Node2D
 ## Mini-jeu « Rythme » — entraîne la VITESSE.
 ## Des flèches descendent, on appuie sur la bonne touche quand elles passent la ligne.
-## La ressource « praline » débloque les niveaux de difficulté.
+## La difficulté suit le stade de l'alternant entraîné (Chômeur, Stagiaire, Alternant).
 
-const RESSOURCE := &"praline"
 const STAT := &"vitesse"
 ## Proportions de l'ecran : le mini-jeu suit la resolution.
 const LIGNE_Y := 0.733
@@ -34,7 +33,7 @@ func _ready() -> void:
 		return
 	var index := clampi(GameState.gone_a_entrainer, 0, GameState.equipe.size() - 1)
 	_gone = GameState.equipe[index]
-	_niveau = GameState.niveau_minijeu(RESSOURCE)
+	_niveau = GameState.niveau_minijeu(_gone)
 	_generer_partition()
 	_titre.text = "Rythme — %s (difficulté %d/3)" % [_gone.nom(), _niveau]
 	_resultat.text = "Flèches : frapper la note quand elle touche la ligne."
@@ -89,6 +88,7 @@ func _frapper(colonne: int) -> void:
 		return
 	meilleure["jouee"] = true
 	_reussites += 1
+	GameState.jouer_son(&"clic")
 	_rafraichir()
 
 func _terminer() -> void:
@@ -103,6 +103,7 @@ func _terminer() -> void:
 		gain = 1
 	if gain > 0:
 		gain = _gone.appliquer_entrainement(STAT, gain)
+		GameState.jouer_son(&"niveau_gagne")
 		GameState.equipe_modifiee.emit()
 		_resultat.text = "%d%% de réussite. %s gagne +%d en vitesse (VIT %d).\nEntrée pour revenir." % [
 			int(ratio * 100.0), _gone.nom(), gain, _gone.vitesse()]
