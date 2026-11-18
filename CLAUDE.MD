@@ -45,7 +45,7 @@ Le document de référence est la page de cadrage. En cas de doute sur le périm
   à la résolution de la fenêtre pour que les personnages soient nets. Concrètement :
   - `project.godot` : `window/stretch/mode="canvas_items"`. **Ne jamais le remettre en
     `viewport`**, même pour « respecter le pixel-perfect » ou suivre un ancien document.
-  - Les sprites de personnages (`assets/sprites/joueur_*.png`, `assets/sprites/pnj_*.png`)
+  - Les sprites de personnages (`assets/characters/<id>/<id>_sheet.png` et `_frames.tres`)
     sont fournis **en 4× (~120 px de haut)** et affichés avec **`scale = 0.25`** dans
     `scenes/world/player.tscn` et `scenes/world/pnj.tscn`. **Ne pas les réduire** à
     24-32 px réels, **ne pas retirer le `scale`**, ne pas « corriger » leur taille :
@@ -161,6 +161,16 @@ pour les sols et des placeholders pour les batiments.
   l'autre. Les plans sont en texte dans `zones.gd`.
 - `scenes/world/pnj.tscn` — 8 PNJ qui se baladent, deux par zone, sans case imposee :
   la carte leur trouve une place libre au demarrage.
+- **Personnages : tous au même format, celui de PnjThomas.** Chaque personnage a un
+  dossier `assets/characters/<id>/` avec `<id>_sheet.png` (personnage de 120 px, pieds
+  sur le bas de chaque case) et `<id>_frames.tres` (SpriteFrames : `idle_<dir>` et
+  `walk_<dir>` pour 8 directions). Le jeu les joue avec un `AnimatedSprite2D` à
+  `scale = 0.25` : `player.tscn` (joueur Moustache) et `pnj.tscn` (le `.tres` de chaque
+  PNJ est donné dans `zones.gd`, clé `"frames"`). Idle à l'arrêt, walk en marche.
+  **Ajouter ou refaire un personnage** : déposer la planche d'origine dans
+  `tools/planches/`, puis `python3 tools/decouper_planche.py tools/planches/<id>.jpg <id>
+  --fond vert|magenta|transparent` (options `--face-en-premier`, `--unique` : voir l'aide
+  du script ; il demande Pillow, numpy et scipy).
 - `scenes/battle/`, `scenes/minigames/`, `scenes/ui/` — combat au tour par tour,
   Rythme et Frappe chronometree, ecran titre. Toute l'interface est en **ancrages
   proportionnels** : elle suit la resolution sans retouche.
@@ -199,16 +209,10 @@ Le cocon n'a pas encore de mini-jeu : il ne sert qu'à la boutique, en attendant
 
 ### Démo de personnages (hors jeu)
 
-Prototype isolé, **non branché au jeu** : `scenes/main.tscn` (+ `scenes/pnj_*.tscn`,
-`scripts/main.gd`, `scripts/pnj.gd`, `assets/characters/`). Quatre PNJ (PnjSeb, PnjThomas, PnjJulian, PnjPaloma) en
-8 directions, découpés depuis des planches fournies par l'équipe (fond vert ou magenta détouré).
-Ses sprites restent en grand format (~176 px) : c'est une démo à part. Les versions du jeu
-sont dans `assets/sprites/` (en 4×, `scale = 0.25`, voir « Pixel art »).
-Reste à faire avant de les brancher au jeu :
-
-- pas encore de suivi de consentement pour les personnes représentées ;
-- touches codées en dur (Maj, Tab) au lieu de l'InputMap ;
-- dossier `assets/characters/` au lieu de `assets/sprites/`.
+`scenes/main.tscn` : les 9 personnages côte à côte (`scenes/joueur_moustache.tscn`,
+`scenes/pnj_*.tscn`, script `scripts/pnj.gd`), en 8 directions, Tab pour passer de l'un
+à l'autre. Elle utilise les mêmes `_frames.tres` que le jeu ; elle n'est pas branchée
+au jeu (touches Maj et Tab codées en dur, tolérées pour cette démo).
 
 ### Reste à faire pour le MVP
 

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://sp6n8vs7l387"
-path="res://.godot/imported/pnj_guillaume.png-75509fa52adcf040678f18d38ee50954.ctex"
+uid="uid://c7onlhc1wpjvp"
+path="res://.godot/imported/pnj_emile_sheet.png-7c340193b0eee3dc58a0a58ccebffe41.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/pnj_guillaume.png"
-dest_files=["res://.godot/imported/pnj_guillaume.png-75509fa52adcf040678f18d38ee50954.ctex"]
+source_file="res://assets/characters/pnj_emile/pnj_emile_sheet.png"
+dest_files=["res://.godot/imported/pnj_emile_sheet.png-7c340193b0eee3dc58a0a58ccebffe41.ctex"]
 
 [params]
 

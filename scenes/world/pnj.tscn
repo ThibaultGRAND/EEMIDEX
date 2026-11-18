@@ -1,18 +1,17 @@
 [gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scenes/world/pnj.gd" id="1_pnj"]
-[ext_resource type="Texture2D" path="res://assets/sprites/pnj_seb.png" id="2_sprite"]
+[ext_resource type="SpriteFrames" path="res://assets/characters/pnj_seb/pnj_seb_frames.tres" id="2_frames"]
 
 [node name="Pnj" type="Node2D"]
 y_sort_enabled = true
 script = ExtResource("1_pnj")
 
-[node name="Sprite" type="Sprite2D" parent="."]
+[node name="Sprite" type="AnimatedSprite2D" parent="."]
 unique_name_in_owner = true
-texture = ExtResource("2_sprite")
 scale = Vector2(0.25, 0.25)
-hframes = 3
-vframes = 4
+sprite_frames = ExtResource("2_frames")
+animation = &"idle_down"
 
 [node name="Minuteur" type="Timer" parent="."]
 unique_name_in_owner = true

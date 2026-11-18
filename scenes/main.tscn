@@ -1,10 +1,15 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
-[ext_resource type="PackedScene" path="res://scenes/pnj_seb.tscn" id="2_pnj_seb"]
-[ext_resource type="PackedScene" path="res://scenes/pnj_thomas.tscn" id="3_pnj_thomas"]
-[ext_resource type="PackedScene" path="res://scenes/pnj_julian.tscn" id="4_pnj_julian"]
-[ext_resource type="PackedScene" path="res://scenes/pnj_paloma.tscn" id="5_pnj_paloma"]
+[ext_resource type="PackedScene" path="res://scenes/joueur_moustache.tscn" id="2_joueur_moustache"]
+[ext_resource type="PackedScene" path="res://scenes/pnj_seb.tscn" id="3_pnj_seb"]
+[ext_resource type="PackedScene" path="res://scenes/pnj_thomas.tscn" id="4_pnj_thomas"]
+[ext_resource type="PackedScene" path="res://scenes/pnj_julian.tscn" id="5_pnj_julian"]
+[ext_resource type="PackedScene" path="res://scenes/pnj_paloma.tscn" id="6_pnj_paloma"]
+[ext_resource type="PackedScene" path="res://scenes/pnj_thibaut.tscn" id="7_pnj_thibaut"]
+[ext_resource type="PackedScene" path="res://scenes/pnj_guillaume.tscn" id="8_pnj_guillaume"]
+[ext_resource type="PackedScene" path="res://scenes/pnj_emile.tscn" id="9_pnj_emile"]
+[ext_resource type="PackedScene" path="res://scenes/pnj_theophile.tscn" id="10_pnj_theophile"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_main")
@@ -16,22 +21,39 @@ offset_right = 2000.0
 offset_bottom = 2000.0
 color = Color(0.35, 0.55, 0.35, 1)
 
-[node name="PnjSeb" parent="." instance=ExtResource("2_pnj_seb")]
+[node name="JoueurMoustache" parent="." instance=ExtResource("2_joueur_moustache")]
+position = Vector2(-128, 0)
 
-[node name="PnjThomas" parent="." instance=ExtResource("3_pnj_thomas")]
-position = Vector2(160, 0)
+[node name="PnjSeb" parent="." instance=ExtResource("3_pnj_seb")]
+position = Vector2(-96, 0)
 
-[node name="PnjJulian" parent="." instance=ExtResource("4_pnj_julian")]
-position = Vector2(-160, 0)
+[node name="PnjThomas" parent="." instance=ExtResource("4_pnj_thomas")]
+position = Vector2(-64, 0)
 
-[node name="PnjPaloma" parent="." instance=ExtResource("5_pnj_paloma")]
-position = Vector2(320, 0)
+[node name="PnjJulian" parent="." instance=ExtResource("5_pnj_julian")]
+position = Vector2(-32, 0)
+
+[node name="PnjPaloma" parent="." instance=ExtResource("6_pnj_paloma")]
+position = Vector2(0, 0)
+
+[node name="PnjThibaut" parent="." instance=ExtResource("7_pnj_thibaut")]
+position = Vector2(32, 0)
+
+[node name="PnjGuillaume" parent="." instance=ExtResource("8_pnj_guillaume")]
+position = Vector2(64, 0)
+
+[node name="PnjEmile" parent="." instance=ExtResource("9_pnj_emile")]
+position = Vector2(96, 0)
+
+[node name="PnjTheophile" parent="." instance=ExtResource("10_pnj_theophile")]
+position = Vector2(128, 0)
 
 [node name="Help" type="CanvasLayer" parent="."]
 
 [node name="Label" type="Label" parent="Help"]
-offset_left = 16.0
-offset_top = 12.0
-offset_right = 800.0
-offset_bottom = 40.0
+offset_left = 4.0
+offset_top = 2.0
+offset_right = 316.0
+offset_bottom = 14.0
+theme_override_font_sizes/font_size = 8
 text = "Flèches : se déplacer   |   Maj : plus vite   |   Tab : changer de personnage"

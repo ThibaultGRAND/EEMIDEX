@@ -188,7 +188,7 @@ func _placer_pnj() -> void:
 				continue          # zone pleine : on n'insiste pas
 		var pnj: Pnj = SCENE_PNJ.instantiate()
 		pnj.name = str(fiche["nom"])
-		pnj.sprite = load(str(fiche["sprite"]))
+		pnj.frames = load(str(fiche["frames"]))
 		pnj.rayon = int(fiche.get("rayon", -1))
 		_pnjs.add_child(pnj)
 		pnj.placer(depart)

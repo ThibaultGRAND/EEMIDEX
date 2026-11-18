@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ri4g4hhvf6xr"
-path="res://.godot/imported/pnj_thibaut.png-8c4fd4df4573ab36460b887206031576.ctex"
+uid="uid://d2niwdy6a7pvj"
+path="res://.godot/imported/joueur_moustache.jpg-563c65462ae2857ed4e539bdca13e9ea.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/pnj_thibaut.png"
-dest_files=["res://.godot/imported/pnj_thibaut.png-8c4fd4df4573ab36460b887206031576.ctex"]
+source_file="res://tools/planches/joueur_moustache.jpg"
+dest_files=["res://.godot/imported/joueur_moustache.jpg-563c65462ae2857ed4e539bdca13e9ea.ctex"]
 
 [params]
 

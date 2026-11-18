@@ -143,8 +143,8 @@ const ZONES := {
 		## "case" (depart fixe, sinon une case libre au hasard) et "rayon"
 		## (distance max a sa case de depart, sinon aucune limite).
 		"pnj": [
-			{"nom": "PnjSeb", "sprite": "res://assets/sprites/pnj_seb.png"},
-			{"nom": "PnjThibaut", "sprite": "res://assets/sprites/pnj_thibaut.png"},
+			{"nom": "PnjSeb", "frames": "res://assets/characters/pnj_seb/pnj_seb_frames.tres"},
+			{"nom": "PnjThibaut", "frames": "res://assets/characters/pnj_thibaut/pnj_thibaut_frames.tres"},
 		],
 	},
 
@@ -189,8 +189,8 @@ const ZONES := {
 		## "case" (depart fixe, sinon une case libre au hasard) et "rayon"
 		## (distance max a sa case de depart, sinon aucune limite).
 		"pnj": [
-			{"nom": "PnjThomas", "sprite": "res://assets/sprites/pnj_thomas.png"},
-			{"nom": "PnjTheophile", "sprite": "res://assets/sprites/pnj_theophile.png"},
+			{"nom": "PnjThomas", "frames": "res://assets/characters/pnj_thomas/pnj_thomas_frames.tres"},
+			{"nom": "PnjTheophile", "frames": "res://assets/characters/pnj_theophile/pnj_theophile_frames.tres"},
 		],
 	},
 
@@ -237,8 +237,8 @@ const ZONES := {
 		## "case" (depart fixe, sinon une case libre au hasard) et "rayon"
 		## (distance max a sa case de depart, sinon aucune limite).
 		"pnj": [
-			{"nom": "PnjJulian", "sprite": "res://assets/sprites/pnj_julian.png"},
-			{"nom": "PnjEmile", "sprite": "res://assets/sprites/pnj_emile.png"},
+			{"nom": "PnjJulian", "frames": "res://assets/characters/pnj_julian/pnj_julian_frames.tres"},
+			{"nom": "PnjEmile", "frames": "res://assets/characters/pnj_emile/pnj_emile_frames.tres"},
 		],
 	},
 
@@ -283,8 +283,8 @@ const ZONES := {
 		## "case" (depart fixe, sinon une case libre au hasard) et "rayon"
 		## (distance max a sa case de depart, sinon aucune limite).
 		"pnj": [
-			{"nom": "PnjPaloma", "sprite": "res://assets/sprites/pnj_paloma.png"},
-			{"nom": "PnjGuillaume", "sprite": "res://assets/sprites/pnj_guillaume.png"},
+			{"nom": "PnjPaloma", "frames": "res://assets/characters/pnj_paloma/pnj_paloma_frames.tres"},
+			{"nom": "PnjGuillaume", "frames": "res://assets/characters/pnj_guillaume/pnj_guillaume_frames.tres"},
 		],
 	},
 }
