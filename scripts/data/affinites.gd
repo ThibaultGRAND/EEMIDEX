@@ -23,8 +23,9 @@ const ALIAS := {
 	&"com": &"marketing",
 }
 
-const TRES_EFFICACE := 2.0
-const PEU_EFFICACE := 0.5
+## Assez pour compter, pas assez pour decider seul du combat (docs/regles.md).
+const TRES_EFFICACE := 1.5
+const PEU_EFFICACE := 0.67
 const NORMAL := 1.0
 
 ## Ramene un type ecrit autrement a celui du cycle.

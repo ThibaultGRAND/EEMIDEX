@@ -286,6 +286,11 @@ pour les sols et des placeholders pour les batiments.
   colorées, flèches, Parfait/Bien/Raté, combo. Frappe : sac de frappe, barre à 3 zones
   avec légende, la zone bouge à partir de la difficulté 4. Couleurs `MINIJEU_*` dans
   `PaletteUi`.
+- **Équilibrage des combats** (18 nov. 2026) : dégâts × (0,40 + 0,02 × niveau), types
+  ×1,5 / ×0,67, plusieurs alternants et les boss retouchés. Combat sauvage en 3 à 5 tours ;
+  Nael (niv. 12) battu 65 % du temps par une équipe de 3 au niveau 13. Après une victoire,
+  **toute l'équipe progresse** (les remplaçants jusqu'au niveau de l'adversaire). Détail
+  et chiffres : `docs/regles.md`, « Équilibrage ». Frappe chronométrée : 6 coups.
 - `scenes/ui/inventaire.tscn` — **écran Équipe** (menu pause > « Équipe », remplace
   l'ancien écran en texte ; le fichier et la classe s'appellent encore `Inventaire`). Onglets Équipe / Sac (← →) : liste à gauche
   (`ListeMenu`), fiche à droite (portrait, `FicheCombattant`, stade et prochain palier,
