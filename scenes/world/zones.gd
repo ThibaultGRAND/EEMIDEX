@@ -34,73 +34,97 @@ const BLOQUANTS := "#wtvjLn"
 ## de passage sous les voies, de sortie ni de lieu special).
 const SOLS_PNJ := ".,mqhsd"
 
-## Les deux sources du TileSet assets/tilesets/lyon.tres.
-const IMPORT := 0        # les tuiles dessinees par l'equipe
-const PLACEHOLDER := 1   # ce qui manque encore, en attendant
+## Source unique du TileSet assets/tilesets/placeholder_tuiles_hd.tres : tuiles
+## 64x64 dessinees par tools/generer_tuiles_hd.py, affichees a scale 0.25 (16 px dans
+## le monde). Les tuiles de l'equipe (lyon.tres, 16 px) restent dans le depot.
+const TUILES := 0
+## Anciens noms des sources, gardes pour le code qui les cite encore.
+const IMPORT := TUILES
+const PLACEHOLDER := TUILES
 
 ## Sol pose sur la couche du bas : caractere -> [source, case de l'atlas].
 const SOLS := {
-	"#": [IMPORT, Vector2i(4, 0)],      # terre, sous les batiments
-	".": [IMPORT, Vector2i(0, 0)],      # pave lyonnais
-	",": [IMPORT, Vector2i(1, 0)],      # pave use
-	"m": [IMPORT, Vector2i(2, 0)],      # pave avec mousse
-	"q": [IMPORT, Vector2i(3, 0)],      # dalle de quai
-	"d": [IMPORT, Vector2i(4, 0)],      # terre et gravier
-	"h": [IMPORT, Vector2i(5, 0)],      # herbe courte
-	"g": [IMPORT, Vector2i(6, 0)],      # herbe haute : declenche les rencontres
-	"w": [IMPORT, Vector2i(7, 0)],      # eau
-	"s": [IMPORT, Vector2i(6, 1)],      # sable de berge
-	"t": [IMPORT, Vector2i(5, 0)],      # herbe, sous l'arbre
-	"p": [IMPORT, Vector2i(5, 2)],      # planches de ponton
-	"b": [IMPORT, Vector2i(7, 1)],      # ballast, au bord des voies
-	"v": [IMPORT, Vector2i(2, 10)],     # rail et traverses, sur ballast
-	"=": [IMPORT, Vector2i(0, 11)],     # passage a niveau
-	"j": [IMPORT, Vector2i(5, 0)],      # herbe, sous le buisson
-	"L": [IMPORT, Vector2i(0, 0)],      # pave, sous le lampadaire
-	"n": [IMPORT, Vector2i(0, 0)],      # pave, sous le banc
-	"S": [IMPORT, Vector2i(3, 0)],
-	"B": [IMPORT, Vector2i(3, 0)],
-	"M": [IMPORT, Vector2i(3, 0)],
-	"T": [IMPORT, Vector2i(3, 0)],
-	"R": [IMPORT, Vector2i(5, 0)],      # l'objet a ramasser est en decor
-	"X": [IMPORT, Vector2i(3, 0)],
-	"1": [IMPORT, Vector2i(0, 14)],     # marqueur de sortie grave au sol
-	"2": [IMPORT, Vector2i(0, 14)],
-	"3": [IMPORT, Vector2i(0, 14)],
+	"#": [TUILES, Vector2i(0, 1)],      # terre, sous les batiments
+	".": [TUILES, Vector2i(0, 0)],      # pave lyonnais
+	",": [TUILES, Vector2i(3, 0)],      # pave use
+	"m": [TUILES, Vector2i(5, 0)],      # pave avec mousse
+	"q": [TUILES, Vector2i(6, 0)],      # dalle de quai
+	"d": [TUILES, Vector2i(0, 1)],      # terre et gravier
+	"h": [TUILES, Vector2i(2, 1)],      # herbe courte
+	"g": [TUILES, Vector2i(4, 1)],      # herbe haute : declenche les rencontres
+	"w": [TUILES, Vector2i(5, 1)],      # eau
+	"s": [TUILES, Vector2i(0, 2)],      # sable de berge
+	"t": [TUILES, Vector2i(2, 1)],      # herbe, sous l'arbre
+	"p": [TUILES, Vector2i(1, 2)],      # planches de ponton
+	"b": [TUILES, Vector2i(2, 2)],      # ballast, au bord des voies
+	"v": [TUILES, Vector2i(4, 2)],      # rail et traverses, sur ballast
+	"=": [TUILES, Vector2i(5, 2)],      # passage a niveau
+	"j": [TUILES, Vector2i(2, 1)],      # herbe, sous le buisson
+	"L": [TUILES, Vector2i(0, 0)],      # pave, sous le lampadaire
+	"n": [TUILES, Vector2i(0, 0)],      # pave, sous le banc
+	"S": [TUILES, Vector2i(7, 2)],      # dalles de place sous les lieux speciaux
+	"B": [TUILES, Vector2i(7, 2)],
+	"M": [TUILES, Vector2i(7, 2)],
+	"T": [TUILES, Vector2i(7, 2)],
+	"R": [TUILES, Vector2i(2, 1)],      # l'objet a ramasser est en decor
+	"X": [TUILES, Vector2i(7, 2)],
+	"1": [TUILES, Vector2i(6, 2)],      # marqueur de sortie grave au sol
+	"2": [TUILES, Vector2i(6, 2)],
+	"3": [TUILES, Vector2i(6, 2)],
 }
 
 ## Variantes d'un meme sol. Un grand aplat de la meme tuile se voit
 ## immediatement : on en pioche une au hasard, mais toujours la meme pour une
 ## case donnee, sinon le decor scintillerait a chaque repeinte.
 const VARIANTES := {
-	".": [Vector2i(0, 0), Vector2i(0, 0), Vector2i(1, 0), Vector2i(2, 0)],
-	",": [Vector2i(1, 0), Vector2i(1, 0), Vector2i(0, 0), Vector2i(2, 0)],
-	"q": [Vector2i(3, 0), Vector2i(3, 0), Vector2i(3, 0), Vector2i(2, 1)],
-	"d": [Vector2i(4, 0), Vector2i(4, 0), Vector2i(0, 1), Vector2i(1, 1)],
-	"w": [Vector2i(7, 0), Vector2i(0, 2), Vector2i(1, 2), Vector2i(2, 2)],
-	"b": [Vector2i(7, 1), Vector2i(7, 1), Vector2i(3, 1)],
+	".": [Vector2i(0, 0), Vector2i(1, 0), Vector2i(2, 0)],
+	",": [Vector2i(3, 0), Vector2i(4, 0)],
+	"q": [Vector2i(6, 0), Vector2i(6, 0), Vector2i(7, 0)],
+	"d": [Vector2i(0, 1), Vector2i(1, 1)],
+	"h": [Vector2i(2, 1), Vector2i(3, 1)],
+	"t": [Vector2i(2, 1), Vector2i(3, 1)],
+	"j": [Vector2i(2, 1), Vector2i(3, 1)],
+	"w": [Vector2i(5, 1), Vector2i(6, 1), Vector2i(7, 1)],
+	"b": [Vector2i(2, 2), Vector2i(3, 2)],
 }
 
-## Volume pose sur la couche du haut, triee en profondeur.
+## Volume pose sur la couche du haut, triee en profondeur. Les batiments ("#")
+## ne sont pas ici : decor_batiment() choisit facade, toit ou bord selon les voisins.
 const DECORS := {
-	"#": [PLACEHOLDER, Vector2i(0, 2)],   # mur : planche 5 a refaire
-	"t": [PLACEHOLDER, Vector2i(5, 2)],   # arbre : planche 9 jamais recue
-	"S": [PLACEHOLDER, Vector2i(6, 3)],   # croix de soin
-	"B": [PLACEHOLDER, Vector2i(5, 3)],   # enseigne de boutique
-	"X": [PLACEHOLDER, Vector2i(7, 3)],   # le gardien de la pointe
-	"M": [IMPORT, Vector2i(7, 13)],       # borne d'entrainement
-	"T": [IMPORT, Vector2i(6, 13)],       # bouche du passage sous les voies
-	"j": [IMPORT, Vector2i(1, 9)],        # buisson rond
-	"L": [IMPORT, Vector2i(5, 11)],       # lampadaire, pied en fonte
-	"n": [IMPORT, Vector2i(7, 11)],       # banc public
+	"t": [TUILES, Vector2i(0, 5)],        # arbre : tronc et bas du feuillage
+	"S": [TUILES, Vector2i(6, 5)],        # panneau de soin
+	"B": [TUILES, Vector2i(7, 5)],        # etal de boutique
+	"X": [TUILES, Vector2i(2, 6)],        # le gardien
+	"M": [TUILES, Vector2i(0, 6)],        # borne d'entrainement
+	"T": [TUILES, Vector2i(1, 6)],        # bouche du passage sous les voies
+	"j": [TUILES, Vector2i(2, 5)],        # buisson rond
+	"L": [TUILES, Vector2i(3, 5)],        # lampadaire, pied en fonte
+	"n": [TUILES, Vector2i(5, 5)],        # banc public
 }
 
 ## Partie haute des volumes qui font deux cases, posee sur la case du dessus.
 const DECORS_HAUT := {
-	"#": [PLACEHOLDER, Vector2i(1, 2)],
-	"t": [PLACEHOLDER, Vector2i(6, 2)],
-	"L": [IMPORT, Vector2i(6, 11)],       # lampadaire, tete et lanterne
+	"t": [TUILES, Vector2i(1, 5)],        # haut du feuillage
+	"L": [TUILES, Vector2i(4, 5)],        # lampadaire, tete et lanterne
 }
+
+## Tuiles des ressources a ramasser, par ressource.
+const TUILES_RESSOURCES := {
+	&"praline": Vector2i(3, 6),
+	&"cocon": Vector2i(4, 6),
+	&"quenelle": Vector2i(5, 6),
+}
+
+## Facades du rang du bas d'un batiment, tirees de facon stable par case.
+const FACADES := [Vector2i(0, 3), Vector2i(0, 3), Vector2i(1, 3), Vector2i(2, 3), Vector2i(3, 3)]
+const FACADE_GAUCHE := Vector2i(4, 3)
+const FACADE_DROITE := Vector2i(5, 3)
+const TOIT := Vector2i(0, 4)
+const TOIT_GAUCHE := Vector2i(1, 4)
+const TOIT_DROITE := Vector2i(2, 4)
+const TOIT_HAUT := Vector2i(3, 4)
+const TOIT_HAUT_GAUCHE := Vector2i(4, 4)
+const TOIT_HAUT_DROITE := Vector2i(5, 4)
 
 const ZONES := {
 	&"perrache": {
@@ -297,6 +321,32 @@ static func sol_de(c: String, cellule: Vector2i) -> Array:
 	var choix: Array = VARIANTES[c]
 	var melange := (cellule.x * 73856093) ^ (cellule.y * 19349663)
 	return [SOLS[c][0], choix[absi(melange) % choix.size()]]
+
+## Tuile d'un bloc de batiment : facade s'il n'y a pas de "#" en dessous, toit sinon,
+## avec un bord a gauche ou a droite quand le batiment s'arrete de ce cote.
+static func decor_batiment(id: StringName, cellule: Vector2i) -> Array:
+	var gauche := case_a(id, cellule + Vector2i.LEFT) == "#"
+	var droite := case_a(id, cellule + Vector2i.RIGHT) == "#"
+	if case_a(id, cellule + Vector2i.DOWN) != "#":
+		if not gauche:
+			return [TUILES, FACADE_GAUCHE]
+		if not droite:
+			return [TUILES, FACADE_DROITE]
+		var melange := (cellule.x * 73856093) ^ (cellule.y * 19349663)
+		return [TUILES, FACADES[absi(melange) % FACADES.size()]]
+	if not gauche:
+		return [TUILES, TOIT_GAUCHE]
+	if not droite:
+		return [TUILES, TOIT_DROITE]
+	return [TUILES, TOIT]
+
+## Bord superieur du toit, pose sur la case au-dessus du rang du haut d'un batiment.
+static func haut_batiment(id: StringName, cellule_toit: Vector2i) -> Array:
+	if case_a(id, cellule_toit + Vector2i.LEFT) != "#":
+		return [TUILES, TOIT_HAUT_GAUCHE]
+	if case_a(id, cellule_toit + Vector2i.RIGHT) != "#":
+		return [TUILES, TOIT_HAUT_DROITE]
+	return [TUILES, TOIT_HAUT]
 
 static func zone(id: StringName) -> Dictionary:
 	return ZONES.get(id, ZONES[&"perrache"])

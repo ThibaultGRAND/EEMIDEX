@@ -52,7 +52,10 @@ Le document de référence est la page de cadrage. En cas de doute sur le périm
     ils font déjà 30 à 32 px dans le monde.
   - L'offset des pieds tient compte de ce `scale` (`pnj.gd`, `player.tscn`) : ne pas le
     recalculer comme si le sprite était à l'échelle 1.
-  - Les tuiles, elles, restent en vrai 16×16, sans `scale`.
+  - Les **tuiles de la carte** suivent le même principe depuis le 18 nov. 2026 : atlas
+    64×64 (`assets/tilesets/placeholder_tuiles_hd.png` + `.tres`), couches `Sol` et
+    `Decor` de `world.tscn` à `scale = 0.25`. La logique reste en cases de 16
+    (`Zones.TAILLE_CASE`). Ne pas retirer ce `scale` ni remettre `lyon.tres`.
   - Si une consigne (ici ou dans `docs/`) semble dire le contraire, c'est qu'elle date
     d'avant ce choix : **demander à l'équipe avant de toucher** à ces réglages.
   - Si l'éditeur Godot est ouvert pendant une modification de `project.godot`, il peut la
@@ -161,6 +164,15 @@ pour les sols et des placeholders pour les batiments.
   l'autre. Les plans sont en texte dans `zones.gd`.
 - `scenes/world/pnj.tscn` — 8 PNJ qui se baladent, deux par zone, sans case imposee :
   la carte leur trouve une place libre au demarrage.
+- **Tuiles HD (placeholder)** : `tools/generer_tuiles_hd.py` dessine en code un atlas
+  64×64 (`assets/tilesets/placeholder_tuiles_hd.*`) : pavés, quais, eau, herbe, rails,
+  façades lyonnaises (fenêtres à volets, portes, vitrines), toits en tuiles, arbres,
+  lampadaires, mobilier, ressources. La table caractère -> tuile est dans `zones.gd`
+  (`SOLS`, `VARIANTES`, `DECORS`, `DECORS_HAUT`, `TUILES_RESSOURCES`) ; les bâtiments
+  `#` s'assemblent seuls (`Zones.decor_batiment` / `haut_batiment` : façade au rang du
+  bas, toit au-dessus, bords à gauche et à droite). Ce sont des **placeholders** : les
+  tuiles définitives restent à produire par l'équipe ; les anciennes (`lyon.tres`,
+  16 px) sont toujours dans le dépôt.
 - **Personnages : tous au même format, celui de PnjThomas.** Chaque personnage a un
   dossier `assets/characters/<id>/` avec `<id>_sheet.png` (personnage de 120 px, pieds
   sur le bas de chaque case) et `<id>_frames.tres` (SpriteFrames : `idle_<dir>` et

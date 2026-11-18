@@ -92,7 +92,10 @@ func _peindre_zone() -> void:
 			if Zones.SOLS.has(c):
 				_poser(_sol, cellule, Zones.sol_de(c, cellule))
 			if c == "R":
-				_decor.set_cell(cellule, Zones.IMPORT, zone["tuile_ressource"])
+				var tuile: Vector2i = Zones.TUILES_RESSOURCES.get(zone["ressource"], zone["tuile_ressource"])
+				_decor.set_cell(cellule, Zones.TUILES, tuile)
+			elif c == "#":
+				_poser(_decor, cellule, Zones.decor_batiment(zone_id, cellule))
 			elif Zones.DECORS.has(c):
 				_poser(_decor, cellule, Zones.DECORS[c])
 	# Deuxieme passe : la partie haute des volumes deborde sur la case du dessus.
@@ -100,12 +103,15 @@ func _peindre_zone() -> void:
 		var ligne2: String = plan[y]
 		for x in ligne2.length():
 			var c2: String = ligne2[x]
-			if not Zones.DECORS_HAUT.has(c2) or y == 0:
+			if (not Zones.DECORS_HAUT.has(c2) and c2 != "#") or y == 0:
 				continue
 			var dessus := Vector2i(x, y - 1)
 			if Zones.case_a(zone_id, dessus) == c2:
 				continue          # un autre bloc du meme volume : rien a coiffer
-			_poser(_decor, dessus, Zones.DECORS_HAUT[c2])
+			if c2 == "#":
+				_poser(_decor, dessus, Zones.haut_batiment(zone_id, Vector2i(x, y)))
+			else:
+				_poser(_decor, dessus, Zones.DECORS_HAUT[c2])
 
 # =============================================================================
 # Deplacement
