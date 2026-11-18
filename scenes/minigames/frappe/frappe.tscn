@@ -8,30 +8,35 @@ script = ExtResource("1_frappe")
 [node name="Hud" type="CanvasLayer" parent="."]
 
 [node name="Titre" type="Label" parent="Hud"]
-unique_name_in_owner = true
+anchor_right = 1.0
 offset_left = 6.0
 offset_top = 4.0
-offset_right = 314.0
+offset_right = -6.0
 offset_bottom = 16.0
+unique_name_in_owner = true
 theme_override_colors/font_color = Color(0.913725, 0.772549, 0.419608, 1)
 theme_override_font_sizes/font_size = 8
 text = ""
 
 [node name="Info" type="Label" parent="Hud"]
-unique_name_in_owner = true
+anchor_right = 1.0
 offset_left = 6.0
 offset_top = 16.0
-offset_right = 314.0
+offset_right = -6.0
 offset_bottom = 28.0
+unique_name_in_owner = true
 theme_override_font_sizes/font_size = 8
 text = ""
 
 [node name="Resultat" type="Label" parent="Hud"]
-unique_name_in_owner = true
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
 offset_left = 6.0
-offset_top = 158.0
-offset_right = 314.0
-offset_bottom = 178.0
+offset_top = -24.0
+offset_right = -6.0
+offset_bottom = -2.0
+unique_name_in_owner = true
 theme_override_colors/font_color = Color(0.784314, 0.823529, 0.866667, 1)
 theme_override_font_sizes/font_size = 8
 text = ""

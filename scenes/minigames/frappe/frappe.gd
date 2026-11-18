@@ -6,10 +6,12 @@ extends Node2D
 const RESSOURCE := &"quenelle"
 const STAT := &"attaque"
 const COUPS := 3
-const BARRE_X := 30.0
-const BARRE_LARGEUR := 260.0
-const BARRE_Y := 92.0
-const BARRE_HAUTEUR := 20.0
+## La barre est decrite en proportions de l'ecran, pour que le mini-jeu
+## survive a un changement de resolution.
+const BARRE_X := 0.094
+const BARRE_LARGEUR := 0.812
+const BARRE_Y := 0.511
+const BARRE_HAUTEUR := 0.111
 
 var _gone: GoneInstance
 var _niveau: int = 1
@@ -101,13 +103,25 @@ func _terminer() -> void:
 func _retour() -> void:
 	get_tree().change_scene_to_file(GameState.SCENE_MONDE)
 
+## La barre, en pixels, pour la resolution du moment.
+func _barre() -> Rect2:
+	var ecran := get_viewport_rect().size
+	return Rect2(ecran.x * BARRE_X, ecran.y * BARRE_Y,
+		ecran.x * BARRE_LARGEUR, ecran.y * BARRE_HAUTEUR)
+
 func _draw() -> void:
-	draw_rect(Rect2(0, 0, 320, 180), Color(0.0862745, 0.105882, 0.145098))
-	draw_rect(Rect2(BARRE_X, BARRE_Y, BARRE_LARGEUR, BARRE_HAUTEUR), Color(0.188235, 0.223529, 0.286275))
-	var zone_x := BARRE_X + (_centre - _demi_largeur) * BARRE_LARGEUR
-	var zone_l := 2.0 * _demi_largeur * BARRE_LARGEUR
-	draw_rect(Rect2(zone_x, BARRE_Y, zone_l, BARRE_HAUTEUR), Color(0.290196, 0.552941, 0.376471))
+	var ecran := get_viewport_rect().size
+	draw_rect(Rect2(Vector2.ZERO, ecran), Color(0.0862745, 0.105882, 0.145098))
+	var barre := _barre()
+	draw_rect(barre, Color(0.188235, 0.223529, 0.286275))
+	var zone_x := barre.position.x + (_centre - _demi_largeur) * barre.size.x
+	var zone_l := 2.0 * _demi_largeur * barre.size.x
+	draw_rect(Rect2(zone_x, barre.position.y, zone_l, barre.size.y), Color(0.290196, 0.552941, 0.376471))
 	var coeur_l := zone_l * 0.35
-	draw_rect(Rect2(BARRE_X + _centre * BARRE_LARGEUR - coeur_l * 0.5, BARRE_Y, coeur_l, BARRE_HAUTEUR), Color(0.941176, 0.776471, 0.317647))
-	var x := BARRE_X + _curseur * BARRE_LARGEUR
-	draw_rect(Rect2(x - 1.0, BARRE_Y - 6.0, 3.0, BARRE_HAUTEUR + 12.0), Color(0.945098, 0.945098, 0.921569))
+	draw_rect(Rect2(barre.position.x + _centre * barre.size.x - coeur_l * 0.5, barre.position.y,
+		coeur_l, barre.size.y), Color(0.941176, 0.776471, 0.317647))
+	var epaisseur := maxf(2.0, ecran.x / 160.0)
+	var depasse := barre.size.y * 0.3
+	var x := barre.position.x + _curseur * barre.size.x
+	draw_rect(Rect2(x - epaisseur * 0.5, barre.position.y - depasse,
+		epaisseur, barre.size.y + depasse * 2.0), Color(0.945098, 0.945098, 0.921569))

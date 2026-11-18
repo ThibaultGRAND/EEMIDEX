@@ -5,11 +5,14 @@ extends Node2D
 
 const RESSOURCE := &"praline"
 const STAT := &"vitesse"
-const LIGNE_Y := 132.0
+## Proportions de l'ecran : le mini-jeu suit la resolution.
+const LIGNE_Y := 0.733
+const HAUT_Y := 0.156
+const COLONNE_ECART := 0.15
+const COLONNE_LARGEUR := 0.0875
 const TOLERANCE := 0.18        # tolérance en secondes autour de la ligne
 const DUREE_CHUTE := 1.6       # secondes entre l'apparition et la ligne
 const ACTIONS := ["ui_left", "ui_down", "ui_up", "ui_right"]
-const COLONNES_X := [72.0, 120.0, 168.0, 216.0]
 
 var _gone: GoneInstance
 var _niveau: int = 1
@@ -110,11 +113,25 @@ func _terminer() -> void:
 func _retour() -> void:
 	get_tree().change_scene_to_file(GameState.SCENE_MONDE)
 
+## Centre horizontal de chaque colonne, en pixels.
+func _colonne_x(colonne: int) -> float:
+	var ecran := get_viewport_rect().size
+	var ecart := ecran.x * COLONNE_ECART
+	var premier := ecran.x * 0.5 - ecart * (ACTIONS.size() - 1) * 0.5
+	return premier + ecart * colonne
+
 func _draw() -> void:
-	draw_rect(Rect2(0, 0, 320, 180), Color(0.0862745, 0.105882, 0.145098))
-	for i in COLONNES_X.size():
-		draw_rect(Rect2(COLONNES_X[i] - 14.0, 28.0, 28.0, 120.0), Color(0.137255, 0.164706, 0.223529))
-	draw_rect(Rect2(50.0, LIGNE_Y, 196.0, 2.0), Color(0.913725, 0.772549, 0.419608))
+	var ecran := get_viewport_rect().size
+	var ligne_y := ecran.y * LIGNE_Y
+	var haut_y := ecran.y * HAUT_Y
+	var largeur := ecran.x * COLONNE_LARGEUR
+	draw_rect(Rect2(Vector2.ZERO, ecran), Color(0.0862745, 0.105882, 0.145098))
+	for i in ACTIONS.size():
+		draw_rect(Rect2(_colonne_x(i) - largeur * 0.5, haut_y, largeur, ligne_y - haut_y + largeur * 0.2),
+			Color(0.137255, 0.164706, 0.223529))
+	var bande = _colonne_x(0) - largeur
+	draw_rect(Rect2(bande, ligne_y, _colonne_x(ACTIONS.size() - 1) + largeur - bande,
+		maxf(2.0, ecran.y / 90.0)), Color(0.913725, 0.772549, 0.419608))
 	if _termine:
 		return
 	for note in _notes:
@@ -123,6 +140,7 @@ func _draw() -> void:
 		var reste: float = float(note["temps"]) - _temps
 		if reste > DUREE_CHUTE or reste < -0.25:
 			continue
-		var y: float = LIGNE_Y - reste / DUREE_CHUTE * (LIGNE_Y - 28.0)
-		var x: float = COLONNES_X[int(note["colonne"])]
-		draw_rect(Rect2(x - 10.0, y - 5.0, 20.0, 10.0), Color(0.411765, 0.639216, 0.858824))
+		var y: float = ligne_y - reste / DUREE_CHUTE * (ligne_y - haut_y)
+		var x: float = _colonne_x(int(note["colonne"]))
+		draw_rect(Rect2(x - largeur * 0.36, y - largeur * 0.18, largeur * 0.72, largeur * 0.36),
+			Color(0.411765, 0.639216, 0.858824))
