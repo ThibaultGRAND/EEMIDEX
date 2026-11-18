@@ -330,6 +330,13 @@ func _fiche_de(alternant: Pnj) -> GoneData:
 	var sauvages := GameState.gones_sauvages()
 	return sauvages.pick_random() if not sauvages.is_empty() else null
 
+## La case que le joueur a devant lui.
+func _case_devant() -> Vector2i:
+	for consigne: Array in DIRECTIONS.values():
+		if consigne[1] == _joueur.direction:
+			return _joueur.cellule + consigne[0]
+	return _joueur.cellule
+
 func _direction_de(deplacement: Vector2i) -> Joueur.Direction:
 	for consigne: Array in DIRECTIONS.values():
 		if consigne[0] == deplacement:
@@ -415,6 +422,14 @@ func _unhandled_input(event: InputEvent) -> void:
 			return
 
 func _interagir() -> void:
+	# Un alternant juste devant : le joueur choisit de l'aborder, et celui-ci
+	# n'a pas son mot a dire. C'est la difference avec la rencontre subie, ou
+	# l'autre decide de se battre, de fuir ou d'ignorer.
+	var alternant := _pnj_sur(_case_devant())
+	if alternant != null:
+		_message("Vous abordez %s sans lui laisser le choix." % alternant.name)
+		_combattre(alternant)
+		return
 	match _case_courante():
 		"S":
 			GameState.soigner_equipe()

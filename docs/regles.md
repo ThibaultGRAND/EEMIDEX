@@ -190,7 +190,13 @@ Deux façons, et le joueur ne décide d'aucune des deux.
 déclencher une rencontre. L'alternant est tiré parmi ceux de la zone, à un niveau
 tiré dans la fourchette de la zone.
 
+**En abordant un alternant soi-même.** Se placer face à lui et appuyer sur Entrée
+déclenche le combat **sans qu'il ait son mot à dire**. C'est la seule façon de choisir
+son adversaire : utile pour aller chercher un type précis, ou pour achever un alternant
+qu'on a déjà croisé.
+
 **En croisant un alternant qui se balade.** Huit alternants arpentent le quartier.
+Là, c'est lui qui décide.
 
 | Le joueur lui marche dessus | |
 | --- | --- |
