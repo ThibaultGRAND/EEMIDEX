@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="GoneData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/gone_data.gd" id="1_script"]
+[ext_resource type="Resource" path="res://data/moves/regard_qui_tue.tres" id="2_base"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"modele_etudiant"
+display_name = "Prénom (modèle)"
+description = "Copier ce fichier pour ajouter un étudiant. Ne pas le remplir avant d'avoir son accord écrit."
+type = &"promo"
+couleur = Color(0.5, 0.8, 0.6, 1)
+base_pv = 24
+base_attaque = 10
+base_defense = 10
+base_vitesse = 10
+taux_capture = 45
+sauvage = true
+consentement_recu = false
+note_consentement = "Pas d'accord écrit : ce Gone n'apparaît pas dans le jeu. Voir docs/consentement.md."
+attaque_de_base = ExtResource("2_base")

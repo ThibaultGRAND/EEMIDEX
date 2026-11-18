@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="MoveData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/move_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"quenelle_surprise"
+display_name = "Quenelle surprise"
+description = "Lourde, chaude, imparable."
+type = &"bouchon"
+cible = 0
+puissance = 18
+precision = 90
