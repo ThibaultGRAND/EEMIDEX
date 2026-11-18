@@ -1,0 +1,73 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scenes/ui/composants/fiche_combattant.gd" id="1_fiche"]
+[ext_resource type="PackedScene" path="res://scenes/ui/composants/badge_type.tscn" id="2_badge"]
+[ext_resource type="PackedScene" path="res://scenes/ui/composants/barre_jauge.tscn" id="3_jauge"]
+
+[node name="FicheCombattant" type="PanelContainer"]
+custom_minimum_size = Vector2(132, 0)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 132.0
+offset_bottom = 34.0
+script = ExtResource("1_fiche")
+
+[node name="Contenu" type="VBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="Identite" type="HBoxContainer" parent="Contenu"]
+layout_mode = 2
+
+[node name="Nom" type="Label" parent="Contenu/Identite"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Alternant"
+
+[node name="Niveau" type="Label" parent="Contenu/Identite"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.564706, 0.627451, 0.705882, 1)
+text = "Niv.5"
+horizontal_alignment = 2
+
+[node name="Etat" type="HBoxContainer" parent="Contenu"]
+layout_mode = 2
+
+[node name="Badge" parent="Contenu/Etat" instance=ExtResource("2_badge")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Motivation" parent="Contenu/Etat" instance=ExtResource("3_jauge")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(44, 6)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+
+[node name="Chiffres" type="Label" parent="Contenu/Etat"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.564706, 0.627451, 0.705882, 1)
+text = "24/24"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="LigneCafe" type="HBoxContainer" parent="Contenu"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+
+[node name="LibelleCafe" type="Label" parent="Contenu/LigneCafe"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.564706, 0.627451, 0.705882, 1)
+theme_override_font_sizes/font_size = 7
+text = "Café"
+vertical_alignment = 1
+
+[node name="Cafe" parent="Contenu/LigneCafe" instance=ExtResource("3_jauge")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(44, 5)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4

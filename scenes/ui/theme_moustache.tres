@@ -1,0 +1,41 @@
+[gd_resource type="Theme" load_steps=4 format=3]
+
+; Thème commun à toute l'interface de Moustache Quest.
+; Les couleurs viennent de scripts/ui/palette_ui.gd : si l'une change là-bas,
+; la reporter ici. Tout est dessiné en StyleBoxFlat, sans asset : les cadres
+; 9-slice de l'équipe pourront remplacer ces StyleBox plus tard.
+; Pas d'arrondi (corner_radius = 0) : on est en pixel art à 320x180.
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cadre"]
+content_margin_left = 4.0
+content_margin_top = 3.0
+content_margin_right = 4.0
+content_margin_bottom = 3.0
+bg_color = Color(0.105882, 0.133333, 0.188235, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.235294, 0.290196, 0.376471, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_plat"]
+content_margin_left = 4.0
+content_margin_top = 3.0
+content_margin_right = 4.0
+content_margin_bottom = 3.0
+bg_color = Color(0.0627451, 0.0784314, 0.109804, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_vide"]
+
+[resource]
+default_font_size = 8
+Label/colors/font_color = Color(0.874510, 0.901961, 0.937255, 1)
+Label/font_sizes/font_size = 8
+PanelContainer/styles/panel = SubResource("StyleBoxFlat_cadre")
+Panel/styles/panel = SubResource("StyleBoxFlat_plat")
+MarginContainer/constants/margin_left = 0
+ScrollContainer/styles/panel = SubResource("StyleBoxEmpty_vide")
+VBoxContainer/constants/separation = 2
+HBoxContainer/constants/separation = 4
+GridContainer/constants/h_separation = 6
+GridContainer/constants/v_separation = 2

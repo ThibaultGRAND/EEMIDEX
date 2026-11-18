@@ -6,6 +6,7 @@ extends RefCounted
 var data: GoneData
 var niveau: int = 5
 var pv: int = 0
+var cafe: int = 0
 var bonus_pv: int = 0
 var bonus_attaque: int = 0
 var bonus_defense: int = 0
@@ -15,6 +16,7 @@ func _init(p_data: GoneData = null, p_niveau: int = 5) -> void:
 	data = p_data
 	niveau = p_niveau
 	pv = pv_max()
+	cafe = cafe_max()
 
 func nom() -> String:
 	return data.display_name if data != null else "???"
@@ -23,6 +25,23 @@ func pv_max() -> int:
 	if data == null:
 		return 1
 	return data.base_pv + bonus_pv + (niveau - 1) * 2
+
+## L'energie disponible pour attaquer.
+func cafe_max() -> int:
+	return 20 + (niveau - 1) * 2
+
+func depenser_cafe(montant: int) -> void:
+	cafe = maxi(0, cafe - montant)
+
+func recuperer_cafe(montant: int) -> void:
+	cafe = mini(cafe_max(), cafe + montant)
+
+func cafe_plein() -> void:
+	cafe = cafe_max()
+
+## Peut-il se payer cette attaque ?
+func peut_lancer(attaque: MoveData) -> bool:
+	return attaque != null and cafe >= attaque.cout_cafe()
 
 func attaque() -> int:
 	if data == null:
@@ -50,6 +69,7 @@ func subir(montant: int) -> void:
 
 func soigner_tout() -> void:
 	pv = pv_max()
+	cafe = cafe_max()
 
 ## Les attaques disponibles en combat : l'attaque de base, puis le pouvoir.
 func attaques() -> Array:
@@ -83,6 +103,7 @@ func to_dict() -> Dictionary:
 		"gone_id": String(data.id) if data != null else "",
 		"niveau": niveau,
 		"pv": pv,
+		"cafe": cafe,
 		"bonus_pv": bonus_pv,
 		"bonus_attaque": bonus_attaque,
 		"bonus_defense": bonus_defense,
@@ -97,4 +118,5 @@ static func from_dict(d: Dictionary, catalogue: Dictionary) -> GoneInstance:
 	g.bonus_defense = int(d.get("bonus_defense", 0))
 	g.bonus_vitesse = int(d.get("bonus_vitesse", 0))
 	g.pv = clampi(int(d.get("pv", g.pv_max())), 0, g.pv_max())
+	g.cafe = clampi(int(d.get("cafe", g.cafe_max())), 0, g.cafe_max())
 	return g
