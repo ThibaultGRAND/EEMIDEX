@@ -35,8 +35,8 @@ var drapeaux: Dictionary = {}    # progression : objets ramassés, boss battu...
 var partie_commencee: bool = false
 
 # --- Position du joueur -------------------------------------------------------
-var zone_courante: StringName = &"presquile"
-var case_joueur := Vector2i(16, 9)
+var zone_courante: StringName = &"perrache"
+var case_joueur := Vector2i(12, 10)
 
 # --- Contexte passé d'une scène à l'autre ------------------------------------
 var rencontre_en_attente: GoneData = null
@@ -103,8 +103,8 @@ func nouvelle_partie() -> void:
 	for id in RESSOURCES:
 		ressources[id] = 0
 	drapeaux.clear()
-	zone_courante = &"presquile"
-	case_joueur = Zones.zone(&"presquile")["depart"]
+	zone_courante = &"perrache"
+	case_joueur = Zones.zone(&"perrache")["depart"]
 	partie_commencee = true
 
 	var depart: GoneData = catalogue_gones.get(&"generique_moustachu")
@@ -215,6 +215,13 @@ func lever_drapeau(nom: StringName) -> void:
 func sauvegarde_existe() -> bool:
 	return FileAccess.file_exists(CHEMIN_SAUVEGARDE)
 
+## Sauvegarde silencieuse, aux moments ou le joueur en a besoin sans y penser.
+## Dans un navigateur, fermer l'onglet ne previent pas : compter sur le menu
+## pause, c'est perdre la partie de quelqu'un.
+func sauvegarde_auto() -> void:
+	if partie_commencee:
+		sauvegarder()
+
 func sauvegarder() -> bool:
 	var equipe_brute: Array = []
 	for g in equipe:
@@ -278,8 +285,8 @@ func charger() -> bool:
 	for id in donnees.get("drapeaux", {}):
 		drapeaux[StringName(id)] = bool(donnees["drapeaux"][id])
 
-	zone_courante = StringName(donnees.get("zone", "presquile"))
-	case_joueur = Vector2i(int(donnees.get("case_x", 16)), int(donnees.get("case_y", 9)))
+	zone_courante = StringName(donnees.get("zone", "perrache"))
+	case_joueur = Vector2i(int(donnees.get("case_x", 12)), int(donnees.get("case_y", 10)))
 	partie_commencee = true
 
 	equipe_modifiee.emit()

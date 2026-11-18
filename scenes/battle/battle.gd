@@ -327,17 +327,17 @@ func _victoire() -> void:
 		await _dire("%s passe au niveau %d !" % [_actif.nom(), _actif.niveau])
 	if GameState.combat_est_boss:
 		GameState.lever_drapeau(&"gardien_battu")
-		await _dire("La colline est à vous. Fin du MVP : merci d'avoir joué.")
-		_quitter("Vous avez battu le gardien de Fourvière.")
+		await _dire("La pointe est à vous. Fin du MVP : merci d'avoir joué.")
+		_quitter("Vous avez battu le gardien du confluent.")
 		return
 	_quitter("%s a été battu." % _ennemi.nom())
 
 func _defaite() -> void:
 	await _dire("Toute l'équipe est hors de combat...")
 	GameState.soigner_equipe()
-	GameState.zone_courante = &"presquile"
-	GameState.case_joueur = Zones.zone(&"presquile")["depart"]
-	_quitter("Vous vous réveillez à Bellecour, l'équipe soignée.")
+	GameState.zone_courante = &"perrache"
+	GameState.case_joueur = Zones.zone(&"perrache")["depart"]
+	_quitter("Vous vous réveillez à Perrache, l'équipe soignée.")
 
 func _quitter(message: String) -> void:
 	if _fini:
@@ -347,5 +347,6 @@ func _quitter(message: String) -> void:
 	GameState.rencontre_en_attente = null
 	GameState.combat_est_boss = false
 	GameState.dernier_resultat_combat = message
+	GameState.sauvegarde_auto()
 	GameState.equipe_modifiee.emit()
 	get_tree().change_scene_to_file(GameState.SCENE_MONDE)

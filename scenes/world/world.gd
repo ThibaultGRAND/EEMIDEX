@@ -22,7 +22,7 @@ const DIRECTIONS := {
 	"ui_right": [Vector2i(1, 0), 3],
 }
 
-var zone_id: StringName = &"presquile"
+var zone_id: StringName = &"perrache"
 var zone: Dictionary = {}
 
 var _mode: Mode = Mode.LIBRE
@@ -85,7 +85,7 @@ func _peindre_zone() -> void:
 			var c: String = ligne[x]
 			var cellule := Vector2i(x, y)
 			if Zones.SOLS.has(c):
-				_poser(_sol, cellule, Zones.SOLS[c])
+				_poser(_sol, cellule, Zones.sol_de(c, cellule))
 			if c == "R":
 				_decor.set_cell(cellule, Zones.IMPORT, zone["tuile_ressource"])
 			elif Zones.DECORS.has(c):
@@ -133,13 +133,14 @@ func _sur_case_atteinte(cellule: Vector2i) -> void:
 		var sortie: Array = sorties[c]
 		_charger_zone(StringName(sortie[0]), Vector2i(int(sortie[1]), int(sortie[2])))
 		_message("Vous arrivez : %s" % zone["titre"])
+		GameState.sauvegarde_auto()
 		return
 	match c:
 		"T":
 			var sortie_traboule := Zones.autre_traboule(zone_id, cellule)
 			_joueur.placer(sortie_traboule)
 			GameState.case_joueur = sortie_traboule
-			_message("Traboule : un raccourci entre deux cours.")
+			_message("Un passage sous les voies ferrées.")
 		"R":
 			_ramasser_ressource(cellule)
 		"g":
@@ -161,7 +162,7 @@ func _indice_case(c: String) -> String:
 		"M":
 			return "Entraînement. Entrée pour lancer un mini-jeu."
 		"X":
-			return "Quelqu'un garde la colline. Entrée pour l'affronter."
+			return "Quelqu'un garde la pointe. Entrée pour l'affronter."
 		_:
 			return ""
 
@@ -242,7 +243,7 @@ func _tenter_rencontre() -> void:
 
 func _lancer_combat_de_fin() -> void:
 	if GameState.drapeau(&"gardien_battu"):
-		_message("La colline est calme. Fin du MVP : merci d'avoir joué.")
+		_message("La pointe est calme. Fin du MVP : merci d'avoir joué.")
 		return
 	var gardien: GoneData = GameState.catalogue_gones.get(&"generique_gardien_fourviere")
 	if gardien == null:
@@ -277,6 +278,7 @@ func _interagir() -> void:
 	match _case_courante():
 		"S":
 			GameState.soigner_equipe()
+			GameState.sauvegarde_auto()
 			_message("Toute l'équipe est soignée.")
 		"B":
 			_ouvrir_menu(&"boutique", _texte_boutique(), [

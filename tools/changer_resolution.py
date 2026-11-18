@@ -64,15 +64,6 @@ def main(facteur):
         s = multiplier_entier(s, r"^TUILE = (\d+)", facteur, rel + " TUILE", rapport)
         open(p, "w").write(s)
 
-    # --- le sprite du joueur : hauteur d'une image --------------------------
-    p = chemin("tools/generer_placeholders.py")
-    s = open(p).read()
-    s = multiplier_entier(s, r"SPRITE_L, SPRITE_H = \d+, (\d+)", facteur,
-                          "placeholder joueur, hauteur", rapport)
-    s = multiplier_entier(s, r"SPRITE_L, SPRITE_H = (\d+)", facteur,
-                          "placeholder joueur, largeur", rapport)
-    open(p, "w").write(s)
-
     # --- toutes les scenes : la taille des polices --------------------------
     polices = 0
     for dossier, _, fichiers in os.walk(chemin("scenes")):

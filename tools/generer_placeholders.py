@@ -15,7 +15,13 @@ import struct
 import zlib
 
 RACINE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+## Taille finale d'une tuile, alignee sur celle du jeu.
 TUILE = 16
+## Les tuiles sont dessinees a cette taille, puis agrandies d'un facteur
+## entier. Les coordonnees des rectangles n'ont ainsi jamais a changer.
+BASE = 16
+FACTEUR = max(1, TUILE // BASE)
 
 # --- Palette commune, voir docs/tuiles-inventaire.md -------------------------
 P = {
@@ -112,23 +118,23 @@ ATLAS_LIGNES = 4
 
 def grain(img, ox, oy, base, tache, densite, des):
     """Remplit une tuile d'une couleur de base piquetee, pour eviter l'aplat uni."""
-    img.rect(ox, oy, TUILE, TUILE, base)
+    img.rect(ox, oy, BASE, BASE, base)
     for _ in range(densite):
-        img.point(ox + des.suivant(TUILE), oy + des.suivant(TUILE), tache)
+        img.point(ox + des.suivant(BASE), oy + des.suivant(BASE), tache)
 
 
 def joints(img, ox, oy, couleur, pas=4):
-    for y in range(0, TUILE, pas):
-        for x in range(TUILE):
+    for y in range(0, BASE, pas):
+        for x in range(BASE):
             img.point(ox + x, oy + y, couleur)
-    for x in range(0, TUILE, pas):
-        for y in range(TUILE):
+    for x in range(0, BASE, pas):
+        for y in range(BASE):
             img.point(ox + x, oy + y, couleur)
 
 
 def dessiner_tuiles(img, des):
     def t(cx, cy):
-        return cx * TUILE, cy * TUILE
+        return cx * BASE, cy * BASE
 
     # --- Ligne 0 : les sols --------------------------------------------------
     ox, oy = t(0, 0)                                    # pave
@@ -149,21 +155,21 @@ def dessiner_tuiles(img, des):
     ox, oy = t(4, 0)                                    # herbe courte
     grain(img, ox, oy, rgba("herbe"), rgba("herbe2"), 30, des)
     for _ in range(8):
-        x, y = ox + des.suivant(TUILE), oy + des.suivant(TUILE - 2)
+        x, y = ox + des.suivant(BASE), oy + des.suivant(BASE - 2)
         img.point(x, y, rgba("herbe3"))
         img.point(x, y + 1, rgba("herbe3"))
 
     ox, oy = t(5, 0)                                    # herbe haute
     grain(img, ox, oy, rgba("herbe2"), rgba("herbe"), 20, des)
     for _ in range(16):
-        x, y = ox + des.suivant(TUILE), oy + 3 + des.suivant(TUILE - 6)
+        x, y = ox + des.suivant(BASE), oy + 3 + des.suivant(BASE - 6)
         for k in range(4):
             img.point(x, y + k, rgba("herbe3") if k < 2 else rgba("herbe"))
 
     ox, oy = t(6, 0)                                    # eau
     grain(img, ox, oy, rgba("eau"), rgba("eau2"), 14, des)
-    for y in range(2, TUILE, 5):
-        for x in range(1, TUILE - 3, 6):
+    for y in range(2, BASE, 5):
+        for x in range(1, BASE - 3, 6):
             img.rect(ox + x, oy + y, 3, 1, rgba("eau3"))
 
     ox, oy = t(7, 0)                                    # sable de berge
@@ -202,8 +208,8 @@ def dessiner_tuiles(img, des):
 
     ox, oy = t(6, 1)                                    # bord d'eau
     grain(img, ox, oy, rgba("eau"), rgba("eau2"), 10, des)
-    img.rect(ox, oy, TUILE, 5, rgba("pierre"))
-    img.rect(ox, oy + 5, TUILE, 2, rgba("pierre2"))
+    img.rect(ox, oy, BASE, 5, rgba("pierre"))
+    img.rect(ox, oy + 5, BASE, 2, rgba("pierre2"))
 
     ox, oy = t(7, 1)                                    # ballast
     grain(img, ox, oy, rgba("metal"), rgba("metal2"), 40, des)
@@ -216,7 +222,7 @@ def dessiner_tuiles(img, des):
     ox, oy = t(1, 2)                                    # mur de pierre, haut
     grain(img, ox, oy, rgba("pierre"), rgba("pierre2"), 14, des)
     joints(img, ox, oy, rgba("contour"), 8)
-    img.rect(ox, oy, TUILE, 2, rgba("contour"))
+    img.rect(ox, oy, BASE, 2, rgba("contour"))
 
     ox, oy = t(2, 2)                                    # facade, rez-de-chaussee
     grain(img, ox, oy, rgba("pierre"), rgba("pierre2"), 10, des)
@@ -230,16 +236,16 @@ def dessiner_tuiles(img, des):
 
     ox, oy = t(4, 2)                                    # toit de tuiles
     grain(img, ox, oy, rgba("toit"), rgba("toit2"), 18, des)
-    for y in range(0, TUILE, 4):
-        img.rect(ox, oy + y, TUILE, 1, rgba("toit2"))
+    for y in range(0, BASE, 4):
+        img.rect(ox, oy + y, BASE, 1, rgba("toit2"))
 
     ox, oy = t(5, 2)                                    # arbre, tronc
-    img.rect(ox + 6, oy, 4, TUILE, rgba("bois2"))
-    img.rect(ox + 7, oy, 2, TUILE, rgba("bois"))
+    img.rect(ox + 6, oy, 4, BASE, rgba("bois2"))
+    img.rect(ox + 7, oy, 2, BASE, rgba("bois"))
 
     ox, oy = t(6, 2)                                    # arbre, houppier
-    for y in range(TUILE):
-        for x in range(TUILE):
+    for y in range(BASE):
+        for x in range(BASE):
             dx, dy = x - 7.5, y - 8.0
             if dx * dx + dy * dy < 56:
                 img.point(ox + x, oy + y, rgba("herbe2"))
@@ -249,13 +255,13 @@ def dessiner_tuiles(img, des):
         img.point(ox + 3 + des.suivant(10), oy + 3 + des.suivant(10), rgba("herbe"))
 
     ox, oy = t(7, 2)                                    # parapet de quai
-    img.rect(ox, oy + 4, TUILE, 10, rgba("pierre2"))
-    img.rect(ox, oy + 4, TUILE, 2, rgba("pierre"))
-    img.rect(ox, oy + 13, TUILE, 1, rgba("contour"))
+    img.rect(ox, oy + 4, BASE, 10, rgba("pierre2"))
+    img.rect(ox, oy + 4, BASE, 2, rgba("pierre"))
+    img.rect(ox, oy + 13, BASE, 1, rgba("contour"))
 
     # --- Ligne 3 : les objets ------------------------------------------------
     ox, oy = t(0, 3)                                    # lampadaire, pied
-    img.rect(ox + 7, oy, 2, TUILE, rgba("metal2"))
+    img.rect(ox + 7, oy, 2, BASE, rgba("metal2"))
     img.rect(ox + 5, oy + 13, 6, 3, rgba("metal"))
 
     ox, oy = t(1, 3)                                    # lampadaire, tete
@@ -275,7 +281,7 @@ def dessiner_tuiles(img, des):
     img.rect(ox + 4, oy + 14, 8, 2, rgba("contour"))
 
     ox, oy = t(4, 3)                                    # porche de traboule
-    img.rect(ox + 1, oy, 14, TUILE, rgba("pierre2"))
+    img.rect(ox + 1, oy, 14, BASE, rgba("pierre2"))
     img.rect(ox + 4, oy + 3, 8, 13, rgba("contour"))
     img.rect(ox + 5, oy + 5, 6, 11, (10, 8, 12, 255))
 
@@ -355,6 +361,7 @@ def generer_joueur(chemin):
     for ligne, direction in enumerate(DIRECTIONS):
         for pas in range(2):
             dessiner_perso(img, pas * SPRITE_L, ligne * SPRITE_H, direction, pas)
+    img = agrandir(img, FACTEUR)
     img.ecrire(chemin)
     return img.l, img.h
 
@@ -398,10 +405,21 @@ def generer_tileset(chemin_tres, chemin_png):
         f.write('\n'.join(lignes))
 
 
+def agrandir(img, facteur):
+    if facteur <= 1:
+        return img
+    out = Image(img.l * facteur, img.h * facteur)
+    for y in range(out.h):
+        for x in range(out.l):
+            out.px[y][x] = img.px[y // facteur][x // facteur]
+    return out
+
+
 def main():
     des = Des(20261118)
-    atlas = Image(ATLAS_COLONNES * TUILE, ATLAS_LIGNES * TUILE)
+    atlas = Image(ATLAS_COLONNES * BASE, ATLAS_LIGNES * BASE)
     dessiner_tuiles(atlas, des)
+    atlas = agrandir(atlas, FACTEUR)
     png_tuiles = 'assets/tilesets/placeholder_tuiles.png'
     atlas.ecrire(os.path.join(RACINE, png_tuiles))
     print('tuiles   : %s  (%d x %d, %d tuiles)'
