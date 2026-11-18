@@ -209,6 +209,8 @@ pour les sols et des placeholders pour les batiments.
   l'autre. Les plans sont en texte dans `zones.gd`.
 - `scenes/world/pnj.tscn` — 8 PNJ qui se baladent, deux par zone, sans case imposee :
   la carte leur trouve une place libre au demarrage.
+- **Vitesse** : le joueur met 0,25 s par case (`DUREE_PAS` dans `player.gd`), les PNJ
+  0,4 s (`pnj.gd`). L'animation de marche suit la durée du pas.
 - **Collisions entre personnages** : deux personnages ne s'arrêtent jamais sur la même
   case, mais ils ne se bloquent plus. Quand le joueur avance vers un PNJ arrêté, ou un PNJ
   vers un autre, ils **échangent leurs cases** et se croisent (`world.gd` : `_tenter_pas`,
@@ -223,10 +225,13 @@ pour les sols et des placeholders pour les batiments.
   coupées en **4 bandes collées** de 23 lignes : `perrache`, `sainte_blandine`, `darse`
   (titre « Charlemagne », avec l'EEMI) et `pointe` (titre « La Darse », Montrochet). Les
   ids sont gardés pour ne casser ni la sauvegarde ni l'histoire.
-  - **Simplifiée exprès** : seulement les rues principales (1 case, 2 pour les grands
-    axes), **chaque îlot est un seul bloc de bâti plein**, une seule voie ferrée (la ligne
-    Perrache-Moret, 2 cases au plus) et le tram sur 1 case. Passage à niveau seulement là
-    où une rue traverse la voie.
+  - **Simplifiée exprès** : seulement les rues principales (1 case, **3 pour les grands
+    axes**), **chaque îlot est un seul bloc de bâti plein**. Le tram est sur 1 case, avec
+    une voie de chaque côté : **la rue du tram fait 3 cases**.
+  - **Rails seulement à Perrache, tous parallèles** : les voies ne viennent pas d'OSM.
+    `faisceau_perrache()` dessine `VOIES` (4) voies verticales au sud de la gare, sur
+    ballast, dans la première bande uniquement. Passage à niveau là où une rue les
+    traverse. Il n'y a de rails nulle part ailleurs.
   - **Tournée de 31° (`ANGLE`)** pour que le quadrillage des rues tombe droit. Avec le nord
     en haut, chaque rue en biais faisait des escaliers de toits. La Saône reste à gauche,
     le Rhône à droite et Perrache en haut.

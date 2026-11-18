@@ -212,6 +212,27 @@ def quatre_connexe(m):
     return m
 
 
+# Faisceau de Perrache : des voies paralleles, au sud de la gare seulement.
+VOIES = 4               # nombre de voies
+DEBUT_FAISCEAU = 9      # le faisceau commence ce nombre de lignes au-dessus de la gare
+FIN_FAISCEAU = 3        # lignes laissees libres avant le bas de la premiere bande
+
+
+def faisceau_perrache():
+    """VOIES voies verticales paralleles, une case sur deux, centrees sur la gare :
+    elles traversent le quartier de la gare et s'arretent FIN_FAISCEAU lignes avant
+    le bas de la premiere bande. Nulle part ailleurs il n'y a de rails."""
+    m = np.zeros((HAUTEUR, LARGEUR), bool)
+    gx, gy = grille(*GARE)
+    centre = int(round(gx))
+    haut = max(2, int(gy) - DEBUT_FAISCEAU)
+    bas = HAUTEUR // len(ZONES) - FIN_FAISCEAU
+    for k in range(VOIES):
+        x = centre - (VOIES - 1) + 2 * k
+        m[haut:bas, x] = True
+    return m
+
+
 def amincir(m, epaisseur):
     """Une voie verticale garde au plus `epaisseur` cases par ligne (le milieu de
     chaque troncon) : un faisceau de voies paralleles devient une seule voie."""
@@ -261,21 +282,20 @@ def dessiner(elements):
             continue
         if hw in RUES:
             if hw in GRANDS_AXES:
-                t["grand_axe"].ligne(geo, 2.0)
+                t["grand_axe"].ligne(geo, 3.0)
             else:
                 t["rue"].ligne(geo, 1.0)
         rw = tg.get("railway")
-        # une seule voie : la ligne qui traverse la presqu'ile (Perrache - Moret), sans
-        # garage, triage ni aiguillage. La ligne de Marseille part vers l'est, on l'omet.
-        if rw == "rail" and tg.get("usage") == "main" and not tg.get("service") \
-                and "Moret" in tg.get("name", ""):
-            t["rail"].ligne(geo, 1.0)
-        elif rw == "tram" and tg.get("usage") == "main" and not tg.get("service") and not sous_terre:
+        # Les voies ferrees ne viennent pas d'OSM : un faisceau de voies paralleles est
+        # dessine a part, au sud de la gare (faisceau_perrache).
+        if rw == "tram" and tg.get("usage") == "main" and not tg.get("service") and not sous_terre:
             t["tram"].ligne(geo, 1.0)
     eau = t["eau"].cases(0.5)
     rue = quatre_connexe(t["grand_axe"].cases(0.35) | t["rue"].cases(0.3)) & ~eau
-    rail = amincir(quatre_connexe(t["rail"].cases(0.3)), 2) & ~eau
     tram = amincir(quatre_connexe(t["tram"].cases(0.3)), 1) & ~eau
+    # la rue du tram : une voie de chaque cote des rails
+    rue |= (np.roll(tram, 1, 1) | np.roll(tram, -1, 1)) & ~eau
+    rail = faisceau_perrache() & ~eau
 
     g = np.full((HAUTEUR, LARGEUR), "#", dtype="<U1")
     g[eau] = "w"
@@ -285,6 +305,13 @@ def dessiner(elements):
     g[parc & (tailles[np.maximum(lab, 0)] >= PARC_MIN)] = "h"
     g[t["place"].cases(0.5) & ~eau] = "."
     g[rue] = ","
+    # ballast entre les voies du faisceau (sauf sur les rues)
+    lignes = np.nonzero(rail.any(axis=1))[0]
+    colonnes = np.nonzero(rail.any(axis=0))[0]
+    if len(lignes):
+        zone = np.zeros_like(rail)
+        zone[lignes[0]:lignes[-1] + 1, colonnes[0] - 1:colonnes[-1] + 2] = True
+        g[zone & ~rue] = "b"
     g[rail] = "v"
     # passage a niveau seulement la ou une rue traverse la voie (rue des deux cotes) ;
     # une rue qui longe la voie s'efface sous les rails
