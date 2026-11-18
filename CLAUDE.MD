@@ -302,6 +302,10 @@ pour les sols et des placeholders pour les batiments.
   au-delà), placé par `world.gd` (`_disposer_encart`) : les ancrages du `.tscn` sont
   écrasés. Il apparaît avec chaque message et à l'entrée d'une zone, puis s'efface après
   `DUREE_BANDEAU` (4 s), sauf l'invitation à parler qui reste tant qu'un PNJ est à côté.
+  Texte en petit : titre de zone en 7, message en 6 (`world.tscn`).
+- **Héros joué** : `player.gd` (`_poser_heros`) prend la planche et la teinte du héros
+  choisi au prologue dans `GameState.HEROS` : on contrôle bien Moustachette si on la
+  choisit (la planche de `player.tscn` n'est que la valeur par défaut).
 - **Son** : 3 musiques, 11 bruitages et 1 ambiance de zone, tous en `.ogg`, tous
   joues par `GameState` (`jouer_musique`, `jouer_son`, `jouer_ambiance`,
   `demarrer_son_texte`). Menus, dialogues, combat, boutique, pas du joueur,
@@ -380,10 +384,10 @@ pour les sols et des placeholders pour les batiments.
   planche principale et ne prend que le combat. Le combat (`battle.gd`, `_jouer_combat`)
   les joue : l'attaquant frappe (poing ou pied au hasard), la cible encaisse, l'ennemi
   est retourné en miroir. L'image est calée sur la hauteur du cadre (`_afficher_image`).
-  Faits : Gabriel, Émile, Julian, Mathéo, Paloma (marche d'origine + combat), Thibaut
-  (refait entièrement depuis sa planche de combat). **`pnj_generique_1` à `_5`** : planches
-  reçues sans nom (pull olive, t-shirt marine, pull rayé, polo vert, polo noir sans
-  combat), à renommer quand on saura qui c'est. Leur marche gauche/droite/haut reprend
+  Faits : Gabriel (Gone **Paguera**, pull olive), Émile, Julian, Mathéo (Gone **Matiti**), Paloma (marche
+  d'origine + combat), Thibaut (refait entièrement depuis sa planche de combat).
+  **`pnj_generique_2` à `_6`** : planches reçues sans nom (t-shirt marine, pull rayé, polo
+  vert, polo noir sans combat, voile marron), à renommer quand on saura qui c'est. Leur marche gauche/droite/haut reprend
   bas-gauche/bas-droite/haut-gauche (la planche de combat n'en a pas).
   **Planches découpées le 18 nov. 2026** : `joueur_moustachette` (branchée dans
   `GameState.HEROS`, choisie au prologue), `pnj_julian` et `pnj_guillaume`

@@ -956,20 +956,24 @@ func _message(texte: String) -> void:
 func _disposer_encart() -> void:
 	var ecran := get_viewport_rect().size
 	var police := _label_message.get_theme_font(&"font")
-	var taille := _label_message.get_theme_font_size(&"font_size")
-	var texte_large := maxf(
-		police.get_string_size(_label_zone.text, HORIZONTAL_ALIGNMENT_LEFT, -1, taille).x,
-		police.get_string_size(_label_message.text, HORIZONTAL_ALIGNMENT_LEFT, -1, taille).x)
-	var largeur := clampf(texte_large + ENCART_RETRAIT * 2.0 + 4.0, ENCART_LARGEUR_MIN,
+	var taille_zone := _label_zone.get_theme_font_size(&"font_size")
+	var taille_message := _label_message.get_theme_font_size(&"font_size")
+	var large_zone := police.get_string_size(_label_zone.text, HORIZONTAL_ALIGNMENT_LEFT, -1, taille_zone).x
+	var large_message := police.get_string_size(_label_message.text, HORIZONTAL_ALIGNMENT_LEFT, -1, taille_message).x
+	var largeur := clampf(maxf(large_zone, large_message) + ENCART_RETRAIT * 2.0 + 4.0, ENCART_LARGEUR_MIN,
 		ecran.x * ENCART_LARGEUR_MAX)
 	var interieur := largeur - ENCART_RETRAIT * 2.0
+	# hauteur d'apres la police : une ligne de titre, et le message sur autant de
+	# lignes qu'il lui en faut a cette largeur
+	var haut_zone := police.get_height(taille_zone)
+	var lignes := ceili(large_message / maxf(interieur - 4.0, 1.0)) if _label_message.text != "" else 0
+	var haut_message := police.get_height(taille_message) * lignes
 	for label: Label in [_label_zone, _label_message]:
 		label.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
-		label.custom_minimum_size = Vector2(interieur, 0)
-		label.size = Vector2(interieur, 0)
-	_label_message.visible = _label_message.text != ""
-	var haut_zone := _label_zone.get_combined_minimum_size().y
-	var haut_message := _label_message.get_combined_minimum_size().y if _label_message.visible else 0.0
+		label.custom_minimum_size = Vector2.ZERO
+	_label_zone.size = Vector2(interieur, haut_zone)
+	_label_message.size = Vector2(interieur, haut_message)
+	_label_message.visible = lignes > 0
 	var hauteur := haut_zone + haut_message + ENCART_RETRAIT * 2.0
 	_bandeau.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
 	_bandeau.position = Vector2(ENCART_MARGE, ecran.y - ENCART_MARGE - hauteur)

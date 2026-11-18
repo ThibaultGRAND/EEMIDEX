@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dkcmwk42vnmla"
-path="res://.godot/imported/pnj_generique_1.jpg-1a2290ebd1ddd6be6861ba923943bd5a.ctex"
+uid="uid://cun44t1mcw2g3"
+path="res://.godot/imported/pnj_generique_6_combat.jpg-04b39da7081628ca2df3de0d04d64c8d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://tools/planches/pnj_generique_1.jpg"
-dest_files=["res://.godot/imported/pnj_generique_1.jpg-1a2290ebd1ddd6be6861ba923943bd5a.ctex"]
+source_file="res://tools/planches/pnj_generique_6_combat.jpg"
+dest_files=["res://.godot/imported/pnj_generique_6_combat.jpg-04b39da7081628ca2df3de0d04d64c8d.ctex"]
 
 [params]
 
