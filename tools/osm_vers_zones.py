@@ -43,8 +43,8 @@ DONNEES = os.path.join(RACINE, "tools/map_data/confluence_osm.json")
 RIVIERES = os.path.join(RACINE, "tools/map_data/confluence_rivieres.json")
 ZONES_GD = os.path.join(RACINE, "scenes/world/zones.gd")
 
-LARGEUR = 64            # cases par ligne
-METRES = 17.0           # metres par case
+LARGEUR = 128           # cases par ligne
+METRES = 9.0            # metres par case
 SUR = 4                 # sur-echantillonnage du dessin
 ZONES = ["perrache", "sainte_blandine", "darse", "pointe"]
 
@@ -162,11 +162,12 @@ class Toile:
 # =============================================================================
 # Dessin
 # =============================================================================
-LARGEUR_ROUTE = {   # en cases
-    "trunk": 2.4, "trunk_link": 1.4, "primary": 2.2, "primary_link": 1.2,
-    "secondary": 2.0, "tertiary": 1.6, "residential": 1.2, "unclassified": 1.2,
-    "living_street": 1.0, "service": 0.9, "pedestrian": 1.4,
+LARGEUR_ROUTE_M = {   # largeur de chaussee, en metres
+    "trunk": 18, "trunk_link": 9, "primary": 16, "primary_link": 9,
+    "secondary": 14, "tertiary": 12, "residential": 9, "unclassified": 9,
+    "living_street": 7, "service": 5, "pedestrian": 8, "footway": 3, "cycleway": 3, "path": 3,
 }
+LARGEUR_ROUTE = {k: v / METRES for k, v in LARGEUR_ROUTE_M.items()}
 
 
 def dessiner(elements):
@@ -212,12 +213,13 @@ def dessiner(elements):
             if tg.get("area") == "yes" and ext:
                 t["pieton"].poly(ext[0])
             else:
-                (t["pieton"] if hw == "pedestrian" else t["route"]).ligne(geo, LARGEUR_ROUTE[hw])
+                pieton = hw in ("pedestrian", "footway", "cycleway", "path")
+                (t["pieton"] if pieton else t["route"]).ligne(geo, LARGEUR_ROUTE[hw])
         rw = tg.get("railway")
         if rw == "rail":
-            t["rail"].ligne(geo, 0.8)
+            t["rail"].ligne(geo, 1.6 / METRES * 1.8)
         elif rw == "tram":
-            t["tram"].ligne(geo, 0.9)
+            t["tram"].ligne(geo, 3.0 / METRES)
         elif rw == "platform":
             if ext: t["quai_fer"].poly(ext[0])
             else: t["quai_fer"].ligne(geo, 1.0)
@@ -245,6 +247,21 @@ def dessiner(elements):
     g[autour & ~m["eau"] & (g != "#") & (g != "q")] = "b"
     g[m["rail"] & ~m["eau"]] = "v"
     g[m["tram"] & ~m["eau"]] = "r"
+    # la presqu'ile seule : toute terre separee d'elle par l'eau redevient fleuve
+    terre = g != "w"
+    lab, n = composantes_masque(terre)
+    centre = lab[HAUTEUR // 2, LARGEUR // 2]
+    if centre < 0:
+        centre = int(np.argmax(np.bincount(lab[lab >= 0])))
+    g[terre & (lab != centre)] = "w"
+    # cours fermees au milieu des immeubles : elles font partie du bati
+    marchable = ~np.isin(g, list(BLOQUANTS))
+    lab, n = composantes_masque(marchable)
+    tailles = np.bincount(lab[lab >= 0], minlength=n)
+    principale = int(np.argmax(tailles))
+    for k in range(n):
+        if k != principale and tailles[k] < 60:
+            g[lab == k] = "#"
     # quais : la terre au bord de l'eau
     eau = g == "w"
     bord = np.zeros_like(eau)
@@ -264,8 +281,29 @@ def dessiner(elements):
 # =============================================================================
 # Accessibilite : tout relier a la plus grande partie praticable
 # =============================================================================
-COUT = {"#": 6, "w": 40, "v": 1, "t": 1, "j": 1, "n": 1}
+COUT = {"#": 6, "w": 10 ** 6, "v": 1, "t": 1, "j": 1, "n": 1}
 REMPLACE = {"#": ".", "w": "p", "v": "=", "t": "h", "j": "h", "n": "."}
+
+
+def composantes_masque(m):
+    """Composantes 4-connexes d'un masque booleen (-1 hors masque)."""
+    h, w = m.shape
+    lab = -np.ones((h, w), int)
+    n = 0
+    for y, x in zip(*np.nonzero(m)):
+        if lab[y, x] >= 0:
+            continue
+        q = deque([(y, x)])
+        lab[y, x] = n
+        while q:
+            cy, cx = q.popleft()
+            for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                ny, nx = cy + dy, cx + dx
+                if 0 <= ny < h and 0 <= nx < w and m[ny, nx] and lab[ny, nx] < 0:
+                    lab[ny, nx] = n
+                    q.append((ny, nx))
+        n += 1
+    return lab, n
 
 
 def composantes(g):
@@ -493,7 +531,7 @@ COULEURS = {
 }
 
 
-def apercu(zones, chemin, echelle=6):
+def apercu(zones, chemin, echelle=4):
     lignes = []
     for nom in ZONES:
         lignes.extend(zones[nom])
@@ -507,12 +545,49 @@ def apercu(zones, chemin, echelle=6):
     im.save(chemin)
 
 
+def reference(elements, chemin, echelle=4):
+    """Les donnees OSM dessinees telles quelles, dans le meme cadre que la grille."""
+    im = Image.new("RGB", (LARGEUR * echelle, HAUTEUR * echelle), (205, 200, 190))
+    d = ImageDraw.Draw(im)
+
+    def pts(geo):
+        return [(x * echelle, y * echelle) for x, y in points(geo)]
+    ordre = []
+    for e in elements:
+        tg = e.get("tags", {})
+        geo = e.get("geometry") or []
+        if e["type"] == "node" or len(geo) < 2:
+            continue
+        if tg.get("natural") == "water" or tg.get("waterway") == "riverbank":
+            ordre.append((0, "poly", pts(geo), (47, 111, 159)))
+        elif tg.get("leisure") in ("park", "garden", "playground", "pitch") or tg.get("landuse") in ("grass", "meadow"):
+            ordre.append((1, "poly", pts(geo), (120, 175, 90)))
+        elif tg.get("highway") in LARGEUR_ROUTE and tg.get("tunnel") != "yes":
+            ordre.append((2, "ligne", pts(geo), (110, 106, 100), max(1, int(LARGEUR_ROUTE[tg["highway"]] * echelle))))
+        elif tg.get("railway") == "rail" and tg.get("tunnel") != "yes":
+            ordre.append((3, "ligne", pts(geo), (50, 50, 55), 2))
+        elif tg.get("railway") == "tram" and tg.get("tunnel") != "yes":
+            ordre.append((4, "ligne", pts(geo), (230, 180, 40), 3))
+        if "building" in tg:
+            ordre.append((5, "poly", pts(geo), (181, 72, 43)))
+    for o in sorted(ordre, key=lambda o: o[0]):
+        if o[1] == "poly" and len(o[2]) > 2:
+            d.polygon(o[2], fill=o[3])
+        elif o[1] == "ligne":
+            d.line(o[2], fill=o[3], width=o[4])
+    im.save(chemin)
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--apercu", help="image PNG de controle")
     p.add_argument("--ecrire", action="store_true", help="met a jour scenes/world/zones.gd")
+    p.add_argument("--reference", help="image PNG des donnees OSM brutes, meme cadre")
     a = p.parse_args()
-    g, eemi_bati = dessiner(charger())
+    elements = charger()
+    if a.reference:
+        reference(elements, a.reference)
+    g, eemi_bati = dessiner(elements)
     g = relier(g)
     zones, sorties, departs = placer_elements(g, eemi_bati)
     print("Grille %d x %d (%g m par case), zones de %d lignes" % (LARGEUR, HAUTEUR, METRES, HAUTEUR // len(ZONES)))

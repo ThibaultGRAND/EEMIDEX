@@ -185,10 +185,13 @@ pour les sols et des placeholders pour les batiments.
 - `scenes/world/pnj.tscn` — 8 PNJ qui se baladent, deux par zone, sans case imposee :
   la carte leur trouve une place libre au demarrage.
 - **Carte générée depuis OpenStreetMap** (18 nov. 2026) : `tools/osm_vers_zones.py --ecrire`
-  reconstruit les 4 zones (64 × 33 cases, ~17 m par case) depuis
+  reconstruit les 4 zones (128 × 62 cases, 9 m par case) depuis
   `tools/map_data/confluence_osm.json` et `confluence_rivieres.json` : Saône à gauche,
   Rhône à droite, rues, bâtiments, quais, darse, voies ferrées, tram T1, parcs, arbres.
-  Le script relie toute partie praticable de chaque zone (passages à niveau, passerelles),
+  Seule la presqu'île est gardée (les rives d'en face redeviennent fleuve), les cours
+  fermées des immeubles sont comptées comme bâti, et le script relie le reste de chaque
+  zone (passages à niveau, passages entre bâtiments). `--reference ref.png` dessine les
+  données OSM brutes dans le même cadre, pour comparer avec `--apercu plan.png`.
   place sorties, soins, boutique, entraînement, passages sous les voies, ressources, herbe
   haute, et le **combat final (`X`) devant l'EEMI** (bâtiment « Lumen »). Il ne touche qu'à
   `LARGEUR`, `depart`, `plan` et `sorties` ; relancer `tools/verifier_plans.py` après.
