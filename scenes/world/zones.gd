@@ -372,6 +372,41 @@ static func haut_batiment(id: StringName, cellule_toit: Vector2i) -> Array:
 		return [TUILES, TOIT_HAUT_DROITE]
 	return [TUILES, TOIT_HAUT]
 
+## Combien de personnages se baladent dans chaque zone. Ils sont tires au hasard
+## parmi tous ceux du jeu (tous_les_pnj) : un meme personnage peut apparaitre
+## plusieurs fois, dans n'importe quelle zone, sur n'importe quelle case libre.
+const NOMBRE_PNJ := 6
+
+## Personnages qui ne sont attaches a aucune zone ni a aucun Gone : en combat, ils
+## prennent un Gone sauvage au hasard. Tout prenom reel doit etre dans
+## docs/consentement.md.
+const FIGURANTS := [
+	{"nom": "Célia", "frames": "res://assets/characters/pnj_celia/pnj_celia_frames.tres"},
+	{"nom": "Gabriel", "frames": "res://assets/characters/pnj_gabriel/pnj_gabriel_frames.tres"},
+	{"nom": "Mathéo", "frames": "res://assets/characters/pnj_matheo/pnj_matheo_frames.tres"},
+	{"nom": "Alternant", "frames": "res://assets/characters/pnj_generique_1/pnj_generique_1_frames.tres"},
+	{"nom": "Alternant", "frames": "res://assets/characters/pnj_generique_2/pnj_generique_2_frames.tres"},
+	{"nom": "Alternant", "frames": "res://assets/characters/pnj_generique_3/pnj_generique_3_frames.tres"},
+	{"nom": "Alternant", "frames": "res://assets/characters/pnj_generique_4/pnj_generique_4_frames.tres"},
+	{"nom": "Alternant", "frames": "res://assets/characters/pnj_generique_5/pnj_generique_5_frames.tres"},
+]
+
+## Tous les personnages qui peuvent se balader : ceux des zones (avec leur Gone) et
+## les figurants. "cle" est le drapeau leve quand on le recrute : la meme cle
+## qu'avant pour ceux des zones (zone_nom), les sauvegardes restent valables.
+static func tous_les_pnj() -> Array:
+	var tous: Array = []
+	for id: StringName in ORDRE:
+		for fiche: Dictionary in zone(id).get("pnj", []):
+			var copie := fiche.duplicate()
+			copie["cle"] = "%s_%s" % [id, fiche.get("nom", "")]
+			tous.append(copie)
+	for fiche: Dictionary in FIGURANTS:
+		var copie := fiche.duplicate()
+		copie["cle"] = "figurant_%s" % str(fiche["frames"]).get_file().get_basename()
+		tous.append(copie)
+	return tous
+
 ## La bande voisine au nord (sens = -1) ou au sud (sens = 1), ou &"" au bord du monde.
 static func zone_voisine(id: StringName, sens: int) -> StringName:
 	var i := ORDRE.find(id) + sens

@@ -17,6 +17,9 @@ const CASES_PAR_TRAM := 40
 const CHANCE_PNJ_REGARDE := 0.3
 ## Un PNJ place au hasard n'apparait pas a moins de cette distance du joueur.
 const DISTANCE_MIN_PNJ := 5
+## Le bandeau du bas reste visible ce temps-la (secondes), puis s'efface.
+const DUREE_BANDEAU := 4.0
+const FONDU_BANDEAU := 0.6
 ## Longueur d'une promenade de PNJ, en pas d'affilee.
 ## Ce que fait un alternant sauvage quand le joueur lui marche dessus.
 ## Les trois chances se completent : le reste, il hesite et ne se passe rien.
@@ -74,6 +77,8 @@ var _interlocuteur: Pnj = null
 @onready var _carte: CarteMonde = %CarteMonde
 @onready var _label_zone: Label = %Zone
 @onready var _label_message: Label = %Message
+var _fondu_bandeau: Tween
+@onready var _bandeau: ColorRect = %Bandeau
 @onready var _volet: ColorRect = %Volet
 @onready var _overlay: Label = %Overlay
 
@@ -117,6 +122,7 @@ func _charger_zone(id: StringName, case_depart: Vector2i) -> void:
 	_placer_trams()
 	_joueur.borner_camera(Zones.taille_pixels(id))
 	_label_zone.text = str(zone["titre"])
+	_montrer_bandeau()
 	_poser_ambiance()
 
 ## Le fond sonore de la zone : la gare a le sien, les autres sont muettes.
@@ -300,23 +306,28 @@ func _placer_pnj() -> void:
 	for ancien in _pnjs.get_children():
 		_pnjs.remove_child(ancien)
 		ancien.queue_free()
-	for fiche: Dictionary in zone.get("pnj", []):
-		if GameState.drapeau(StringName("%s_%s" % [zone_id, fiche.get("nom", "")])):
-			continue              # deja recrute : il est dans l'equipe, plus dehors
-		var depart: Vector2i
-		if fiche.has("case"):
-			depart = fiche["case"]
-		else:
-			depart = _case_au_hasard_pour_pnj()
-			if depart == Vector2i(-1, -1):
-				continue          # zone pleine : on n'insiste pas
+	# Tires au hasard parmi tous les personnages du jeu, doublons permis ; un
+	# alternant deja recrute est dans l'equipe, il ne se balade plus.
+	var possibles: Array = Zones.tous_les_pnj().filter(
+		func(f: Dictionary) -> bool: return not GameState.drapeau(StringName(f["cle"])))
+	for i in Zones.NOMBRE_PNJ:
+		if possibles.is_empty():
+			return
+		var depart := _case_au_hasard_pour_pnj()
+		if depart == Vector2i(-1, -1):
+			return                # zone pleine : on n'insiste pas
+		var fiche: Dictionary = possibles.pick_random()
 		var pnj: Pnj = SCENE_PNJ.instantiate()
-		pnj.name = str(fiche["nom"])
+		pnj.name = "Pnj%d" % i
+		pnj.set_meta(&"fiche", fiche)
 		pnj.frames = load(str(fiche["frames"]))
-		pnj.rayon = int(fiche.get("rayon", -1))
 		_pnjs.add_child(pnj)
 		pnj.placer(depart)
 		pnj.envie_de_bouger.connect(_sur_envie_pnj)
+
+## Le nom affiche d'un personnage (plusieurs peuvent porter le meme).
+func _nom_de(alternant: Pnj) -> String:
+	return str(alternant.get_meta(&"fiche", {}).get("nom", alternant.name))
 
 ## Une case de sol autorise, libre et pas trop pres du joueur ; (-1, -1) si aucune.
 func _case_au_hasard_pour_pnj() -> Vector2i:
@@ -378,13 +389,13 @@ func _sur_envie_pnj(pnj: Pnj) -> void:
 func _aborder(alternant: Pnj) -> void:
 	match reaction(randf()):
 		&"combat":
-			_message("%s ne compte pas se laisser recruter !" % alternant.name)
+			_message("%s ne compte pas se laisser recruter !" % _nom_de(alternant))
 			_combattre(alternant)
 		&"fuite":
-			_message("%s file sans demander son reste." % alternant.name)
+			_message("%s file sans demander son reste." % _nom_de(alternant))
 			_faire_fuir(alternant)
 		_:
-			_message("%s vous ignore poliment." % alternant.name)
+			_message("%s vous ignore poliment." % _nom_de(alternant))
 
 ## Ce que decide un alternant aborde, pour un tirage entre 0 et 1. Sortie a part
 ## du reste pour pouvoir la verifier sans lancer le jeu.
@@ -419,7 +430,7 @@ func _tenter_agression(alternant: Pnj) -> bool:
 		return false
 	if randf() >= CHANCE_ALTERNANT_ATTAQUE:
 		return false
-	_message("%s vous barre la route !" % alternant.name)
+	_message("%s vous barre la route !" % _nom_de(alternant))
 	_combattre(alternant)
 	return true
 
@@ -430,19 +441,16 @@ func _combattre(alternant: Pnj) -> void:
 	GameState.rencontre_en_attente = fiche
 	GameState.niveau_rencontre = randi_range(int(zone["niveau_min"]), int(zone["niveau_max"]))
 	GameState.combat_est_boss = false
-	GameState.pnj_en_combat = StringName("%s_%s" % [zone_id, alternant.name])
+	GameState.pnj_en_combat = StringName(alternant.get_meta(&"fiche", {}).get("cle", ""))
 	get_tree().change_scene_to_file(GameState.SCENE_COMBAT)
 
 ## La fiche de l'alternant : celle que la zone lui attribue, sinon une au hasard.
 func _fiche_de(alternant: Pnj) -> GoneData:
-	for entree: Dictionary in zone.get("pnj", []):
-		if str(entree.get("nom", "")) != alternant.name:
-			continue
-		if entree.has("gone"):
-			var fiche: GoneData = GameState.catalogue_gones.get(entree["gone"])
-			if fiche != null:
-				return fiche
-		break
+	var entree: Dictionary = alternant.get_meta(&"fiche", {})
+	if entree.has("gone"):
+		var fiche: GoneData = GameState.catalogue_gones.get(entree["gone"])
+		if fiche != null:
+			return fiche
 	var sauvages := GameState.gones_sauvages()
 	return sauvages.pick_random() if not sauvages.is_empty() else null
 
@@ -659,7 +667,7 @@ func _parler_a(alternant: Pnj) -> void:
 	var id: StringName = fiche.id if fiche != null else &""
 	var cle := StringName("parle_%s" % id)
 	_interlocuteur = alternant
-	_dialogue = Dialogues.pour(id, alternant.name, GameState.drapeau(cle))
+	_dialogue = Dialogues.pour(id, _nom_de(alternant), GameState.drapeau(cle))
 	GameState.lever_drapeau(cle)
 	_mode = Mode.DIALOGUE
 	_menu_index = 0
@@ -889,3 +897,18 @@ func _texte_equipe() -> String:
 
 func _message(texte: String) -> void:
 	_label_message.text = texte
+	_montrer_bandeau()
+
+## Le bandeau du bas (nom de la zone, message) ne cache pas la carte : il apparait
+## avec un message ou a l'entree d'une zone, puis s'efface au bout de
+## DUREE_BANDEAU secondes.
+func _montrer_bandeau() -> void:
+	if _fondu_bandeau != null and _fondu_bandeau.is_valid():
+		_fondu_bandeau.kill()
+	for noeud: CanvasItem in [_bandeau, _label_zone, _label_message]:
+		noeud.modulate.a = 1.0
+	_fondu_bandeau = create_tween()
+	_fondu_bandeau.tween_interval(DUREE_BANDEAU)
+	_fondu_bandeau.tween_property(_bandeau, "modulate:a", 0.0, FONDU_BANDEAU)
+	_fondu_bandeau.parallel().tween_property(_label_zone, "modulate:a", 0.0, FONDU_BANDEAU)
+	_fondu_bandeau.parallel().tween_property(_label_message, "modulate:a", 0.0, FONDU_BANDEAU)
