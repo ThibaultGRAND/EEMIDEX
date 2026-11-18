@@ -36,15 +36,21 @@ const HEROS := {
 		"nom": "Moustache",
 		"societe": "Moustache Corp",
 		"titre": "Monsieur le Président",
-		"bonus": "+10 % de chance de recrutement",
+		"bonus": "+10 % de recrutement",
 		"replique": "Un alternant, c'est un CDI sans les inconvénients.",
+		"frames": "res://assets/characters/joueur_moustache/joueur_moustache_frames.tres",
+		"teinte": Color(1, 1, 1),
 	},
 	&"moustachette": {
 		"nom": "Moustachette",
 		"societe": "Moustachette & Associés",
 		"titre": "Madame la Présidente",
-		"bonus": "les alternants progressent plus longtemps",
+		"bonus": "+1 niveau de progression",
 		"replique": "Je ne les exploite pas. Je les fais monter en compétences.",
+		# Placeholder : elle n'a pas encore de planche, elle emprunte celle de
+		# Moustache avec une teinte, en attendant que l'equipe la dessine.
+		"frames": "res://assets/characters/joueur_moustache/joueur_moustache_frames.tres",
+		"teinte": Color(1.0, 0.72, 0.86),
 	},
 }
 

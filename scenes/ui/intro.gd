@@ -8,14 +8,17 @@ extends Control
 
 @onready var _fond: ColorRect = %Fond
 @onready var _titre: Label = %Titre
-@onready var _sous_titre: Label = %SousTitre
 @onready var _boite: BoiteDialogue = %Boite
 @onready var _menu: ListeMenu = %Menu
+@onready var _portraits: Control = %Portraits
+@onready var _portrait_a: TextureRect = %PortraitA
+@onready var _portrait_b: TextureRect = %PortraitB
+@onready var _nom_a: Label = %NomA
+@onready var _nom_b: Label = %NomB
 
 func _ready() -> void:
 	_fond.color = PaletteUi.FOND
 	_titre.add_theme_color_override("font_color", PaletteUi.ACCENT)
-	_sous_titre.add_theme_color_override("font_color", PaletteUi.TEXTE_DOUX)
 	await _choisir_le_heros()
 	# La partie demarre apres le choix : nouvelle_partie() lit le heros pour
 	# en tirer les bonus, et remet contrats et premier alternant.
@@ -26,7 +29,9 @@ func _ready() -> void:
 ## Deux patrons, deux bonus. Celui qu'on laisse devient le rival.
 func _choisir_le_heros() -> void:
 	_titre.text = "Deux silhouettes descendent du TGV"
-	_sous_titre.text = "Laquelle êtes-vous ?"
+	var identifiants: Array = GameState.HEROS.keys()
+	_poser_portrait(_portrait_a, _nom_a, identifiants[0])
+	_poser_portrait(_portrait_b, _nom_b, identifiants[1])
 	var options: Array = []
 	for identifiant: StringName in GameState.HEROS:
 		var fiche: Dictionary = GameState.HEROS[identifiant]
@@ -43,16 +48,37 @@ func _choisir_le_heros() -> void:
 	var choix: Array = await _menu.choix_valide
 	GameState.heros = StringName(choix[1])
 	_menu.visible = false
+	_portraits.visible = false
 
 ## Le curseur fait parler le patron survole : on choisit sur une replique,
 ## pas sur une ligne de statistiques.
 func _sur_survol(_index: int, identifiant: StringName) -> void:
 	var fiche: Dictionary = GameState.HEROS[identifiant]
 	_boite.afficher_invite(str(fiche["replique"]), str(fiche["nom"]).to_upper())
+	# Le patron survole ressort, l'autre s'efface : on voit qui on choisit.
+	var identifiants: Array = GameState.HEROS.keys()
+	_eclairer(_portrait_a, _nom_a, identifiants[0] == identifiant)
+	_eclairer(_portrait_b, _nom_b, identifiants[1] == identifiant)
+
+## Pose l'image fixe du patron, de face, et son nom.
+func _poser_portrait(portrait: TextureRect, nom: Label, identifiant: StringName) -> void:
+	var fiche: Dictionary = GameState.HEROS[identifiant]
+	nom.text = str(fiche["nom"])
+	var planche: SpriteFrames = load(str(fiche["frames"]))
+	if planche != null and planche.has_animation(&"idle_down"):
+		portrait.texture = planche.get_frame_texture(&"idle_down", 0)
+	portrait.modulate = fiche["teinte"]
+	portrait.set_meta("teinte", fiche["teinte"])
+
+## Le choisi garde sa teinte, l'autre est assombri.
+func _eclairer(portrait: TextureRect, nom: Label, choisi: bool) -> void:
+	var teinte: Color = portrait.get_meta("teinte", Color.WHITE)
+	portrait.modulate = teinte if choisi else PaletteUi.assombrir(teinte, 0.4)
+	nom.add_theme_color_override("font_color",
+		PaletteUi.ACCENT if choisi else PaletteUi.TEXTE_ETEINT)
 
 func _jouer_prologue() -> void:
-	_titre.text = "Gare de Perrache"
-	_sous_titre.text = "quai B — 8 h 12"
+	_titre.text = "Gare de Perrache — quai B, 8 h 12"
 	for replique: Array in _repliques():
 		await _boite.afficher(replique[1], replique[0])
 
