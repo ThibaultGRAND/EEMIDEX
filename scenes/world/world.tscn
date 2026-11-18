@@ -1,8 +1,10 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scenes/world/world.gd" id="1_world"]
 [ext_resource type="TileSet" path="res://assets/tilesets/placeholder_tuiles_hd.tres" id="2_tileset"]
 [ext_resource type="PackedScene" path="res://scenes/world/player.tscn" id="3_joueur"]
+[ext_resource type="PackedScene" path="res://scenes/ui/carte_monde.tscn" id="9_carte"]
+[ext_resource type="Script" path="res://scenes/world/decor.gd" id="10_decor"]
 
 [node name="World" type="Node2D"]
 y_sort_enabled = true
@@ -15,6 +17,7 @@ tile_set = ExtResource("2_tileset")
 
 [node name="Decor" type="TileMapLayer" parent="."]
 unique_name_in_owner = true
+script = ExtResource("10_decor")
 scale = Vector2(0.25, 0.25)
 y_sort_enabled = true
 tile_set = ExtResource("2_tileset")
@@ -23,6 +26,10 @@ tile_set = ExtResource("2_tileset")
 unique_name_in_owner = true
 
 [node name="Pnjs" type="Node2D" parent="."]
+unique_name_in_owner = true
+y_sort_enabled = true
+
+[node name="Trams" type="Node2D" parent="."]
 unique_name_in_owner = true
 y_sort_enabled = true
 
@@ -74,3 +81,6 @@ unique_name_in_owner = true
 visible = false
 theme_override_font_sizes/font_size = 8
 text = ""
+
+[node name="CarteMonde" parent="Hud" instance=ExtResource("9_carte")]
+unique_name_in_owner = true

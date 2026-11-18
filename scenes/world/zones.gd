@@ -16,7 +16,8 @@ extends RefCounted
 ##   h  herbe courte                  g  herbe haute (rencontres)
 ##   t  arbre (bloquant)              j  buisson (bloquant)
 ##   b  ballast                       v  voie ferree (bloquant)
-##   =  passage a niveau              L  lampadaire (bloquant)
+##   =  passage a niveau              L  lampadaire (traversable)
+##   r  rails de tram (traversable, les tramways y circulent)
 ##   n  banc public (bloquant)
 ##   S  soin      B  boutique     M  entrainement
 ##   T  passage sous les voies   R  ressource    X  combat de fin
@@ -28,7 +29,7 @@ const LARGEUR := 32
 const TAILLE_CASE := 16
 
 ## Cases que le joueur ne peut pas traverser.
-const BLOQUANTS := "#wtvjLn"
+const BLOQUANTS := "#wtvjn"
 
 ## Sols simples ou les PNJ ont le droit de se balader (pas d'herbe haute,
 ## de passage sous les voies, de sortie ni de lieu special).
@@ -59,6 +60,7 @@ const SOLS := {
 	"b": [TUILES, Vector2i(2, 2)],      # ballast, au bord des voies
 	"v": [TUILES, Vector2i(4, 2)],      # rail et traverses, sur ballast
 	"=": [TUILES, Vector2i(5, 2)],      # passage a niveau
+	"r": [TUILES, Vector2i(6, 6)],      # rails de tram, pris dans le pave : on marche dessus
 	"j": [TUILES, Vector2i(2, 1)],      # herbe, sous le buisson
 	"L": [TUILES, Vector2i(0, 0)],      # pave, sous le lampadaire
 	"n": [TUILES, Vector2i(0, 0)],      # pave, sous le banc
@@ -322,6 +324,26 @@ const ZONES := {
 
 ## Variante de sol a poser sur une case. Le tirage depend des coordonnees,
 ## donc il ne change pas d'une repeinte a l'autre.
+## Rails poses a l'horizontale : la tuile de base est verticale.
+const RAILS_HORIZONTAUX := {
+	"r": Vector2i(7, 6),    # tram
+	"v": Vector2i(0, 7),    # train
+	"=": Vector2i(1, 7),    # passage a niveau
+}
+
+## Sol d'une case dans sa zone : comme sol_de(), mais les rails prennent le sens de
+## leurs voisins (horizontaux si la voie continue a gauche ou a droite seulement).
+static func sol_de_zone(id: StringName, c: String, cellule: Vector2i) -> Array:
+	if RAILS_HORIZONTAUX.has(c):
+		var voie := "r" if c == "r" else "v="
+		var cote := voie.contains(case_a(id, cellule + Vector2i.LEFT)) \
+			or voie.contains(case_a(id, cellule + Vector2i.RIGHT))
+		var dessus := voie.contains(case_a(id, cellule + Vector2i.UP)) \
+			or voie.contains(case_a(id, cellule + Vector2i.DOWN))
+		if cote and not dessus:
+			return [TUILES, RAILS_HORIZONTAUX[c]]
+	return sol_de(c, cellule)
+
 static func sol_de(c: String, cellule: Vector2i) -> Array:
 	if not VARIANTES.has(c):
 		return SOLS.get(c, [0, Vector2i(0, 0)])

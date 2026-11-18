@@ -6,10 +6,13 @@ extends Node2D
 ## Quand l'equipe aura dessine les vraies tuiles, il suffira de remplacer le PNG
 ## du tileset : les plans et le code ne bougent pas.
 
-enum Mode { LIBRE, MENU, DIALOGUE }
+enum Mode { LIBRE, MENU, CARTE, DIALOGUE }
 
 const CHANCE_RENCONTRE := 0.14
 const SCENE_PNJ: PackedScene = preload("res://scenes/world/pnj.tscn")
+const SCENE_TRAM: PackedScene = preload("res://scenes/world/tram.tscn")
+## Une rame par tranche de cette longueur de ligne (en cases).
+const CASES_PAR_TRAM := 40
 ## Chance qu'un PNJ se contente de tourner la tete au lieu de faire un pas.
 const CHANCE_PNJ_REGARDE := 0.3
 ## Un PNJ place au hasard n'apparait pas a moins de cette distance du joueur.
@@ -61,9 +64,11 @@ var _dialogue: Array = []
 var _interlocuteur: Pnj = null
 
 @onready var _sol: TileMapLayer = %Sol
-@onready var _decor: TileMapLayer = %Decor
+@onready var _decor: DecorCarte = %Decor
 @onready var _joueur: Joueur = %Joueur
 @onready var _pnjs: Node2D = %Pnjs
+@onready var _trams: Node2D = %Trams
+@onready var _carte: CarteMonde = %CarteMonde
 @onready var _label_zone: Label = %Zone
 @onready var _label_message: Label = %Message
 @onready var _volet: ColorRect = %Volet
@@ -81,6 +86,7 @@ func _ready() -> void:
 	_train.timeout.connect(_sur_train)
 	add_child(_train)
 	_joueur.deplacement_fini.connect(_sur_case_atteinte)
+	_carte.fermee.connect(_sur_carte_fermee)
 	_charger_zone(GameState.zone_courante, GameState.case_joueur)
 	if GameState.dernier_resultat_combat != "":
 		_message(GameState.dernier_resultat_combat)
@@ -105,6 +111,7 @@ func _charger_zone(id: StringName, case_depart: Vector2i) -> void:
 	_peindre_zone()
 	_joueur.placer(depart)
 	_placer_pnj()
+	_placer_trams()
 	_joueur.borner_camera(Zones.taille_pixels(id))
 	_label_zone.text = str(zone["titre"])
 	_poser_ambiance()
@@ -145,7 +152,7 @@ func _peindre_zone() -> void:
 			var c: String = ligne[x]
 			var cellule := Vector2i(x, y)
 			if Zones.SOLS.has(c):
-				_poser(_sol, cellule, Zones.sol_de(c, cellule))
+				_poser(_sol, cellule, Zones.sol_de_zone(zone_id, c, cellule))
 			if c == "R":
 				var tuile: Vector2i = Zones.TUILES_RESSOURCES.get(zone["ressource"], zone["tuile_ressource"])
 				_decor.set_cell(cellule, Zones.TUILES, tuile)
@@ -172,6 +179,7 @@ func _peindre_zone() -> void:
 # Deplacement
 # =============================================================================
 func _process(_delta: float) -> void:
+	_voir_le_joueur()
 	# Touche maintenue : on enchaine les pas tant qu'elle est enfoncee.
 	if _mode != Mode.LIBRE or _joueur.en_mouvement:
 		return
@@ -180,12 +188,29 @@ func _process(_delta: float) -> void:
 			_tenter_pas(action)
 			return
 
+## Le decor qui cache le joueur devient transparent : on regarde les cases que
+## couvre son image, a sa position du moment (il peut etre entre deux cases).
+func _voir_le_joueur() -> void:
+	var p := _joueur.position
+	var demi := Vector2(Zones.TAILLE_CASE * 0.3, Zones.TAILLE_CASE * 0.45)
+	var haut_gauche := Vector2i(((p - demi) / Zones.TAILLE_CASE).floor())
+	var bas_droite := Vector2i(((p + demi) / Zones.TAILLE_CASE).floor())
+	var cases: Array[Vector2i] = []
+	for y in range(haut_gauche.y, bas_droite.y + 1):
+		for x in range(haut_gauche.x, bas_droite.x + 1):
+			cases.append(Vector2i(x, y))
+	_decor.voir_a_travers(cases)
+
 ## Un pas, ou un simple demi-tour si la case est bloquee.
 func _tenter_pas(action: String) -> void:
 	if _joueur.en_mouvement:
 		return
 	var consigne: Array = DIRECTIONS[action]
 	var cible: Vector2i = _joueur.cellule + consigne[0]
+	if _tram_sur(cible) != null:
+		_joueur.regarder(consigne[1])
+		_message("Ding ding ! Attention au tram.")
+		return
 	if Zones.est_traversable(zone_id, cible) and _pnj_sur(cible) == null:
 		GameState.jouer_son(&"marche", VOLUME_PAS_DB)
 		_joueur.avancer_vers(cible, consigne[1])
@@ -395,7 +420,87 @@ func _direction_de(deplacement: Vector2i) -> Joueur.Direction:
 
 ## Libre = ni le joueur (ou la case ou il va), ni un PNJ.
 func _case_libre(c: Vector2i) -> bool:
-	return c != _joueur.cellule and _pnj_sur(c) == null
+	return c != _joueur.cellule and _pnj_sur(c) == null and _tram_sur(c) == null
+
+# =============================================================================
+# Tramways
+# =============================================================================
+## Une rame par ligne de tram de la zone (plus pour les longues lignes).
+func _placer_trams() -> void:
+	for ancien in _trams.get_children():
+		_trams.remove_child(ancien)
+		ancien.queue_free()
+	for ligne: Array[Vector2i] in _lignes_de_tram():
+		if ligne.size() < Tram.LONGUEUR * 3:
+			continue
+		var nombre: int = 1 + ligne.size() / CASES_PAR_TRAM
+		for k in nombre:
+			var tram: Tram = SCENE_TRAM.instantiate()
+			_trams.add_child(tram)
+			tram.demarrer(ligne, Tram.LONGUEUR - 1 + k * ligne.size() / nombre)
+			tram.envie_d_avancer.connect(_sur_envie_tram)
+
+## Les lignes de tram de la zone : chaque groupe de rails relies, parcouru d'un bout
+## a l'autre (en allant tout droit tant que possible aux embranchements).
+func _lignes_de_tram() -> Array:
+	var rails := {}
+	var plan: Array = zone["plan"]
+	for y in plan.size():
+		for x in str(plan[y]).length():
+			if str(plan[y])[x] == "r":
+				rails[Vector2i(x, y)] = true
+	var lignes: Array = []
+	var vus := {}
+	var directions := [Vector2i.DOWN, Vector2i.UP, Vector2i.LEFT, Vector2i.RIGHT]
+	for depart in rails:
+		if vus.has(depart):
+			continue
+		# un bout de la ligne : la case la plus loin du depart, dans son groupe
+		var groupe := [depart]
+		vus[depart] = true
+		var i := 0
+		while i < groupe.size():
+			for d in directions:
+				var v: Vector2i = groupe[i] + d
+				if rails.has(v) and not vus.has(v):
+					vus[v] = true
+					groupe.append(v)
+			i += 1
+		var bout: Vector2i = groupe[-1]
+		# parcours depuis ce bout
+		var ligne: Array[Vector2i] = [bout]
+		var deja := {bout: true}
+		var cap := Vector2i.ZERO
+		while true:
+			var suivant := Vector2i(-1, -1)
+			var choix: Array = [cap] + directions
+			for d in choix:
+				var v: Vector2i = ligne[-1] + d
+				if d != Vector2i.ZERO and rails.has(v) and not deja.has(v):
+					suivant = v
+					cap = d
+					break
+			if suivant == Vector2i(-1, -1):
+				break
+			deja[suivant] = true
+			ligne.append(suivant)
+		lignes.append(ligne)
+	return lignes
+
+func _sur_envie_tram(tram: Tram) -> void:
+	var c := tram.prochaine_case()
+	var autre := _tram_sur(c)
+	if _mode == Mode.LIBRE and c != _joueur.cellule and _pnj_sur(c) == null \
+			and (autre == null or autre == tram):
+		tram.avancer()
+	else:
+		tram.attendre()
+
+func _tram_sur(c: Vector2i) -> Tram:
+	for tram: Tram in _trams.get_children():
+		if c in tram.cases:
+			return tram
+	return null
 
 func _pnj_sur(c: Vector2i) -> Pnj:
 	for pnj: Pnj in _pnjs.get_children():
@@ -453,6 +558,8 @@ func _lancer_combat_de_fin() -> void:
 # Interaction et menus
 # =============================================================================
 func _unhandled_input(event: InputEvent) -> void:
+	if _mode == Mode.CARTE:
+		return               # la carte du monde gere ses touches
 	if _mode == Mode.MENU:
 		_input_menu(event)
 		return
@@ -460,7 +567,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		_input_dialogue(event)
 		return
 	if event.is_action_pressed("ui_cancel"):
-		_ouvrir_menu(&"pause", "Menu", ["Équipe", "Sauvegarder", "Retour au titre", "Reprendre"])
+		_ouvrir_menu(&"pause", "Menu", ["Équipe", "Carte", "Sauvegarder", "Retour au titre", "Reprendre"])
 		return
 	if event.is_action_pressed("ui_accept"):
 		_interagir()
@@ -653,10 +760,17 @@ func _valider_menu() -> void:
 		_:
 			_fermer_menu()
 
+func _sur_carte_fermee() -> void:
+	_mode = Mode.LIBRE
+
 func _menu_pause(choix: String) -> void:
 	match choix:
 		"Équipe":
 			_ouvrir_menu(&"equipe", _texte_equipe(), ["Fermer"])
+		"Carte":
+			_fermer_menu()
+			_mode = Mode.CARTE
+			_carte.ouvrir(zone_id, _joueur.cellule)
 		"Sauvegarder":
 			var ok := GameState.sauvegarder()
 			_fermer_menu()

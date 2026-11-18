@@ -75,3 +75,32 @@ static func couleur_jauge(ratio: float) -> Color:
 ## Une couleur assombrie, pour la bordure d'un élément coloré (badge, jauge).
 static func assombrir(couleur: Color, facteur: float = 0.55) -> Color:
 	return Color(couleur.r * facteur, couleur.g * facteur, couleur.b * facteur, couleur.a)
+
+## Carte du monde (scenes/ui/carte_monde.gd) : une couleur par caractère des plans
+## de zones.gd. Un caractère absent prend CARTE_DEFAUT.
+const CARTE_DEFAUT := Color("8f8a80")
+const COULEURS_CARTE := {
+	"#": Color("b5482b"),   # bâtiment (toit)
+	".": Color("8f8a80"), ",": Color("a39d90"), "m": Color("7f8a6a"),
+	"q": Color("c4bba7"), "d": Color("8a6a45"), "s": Color("d8c48e"),
+	"p": Color("9a6b3e"), "w": Color("2f6f9f"),
+	"h": Color("5d9a3c"), "t": Color("2f6b2a"), "j": Color("3b7d31"),
+	"g": Color("3f7a2b"),   # herbe haute : rencontres
+	"b": Color("6b6660"), "v": Color("4a4a4e"), "=": Color("4a4a4e"),
+	"r": Color("c9a24a"),   # rails de tram
+	"L": Color("8f8a80"), "n": Color("8f8a80"),
+}
+## Repères dessinés par-dessus la carte : caractère -> couleur du point.
+const REPERES_CARTE := {
+	"S": Color("2fa84f"),   # soin
+	"B": Color("2e86c1"),   # boutique
+	"M": Color("9b59b6"),   # entraînement
+	"T": Color("b8c2d0"),   # passage sous les voies
+	"X": Color("e9c56b"),   # combat final
+	"R": Color("d64f8a"),   # ressource
+	"1": Color("f4f1ea"), "2": Color("f4f1ea"), "3": Color("f4f1ea"),   # sorties
+}
+## Chemin qui relie une zone à la suivante sur la carte du monde.
+const CARTE_CHEMIN := Color("f4f1ea")
+## Le point « vous êtes ici ».
+const CARTE_JOUEUR := Color("ff4d4d")
