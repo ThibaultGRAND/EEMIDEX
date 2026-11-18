@@ -40,7 +40,7 @@ son accord écrit**, et chacun peut se retirer à tout moment, sans avoir à se 
 
 ### PNJ de la carte
 
-Ces quatre-là ne passent **pas** par le garde-fou `consentement_recu` : ce sont des PNJ
+Ces huit-là ne passent **pas** par le garde-fou `consentement_recu` : ce sont des PNJ
 codés dans `scenes/world/zones.gd`, pas des Gones. Leur accord se suit donc ici, à la
 main, et nulle part ailleurs.
 
@@ -50,6 +50,10 @@ main, et nulle part ailleurs.
 | Seb | 18 nov. 2026 | Seb | ☐ | `assets/sprites/pnj_seb.png`, `assets/characters/pnj_seb/` |
 | Thomas | 18 nov. 2026 | Thomas | ☐ | `assets/sprites/pnj_thomas.png`, `assets/characters/pnj_thomas/` |
 | Paloma | 18 nov. 2026 | Paloma | ☐ | `assets/sprites/pnj_paloma.png`, `assets/characters/pnj_paloma/` |
+| Thibaut | 18 nov. 2026 | Thibaut | ☐ | `assets/sprites/pnj_thibaut.png` |
+| Théophile | 18 nov. 2026 | Théophile | ☐ | `assets/sprites/pnj_theophile.png` |
+| Émile | 18 nov. 2026 | Émile | ☐ | `assets/sprites/pnj_emile.png` |
+| Guillaume | 18 nov. 2026 | Guillaume | ☐ | `assets/sprites/pnj_guillaume.png` |
 
 Il reste à leur faire **valider le sprite final** avant la mise en ligne, et à conserver
 les accords écrits hors du dépôt.
