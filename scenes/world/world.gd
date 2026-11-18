@@ -6,7 +6,7 @@ extends Node2D
 ## Quand l'equipe aura dessine les vraies tuiles, il suffira de remplacer le PNG
 ## du tileset : les plans et le code ne bougent pas.
 
-enum Mode { LIBRE, MENU }
+enum Mode { LIBRE, MENU, CARTE }
 
 const CHANCE_RENCONTRE := 0.14
 const SCENE_PNJ: PackedScene = preload("res://scenes/world/pnj.tscn")
@@ -48,6 +48,7 @@ var _minijeu_choisi: StringName = &""
 @onready var _decor: TileMapLayer = %Decor
 @onready var _joueur: Joueur = %Joueur
 @onready var _pnjs: Node2D = %Pnjs
+@onready var _carte: CarteMonde = %CarteMonde
 @onready var _label_zone: Label = %Zone
 @onready var _label_message: Label = %Message
 @onready var _volet: ColorRect = %Volet
@@ -56,6 +57,7 @@ var _minijeu_choisi: StringName = &""
 func _ready() -> void:
 	GameState.assurer_partie()
 	_joueur.deplacement_fini.connect(_sur_case_atteinte)
+	_carte.fermee.connect(_sur_carte_fermee)
 	_charger_zone(GameState.zone_courante, GameState.case_joueur)
 	if GameState.dernier_resultat_combat != "":
 		_message(GameState.dernier_resultat_combat)
@@ -397,11 +399,13 @@ func _lancer_combat_de_fin() -> void:
 # Interaction et menus
 # =============================================================================
 func _unhandled_input(event: InputEvent) -> void:
+	if _mode == Mode.CARTE:
+		return               # la carte du monde gere ses touches
 	if _mode == Mode.MENU:
 		_input_menu(event)
 		return
 	if event.is_action_pressed("ui_cancel"):
-		_ouvrir_menu(&"pause", "Menu", ["Équipe", "Sauvegarder", "Retour au titre", "Reprendre"])
+		_ouvrir_menu(&"pause", "Menu", ["Équipe", "Carte", "Sauvegarder", "Retour au titre", "Reprendre"])
 		return
 	if event.is_action_pressed("ui_accept"):
 		_interagir()
@@ -487,10 +491,17 @@ func _valider_menu() -> void:
 		_:
 			_fermer_menu()
 
+func _sur_carte_fermee() -> void:
+	_mode = Mode.LIBRE
+
 func _menu_pause(choix: String) -> void:
 	match choix:
 		"Équipe":
 			_ouvrir_menu(&"equipe", _texte_equipe(), ["Fermer"])
+		"Carte":
+			_fermer_menu()
+			_mode = Mode.CARTE
+			_carte.ouvrir(zone_id, _joueur.cellule)
 		"Sauvegarder":
 			var ok := GameState.sauvegarder()
 			_fermer_menu()

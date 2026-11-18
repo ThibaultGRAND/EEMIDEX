@@ -184,6 +184,13 @@ pour les sols et des placeholders pour les batiments.
   l'autre. Les plans sont en texte dans `zones.gd`.
 - `scenes/world/pnj.tscn` — 8 PNJ qui se baladent, deux par zone, sans case imposee :
   la carte leur trouve une place libre au demarrage.
+- `scenes/ui/carte_monde.tscn` — **carte du monde en jeu** : menu pause > « Carte ». Les
+  4 zones en deux colonnes (nord en haut à gauche, sud en bas à droite), dessinées depuis
+  les plans de `zones.gd`, le joueur qui clignote, les repères (soins, boutique,
+  entraînement, passages, ressources, sorties, combat final) et une légende. Couleurs
+  dans `PaletteUi` (`COULEURS_CARTE`, `REPERES_CARTE`). Ordre des zones : `ORDRE` dans
+  `carte_monde.gd`, à compléter si une zone est ajoutée. `world.gd` passe en
+  `Mode.CARTE` tant qu'elle est ouverte.
 - **Tuiles HD (placeholder)** : `tools/generer_tuiles_hd.py` dessine en code un atlas
   64×64 (`assets/tilesets/placeholder_tuiles_hd.*`) : pavés, quais, eau, herbe, rails,
   façades lyonnaises (fenêtres à volets, portes, vitrines), toits en tuiles, arbres,

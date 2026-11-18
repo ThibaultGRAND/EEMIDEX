@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scenes/world/world.gd" id="1_world"]
 [ext_resource type="TileSet" path="res://assets/tilesets/placeholder_tuiles_hd.tres" id="2_tileset"]
 [ext_resource type="PackedScene" path="res://scenes/world/player.tscn" id="3_joueur"]
+[ext_resource type="PackedScene" path="res://scenes/ui/carte_monde.tscn" id="9_carte"]
 
 [node name="World" type="Node2D"]
 y_sort_enabled = true
@@ -74,3 +75,6 @@ unique_name_in_owner = true
 visible = false
 theme_override_font_sizes/font_size = 8
 text = ""
+
+[node name="CarteMonde" parent="Hud" instance=ExtResource("9_carte")]
+unique_name_in_owner = true
