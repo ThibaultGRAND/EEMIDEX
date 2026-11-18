@@ -29,6 +29,8 @@ const CAFE_PAR_TOUR_SANS_ATTAQUE := 2
 @onready var _fiche_joueur: FicheCombattant = %FicheJoueur
 @onready var _ennemi_sprite: ColorRect = %EnnemiSprite
 @onready var _joueur_sprite: ColorRect = %JoueurSprite
+@onready var _portrait_ennemi: TextureRect = %PortraitEnnemi
+@onready var _portrait_joueur: TextureRect = %PortraitJoueur
 @onready var _boite: BoiteDialogue = %Boite
 @onready var _menu: ListeMenu = %Menu
 
@@ -66,10 +68,23 @@ func _rafraichir() -> void:
 	_fiche_joueur.definir_combattant(_actif.nom(), _actif.niveau, _type_de(_actif))
 	_fiche_joueur.definir_motivation(_actif.pv, _actif.pv_max())
 	_fiche_joueur.definir_cafe(_actif.cafe, _actif.cafe_max())
-	if _ennemi.data != null:
-		_ennemi_sprite.color = _ennemi.data.couleur
-	if _actif.data != null:
-		_joueur_sprite.color = _actif.data.couleur
+	_poser_portrait(_portrait_ennemi, _ennemi_sprite, _ennemi, &"idle_down")
+	_poser_portrait(_portrait_joueur, _joueur_sprite, _actif, &"idle_up")
+
+## Affiche l'alternant : son image s'il a une planche, sinon sa couleur.
+## L'adversaire est vu de face, celui du joueur de dos, comme il se doit.
+func _poser_portrait(portrait: TextureRect, fond: ColorRect,
+		alternant: GoneInstance, animation: StringName) -> void:
+	var planche: SpriteFrames = alternant.data.frames if alternant.data != null else null
+	if planche != null and planche.has_animation(animation) \
+			and planche.get_frame_count(animation) > 0:
+		portrait.texture = planche.get_frame_texture(animation, 0)
+		portrait.visible = true
+		fond.color = Color(0, 0, 0, 0)
+		return
+	portrait.visible = false
+	if alternant.data != null:
+		fond.color = alternant.data.couleur
 
 func _type_de(g: GoneInstance) -> StringName:
 	return g.data.type if g.data != null else &"neutre"

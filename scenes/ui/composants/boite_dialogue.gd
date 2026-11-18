@@ -25,10 +25,12 @@ signal dialogue_termine
 ## Temps d'attente entre deux pages quand `attendre_validation` est false.
 @export var pause_auto: float = 0.6
 
+const PERIODE_CLIGNOTEMENT := 0.7
+
 var _pages: Array[String] = []
 var _page: int = -1
 var _ecriture: Tween
-var _clignotement: Tween
+var _temps_fleche: float = 0.0
 
 @onready var _texte: Label = %Texte
 @onready var _fleche: ColorRect = %Fleche
@@ -36,6 +38,14 @@ var _clignotement: Tween
 func _ready() -> void:
 	_fleche.visible = false
 	_texte.text = ""
+	set_process(false)
+
+## Fait clignoter la flèche d'attente. Un Tween en boucle marcherait aussi,
+## mais il ne s'arrête jamais : il fuit quand la scène est libérée en plein
+## combat.
+func _process(delta: float) -> void:
+	_temps_fleche += delta
+	_fleche.visible = fmod(_temps_fleche, PERIODE_CLIGNOTEMENT) < PERIODE_CLIGNOTEMENT * 0.5
 
 ## Affiche un texte ou une suite de textes. À `await` pour attendre la fin.
 func afficher(contenu: Variant) -> Signal:
@@ -119,17 +129,15 @@ func _sur_page_ecrite() -> void:
 			page_validee.emit()
 			_page_suivante()
 		return
+	_temps_fleche = 0.0
 	_fleche.visible = true
-	_clignotement = create_tween().set_loops()
-	_clignotement.tween_property(_fleche, "modulate:a", 0.0, 0.35)
-	_clignotement.tween_property(_fleche, "modulate:a", 1.0, 0.35)
+	set_process(true)
 
 func _arreter_animations() -> void:
 	if _ecriture != null and _ecriture.is_valid():
 		_ecriture.kill()
-	if _clignotement != null and _clignotement.is_valid():
-		_clignotement.kill()
-	_fleche.modulate.a = 1.0
+	set_process(false)
+	_fleche.visible = false
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not capture_entree or not is_visible_in_tree() or not est_en_cours():
