@@ -13,7 +13,7 @@ script = ExtResource("1_script")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 scale = Vector2(0.25, 0.25)
-offset = Vector2(0, -54)
+offset = Vector2(0, -28)
 sprite_frames = ExtResource("2_frames")
 animation = &"idle_down"
 

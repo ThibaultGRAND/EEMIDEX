@@ -1,0 +1,17 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/world/tram.gd" id="1_tram"]
+[ext_resource type="Texture2D" path="res://assets/sprites/placeholder_tram.png" id="2_image"]
+
+[node name="Tram" type="Node2D"]
+y_sort_enabled = true
+script = ExtResource("1_tram")
+
+[node name="Sprite" type="Sprite2D" parent="."]
+unique_name_in_owner = true
+scale = Vector2(0.25, 0.25)
+texture = ExtResource("2_image")
+
+[node name="Minuteur" type="Timer" parent="."]
+unique_name_in_owner = true
+one_shot = true

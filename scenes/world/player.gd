@@ -85,12 +85,10 @@ func _rafraichir_image() -> void:
 	if _sprite.animation != nom or not _sprite.is_playing():
 		_sprite.play(nom)
 
-## Les pieds (bas de l'image) tombent sur le bas de la case. L'offset est en
-## pixels de la texture : on tient compte de l'echelle du sprite (0.25).
+## Le personnage se tient au milieu de sa case : l'image (pieds sur sa derniere
+## ligne) est centree sur la case, sans decalage.
 func _caler_pieds() -> void:
-	var image := _sprite.sprite_frames.get_frame_texture(&"idle_down", 0)
-	var demi_case: float = Zones.TAILLE_CASE / 2.0 / _sprite.scale.y
-	_sprite.offset = Vector2(0, demi_case - image.get_height() / 2.0)
+	_sprite.offset = Vector2.ZERO
 
 ## Empeche la camera de montrer le vide autour de la zone.
 func borner_camera(taille_zone: Vector2i) -> void:
