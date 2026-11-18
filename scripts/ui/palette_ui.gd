@@ -87,6 +87,7 @@ const COULEURS_CARTE := {
 	"h": Color("5d9a3c"), "t": Color("2f6b2a"), "j": Color("3b7d31"),
 	"g": Color("3f7a2b"),   # herbe haute : rencontres
 	"b": Color("6b6660"), "v": Color("4a4a4e"), "=": Color("4a4a4e"),
+	"r": Color("c9a24a"),   # rails de tram
 	"L": Color("8f8a80"), "n": Color("8f8a80"),
 }
 ## Repères dessinés par-dessus la carte : caractère -> couleur du point.

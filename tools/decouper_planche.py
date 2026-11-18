@@ -16,7 +16,7 @@ animations reprennent cette pose, la marche ajoute un rebond d'1 px.
 Sortie, dans assets/characters/<id>/ :
     <id>_sheet.png    toutes les poses dans une grille régulière, pieds sur la
                       dernière ligne de chaque case, personnage de HAUTEUR px
-                      (104 par défaut, option --hauteur) ;
+                      (52 par défaut, option --hauteur) ;
     <id>_frames.tres  SpriteFrames avec 16 animations : idle_<dir> et walk_<dir>
                       pour les 8 directions (down, down_left, left, up_left, up,
                       up_right, right, down_right).
@@ -38,8 +38,8 @@ from scipy import ndimage
 RACINE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 ## Hauteur du personnage dans la planche produite (affiché à scale 0.25 en jeu :
-## 104 px de texture = 26 px dans le monde).
-HAUTEUR = 104
+## 52 px de texture = 13 px dans le monde).
+HAUTEUR = 52
 ## Marge vide au-dessus du personnage le plus grand, dans chaque case.
 MARGE_HAUT = 4
 

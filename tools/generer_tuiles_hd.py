@@ -295,6 +295,39 @@ def sortie():
     return im
 
 
+def rails_tram(horizontal=False):
+    """Rails de tram noyes dans le pave : on marche dessus."""
+    im = paves("#9b9182", "#5c564d")
+    for x in (18, 42):
+        rect(im, x - 1, 0, 6, T, couleur("#4b4740"))      # gorge du rail
+        rect(im, x, 0, 4, T, couleur("#8d9097"))
+        rect(im, x, 0, 1, T, couleur("#dfe2e7"))
+        rect(im, x + 3, 0, 1, T, couleur("#3b3d42"))
+    return np.rot90(im).copy() if horizontal else im
+
+
+def tramway():
+    """Rame vue de dessus en 3/4, orientee vers le bas : 1 case de large, 3 de long."""
+    L, W = T * 3, T
+    im = vide(L, W)
+    ombre_portee(im, W / 2, L / 2 + 6, W / 2 - 2, L / 2 - 4, 70)
+    rect(im, 4, 6, W - 8, L - 12, couleur("#f2f2ef"))          # caisse blanche
+    ombrer(im, 4, 6, W - 8, L - 12, 12, 40)
+    rect(im, 14, 10, W - 28, L - 20, couleur("#c9ccd1"))       # toit gris
+    for k in range(3):                                          # equipements de toit
+        rect(im, 22, 30 + k * 56, W - 44, 18, couleur("#9aa0a8"))
+    for y in range(16, L - 24, 14):                             # vitres sur les flancs
+        rect(im, 5, y, 6, 10, couleur("#2e3d4f"))
+        rect(im, W - 11, y, 6, 10, couleur("#2e3d4f"))
+    rect(im, 8, L - 16, W - 16, 8, couleur("#2e3d4f"))         # pare-brise avant
+    rect(im, 8, 8, W - 16, 6, couleur("#2e3d4f"))              # vitre arriere
+    for x in (10, W - 14):                                      # phares
+        rect(im, x, L - 8, 4, 2, couleur("#fff3c4"))
+    rect(im, 4, L // 3, W - 8, 2, couleur("#b5121b"))          # liseres d'intercirculation
+    rect(im, 4, 2 * L // 3, W - 8, 2, couleur("#b5121b"))
+    return np.clip(im, 0, 255)
+
+
 # =============================================================================
 # Batiments (facade : rang du bas ; toit : le reste ; haut : bord superieur)
 # =============================================================================
@@ -588,6 +621,10 @@ def construire():
         ("praline", ressource("praline"), T),
         ("cocon", ressource("cocon"), T),
         ("quenelle", ressource("quenelle"), T),
+        ("tram_v", rails_tram(), None),
+        ("tram_h", rails_tram(horizontal=True), None),
+        ("rails_h", np.rot90(rails()).copy(), None),
+        ("passage_niveau_h", np.rot90(passage_niveau()).copy(), None),
     ]
     lignes = (len(tuiles) + COLONNES - 1) // COLONNES
     atlas = np.zeros((lignes * T, COLONNES * T, 4), float)
@@ -622,6 +659,8 @@ def ecrire_tres(index):
 def main():
     atlas, index = construire()
     Image.fromarray(atlas).save(os.path.join(RACINE, SORTIE_PNG))
+    # Le tramway n'est pas une tuile : c'est l'image du vehicule (scenes/world/tram.tscn).
+    Image.fromarray(tramway().astype(np.uint8)).save(os.path.join(RACINE, "assets/sprites/placeholder_tram.png"))
     ecrire_tres(index)
     print("Atlas %dx%d, %d tuiles" % (atlas.shape[1], atlas.shape[0], len(index)))
     for nom, (c, r, _) in index.items():

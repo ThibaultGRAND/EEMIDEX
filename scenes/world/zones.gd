@@ -17,6 +17,7 @@ extends RefCounted
 ##   t  arbre (bloquant)              j  buisson (bloquant)
 ##   b  ballast                       v  voie ferree (bloquant)
 ##   =  passage a niveau              L  lampadaire (traversable)
+##   r  rails de tram (traversable, les tramways y circulent)
 ##   n  banc public (bloquant)
 ##   S  soin      B  boutique     M  entrainement
 ##   T  passage sous les voies   R  ressource    X  combat de fin
@@ -24,7 +25,7 @@ extends RefCounted
 
 ## Tous les plans font 32 caracteres de large ; la hauteur varie d'une zone a
 ## l'autre, la camera suit le joueur et se borne sur taille_pixels().
-const LARGEUR := 32
+const LARGEUR := 64
 const TAILLE_CASE := 16
 
 ## Cases que le joueur ne peut pas traverser.
@@ -59,6 +60,7 @@ const SOLS := {
 	"b": [TUILES, Vector2i(2, 2)],      # ballast, au bord des voies
 	"v": [TUILES, Vector2i(4, 2)],      # rail et traverses, sur ballast
 	"=": [TUILES, Vector2i(5, 2)],      # passage a niveau
+	"r": [TUILES, Vector2i(6, 6)],      # rails de tram, pris dans le pave : on marche dessus
 	"j": [TUILES, Vector2i(2, 1)],      # herbe, sous le buisson
 	"L": [TUILES, Vector2i(0, 0)],      # pave, sous le lampadaire
 	"n": [TUILES, Vector2i(0, 0)],      # pave, sous le banc
@@ -135,34 +137,43 @@ const ZONES := {
 		"rencontres": [&"thigoat", &"seb", &"thibouclier"],
 		"niveau_min": 3,
 		"niveau_max": 5,
-		"depart": Vector2i(12, 10),
+		"depart": Vector2i(31, 17),
 		"plan": [
-			"www##########################www",
-			"wwwqqt,,,L,,,,,,,,,,R,L,,,,qqwww",
-			"wwwqq,,S,T,n,,,n,,,,,,,,B,tqqwww",
-			"wwwqq####################..qqwww",
-			"wwwqq####################..qqwww",
-			"wwwqq####################..qqwww",
-			"wwwqq####################..qqwww",
-			"wwwqq####################..qqwww",
-			"wwwqq####################..qqwww",
-			"wwwqq....T...........L.....qqwww",
-			"wwwqq.........L............qqwww",
-			"wwwqq..,.........bvvb......qqwww",
-			"wwwqq##,####..###bvvb######qqwww",
-			"wwwqq##,####..###bvvb######qqwww",
-			"wwwqq##,####..###bvvb######qqwww",
-			"wwwqq##,####..###====######qqwww",
-			"wwwqq..,....L....bvvb......qqwww",
-			"wwwqq..,j,,j.....bvvb......qqwww",
-			"wwwqq##,,,,,..###bvvb######qqwww",
-			"wwwqq##,,R,,..###bvvb######qqwww",
-			"wwwqq##,,,n,..###====######qqwww",
-			"wwwqq##,,,,,.L###bvvb######qqwww",
-			"wwwqq......................qqwww",
-			"www#########22###vvvv########www",
+			"q..,,gg..bb=bbbpppppppbbbbqqqqqqqqq,..,q.qqwrrrrr#####.,,#.,,,qw",
+			"q.,,ggh..#vvvvwwwwwwwq,,,,,,,,,,,,,######.#g.#,rrrrrrr##,#.,,,qw",
+			"q.,.ghm,###bvwwwwwwwwq,,,,,,,,,,,,,###############rrrrrrrrrr,,qw",
+			"q,,mh#..##,bwwwwwwwwg,,,,,,,,,,,,,,###############,,,,,,,rrrrrrw",
+			"q,..m####,qwwwwwwwwwbb,,,,,,,,,,,,,,,#############,,,,,,,,,,,,qw",
+			"#mhh####,qwwwwwwwwwvvb#b######,,,,,,,,,###########,,,,,,,,,,,,qw",
+			"hgh#..#,qwwwwwwwwwwvvv=====b#######,,,,g.##.#,,,,,,,,,,,,,,,,qww",
+			"gRgm.#,qwwwwwwwwwwbbvv=vvvvvvvv####,,,,g##,,,,,,,,,,,,,,,,,,,qww",
+			"gg...,qwwwwwwwwwwg.b#v=vvvvvvvvvvbb,,,,.##,,,,,##,,,,,,,,,,,qwww",
+			"gg..,qwwwwwwwwwwq.,###bvvvvvvvvvvv#,,,,,.,,,,,,###.L,###,,,,qwww",
+			"g.##qwwwwwwwwwwwg,,###b#vvvvvvvvvv#######,,,,####..,#####,,,qwww",
+			"h.#,qwwwwwwwwwwgg,,,,,###vvvvvvvvvvvvv####,,,,bb#,.,#####,,qwwww",
+			"q#,qwwwwwwwwwwgh,,###,,,bvvvvvvvvvvvvvvvv######v##bb#####,,qwwww",
+			"q,qwwwwwwwwwwwq.,#######b#vvvvvvvvvvvvvvvvvvv#vvvvv=bbbb#,,qwwww",
+			".qwwwwwwwwwwwq.,,######hhbbvvb===vvvvvvvvvvvvvvvvvvvvvv##bqwwwww",
+			"qwwwwwwwwwwwwg.,###########vv=##b#vvvvvvvvvvvvvvvvvvvvvvvbbwwwww",
+			"bwwwwwwwwwwwq.,,#,.#,.hgg##vv=#S####bbrrvvvvvvvvvvvvvvvvv=vwwwww",
+			"wwwwwwwwwwwwg,,##...,R.hgb#vv=b,####Tbrr#bvvvvvvvvvvvvvvv=vwwwww",
+			"wwwwwwwwwwwqL,,,,.L,,Lm.Tbvvvvb,####.rr..bbb====bb#####bbbwwwwww",
+			"wwwwwwwwwwqh.,##,,,,,,...bvvvvb,#B.##rr....b####b,####,,,qwwwwww",
+			"wwwwwwwwwwq.,######,,,,,,b#vvvb,..##.r###.#,#####,#,,,,,,qwwwwww",
+			"wwwwwwwwwqg,,######,L.#,,,bb==b#####rr###.#,###########,,qwwwwww",
+			"wwwwwwwwwhg,########..##.#,bvvb#####rr###########..#.#,,qwwwwwww",
+			"wwwwwwppqg,,########...#,###vvb,,,,.r###..,..###,....#,,qwwwwwww",
+			"wwwwwwwp.g,.########...#,###vv##.#,rr,,###,#####,L...#,,qwwwwwww",
+			"wwwwwwwq.,,,########..#####vvv##,##rr#,,,,,#.####...##,qwwwwwwww",
+			"wwwwwww#,,,g,,,,###.#.#####vvv#####r#####,,,,,,,##R.#,,qwwwwwwww",
+			"wwwwww##,,,#####,,,,,L#####vv######r#####.##,,,,,,.##,,qwwwwwwww",
+			"wwwwww#,,,##,,,##,..,,,,##vvv#####rr#####,##.##,#,,,,,qwwwwwwwww",
+			"wwwwwq,,,,#,,,,.#,..##,,,bb==#####rr######.,,####.##,,qwwwwwwwww",
+			"wwwwwqgh,,#,,#,,,L...#,####vbb,###r##.##,..,L###..##,,qwwwwwwwww",
+			"wwwwgghg,h#,,#,,#.####,####v#.###rr....#,##,.####..#,,qwwwwwwwww",
+			"wwwwghhg,##,,#.,#.#..,,###vv##,..rr22,##,#######..##,qwwwwwwwwww",
 		],
-		"sorties": {"2": ["sainte_blandine", 12, 1]},
+		"sorties": {"2": ["sainte_blandine", 35, 1]},
 		## Alternants sauvages qui se baladent. Cles optionnelles :
 		## "case" (depart fixe, sinon une case libre au hasard), "rayon"
 		## (distance max a sa case de depart, sinon aucune limite) et "gone"
@@ -180,36 +191,43 @@ const ZONES := {
 		"rencontres": [&"roulian", &"matiti", &"e1000"],
 		"niveau_min": 4,
 		"niveau_max": 7,
-		"depart": Vector2i(12, 1),
+		"depart": Vector2i(35, 1),
 		"plan": [
-			"www#########11###############www",
-			"wwwqqt,,,,L,..,,,bvvb,,,,,tqqwww",
-			"wwwqq,,,,,,,..,,,bvvb,,L,,,qqwww",
-			"wwwqq,t,,,,,..,,,bvvb,,,,t,qqwww",
-			"wwwqq............bvvb......qqwww",
-			"wwwqq.####....###bvvb......qqwww",
-			"wwwqq.####....###bvvb......qqwww",
-			"wwwqq.####....###bvvb......qqwww",
-			"wwwqq.####....###bvvb......qqwww",
-			"wwwqqj,n,,j...###bvvb......qqwww",
-			"wwwqq,,,,,,....M.bvvb......qqwww",
-			"wwwqq####........====.t..t.qqwww",
-			"wwwpp####..,.....bvvbggggggqqwww",
-			"wwwpp####..,..###bvvbggggggqqwww",
-			"wwwpp.t..t.,L.###bvvbggggggqqwww",
-			"wwwqqgggggg,..###bvvbggggggqqwww",
-			"wwwqqgggggg,..###bvvbgggRggqqwww",
-			"wwwqqgggggg,.....bvvbggggggqqwww",
-			"wwwqqggRggg,.....bvvbhhhhhhqqwww",
-			"wwwqqgggggg,.....bvvbhhhhhhqqwww",
-			"wwwqqgggggg,.L..TbvvbT.....qqwww",
-			"wwwqqhhhhhh,.....bvvb......qqwww",
-			"wwwqqhhhhhh,.....====......qqwww",
-			"wwwqqhhhhhh,.....bvvbhhhhhhqqwww",
-			"wwwqq......................qqwww",
-			"www#########22###vvvv########www",
+			"wwwwggg,,,,,#,,,#...######vv#####r,11g.,,,,##,....#,,qwwwwwwwwww",
+			"wwwqgg.,,##,#,,,#.#.#,g###v#b,###r,,ghg,##,,.,#####,,qwwwwwwwwww",
+			"wwwh...,##,#,,,#.##.#.gRb==b.,##rr,,ggg,#.,##,,,,##,qwwwwwwwwwww",
+			"wwwgtg.,#,,g,,,..#......bvvb.,##rr,###,##,,#######,,qwwwwwwwwwww",
+			"wwqgh.,,#,ghh,..#.#.,####vbb#.##r,,gg#,#.,,.,..###,,qwwwwwwwwwwq",
+			"wwq.R#,,#,.g.,...g##,#.b#v###.,rr,gg.g,#.,##,#.###,,qwwwwwwwwwwq",
+			"wwh,,,,,###,,,##.hh#,#.#vv#####rr,,hh,,#,,.,######,qwwwwwwwwwwwq",
+			"wwgg.,,,,,###.#..##,#..#vv#####rr##,,,##,##,###..,,qwwwwwwwwwwwq",
+			"wwgh#####,,,,,....#,#.##v#b####r####.,#,,,,,##..#,,qwwwwwwwwwwqq",
+			"wwqg#gg.####,,,,,.,,..##v#..,#rr##..L,#####,,,###,,qwwwwwwwwwwqq",
+			"wqm#hgggghg,#.#.,,,,,,bvv#.#.#rr##.#.#######.##,,,qwwwwwwwwwwwqq",
+			"wqhmghggggh,#h#g##,#,,b=vb,###rq##.#,#.,##,#,###,,qwwwwwwwwwwwqq",
+			"wq..ggghgg,##.#hg#,####=bb,,,rr,#######.g.,#gg.#,,qwwwwwwwwwwq,q",
+			"p.t..mhghh,####gh#,###v=##,,,rr,.###,...####hh##,qwwwwwwwwwwwq,,",
+			"p..qq.m...m.g#.g######==b#,##rr,,,,,###,###ghg#,,qwwwwwwwwwwwq,,",
+			"t.gwwq,,....#####,##gb=###,#,r##.#,,,,,,#,#m#g#,,qwwwwwwwwwwwq,,",
+			".hgwwwq#,,,,...##,##bbv###.#,r##T##,##,,,,,####,,qwwwwwwwwwwq,,#",
+			"tghwwwq..#,#,,,,,,T##vv##,.#rr##.#.,.###.#,,,,,,qwwwwwwwwwwwq,,#",
+			".ghwwq####h##.#,,,,,bvb##,#.rr#M.#.#L,##,#.##,,,qwwwwwwwwwwwq,,#",
+			"ghwwwqhghhg##.#,,,,,bvb####,r#...#,#.,####.###,,qwwwwwwwwwwq,,,#",
+			"ggwwwqhghgggg###,.Rbbvb,,,,rr##..#,##,#######.,qwwwwwwwwwwwq,,,,",
+			"ggwwq#ghgggghg.#,L.bvv###.,rr#######,,###....,,qwwwwwwwwwwwq,,L#",
+			"ghwwq.###hghhg#,,..bv#####,rr.,,,,#####,##.##,,qwwwwwwwwwwwq,,..",
+			"t.qq,#..#g#m#h.,..bbv#####,r#.###,,,,##.#...#,,qppppppppppq,,,.#",
+			"h..,,,,####.m##,L.bvv####.rr#####,L#,,,,,####,qwwwwwwwwwwwq,,#,.",
+			"ghgpp..qq,,####,..bvv####.rrgh####..##,..,,,,,qwwwwwwwwwwwq,,###",
+			"##qppppwwqqq,,,,..bv#b...,r##.##,##..##..#.,,,qwwwwwwwwwwwq,,..#",
+			"wwwppppwwwwwqqqq,bbv##..#rr##.#.,.g#.##.##.#,,qwwwwwwwwwwq,,,..q",
+			"wwwwwwwwwwwwwwwwqbvvb####rr#g..,,#.##,#...##,qwwwwwwwwwwwq,,...q",
+			"qqqqpwwwwwwwwwwwwwwwbqq,,rr##..,,#.##,#####,,qwwwwwwwwwwwq,,....",
+			".twwqqqqqqwwwwwwwwwwwwwq.r...##,L.ghh,#ggg#,,qwwwwwwwwwwq,,,##..",
+			".hgwwwq##.qqqqqwwwwwwwwqrr.....,,..m,,##g##,qwwwwwwwwwwwq,,,..##",
+			".tgwwwq#######.qb==bqpq.rr.t.t.#,2,,,,..gh,,qwwwwwwwwwwwq,,,,,,,",
 		],
-		"sorties": {"1": ["perrache", 12, 22], "2": ["darse", 12, 1]},
+		"sorties": {"1": ["perrache", 35, 31], "2": ["darse", 33, 1]},
 		## Alternants sauvages qui se baladent. Cles optionnelles :
 		## "case" (depart fixe, sinon une case libre au hasard), "rayon"
 		## (distance max a sa case de depart, sinon aucune limite) et "gone"
@@ -227,38 +245,43 @@ const ZONES := {
 		"rencontres": [&"palou", &"tortheo", &"cecissoussou"],
 		"niveau_min": 7,
 		"niveau_max": 10,
-		"depart": Vector2i(12, 1),
+		"depart": Vector2i(33, 1),
 		"plan": [
-			"www#########11###############www",
-			"wwwqq,,,,,,,..,,,bvvb,,,,,,qqwww",
-			"wwwqq,,,L,,,..,,,bvvb,,,,,,qqwww",
-			"wwwqq###.###L....bvvb......qqwww",
-			"wwwqq###.###.....====......qqwww",
-			"wwwqq###.###.....bvvb......qqwww",
-			"wwwqqqqqqqqq..###bvvb######qqwww",
-			"wwwqqqqqqqqq..###bvvb######qqwww",
-			"wwwqqwwwwwww..###bvvb######qqwww",
-			"wwwqqwwwwwww..###bvvb######qqwww",
-			"wwwqqpppppww.n###bvvb######qqwww",
-			"wwwqqwwwwpww..###bvvb######qqwww",
-			"wwwwwwwwwpww..###bvvb......qqwww",
-			"wwwwwwwwwpww...R.====......qqwww",
-			"wwwwwwwwwpww.....bvvb......qqwww",
-			"wwwwwwwwwpww.....bvvb......qqwww",
-			"wwwqqpppppww....TbvvbT.....qqwww",
-			"wwwqqwwwwwww.....bvvb.t..t.qqwww",
-			"wwwqqwwwwwww..gggbvvbhhhhhhqqwww",
-			"wwwqqwwwwwww..gggbvvbhhhhhhqqwww",
-			"wwwqqqqqqqqq..gggbvvbhhRhhhqqwww",
-			"wwwqqqqqqqqq..gggbvvbhhhhhhqqwww",
-			"wwwqqtgggggg..j..bvvbggggggqqwww",
-			"wwwqqggggggg.....bvvbggggggqqwww",
-			"wwwqqggggggg.L...bvvbggggggqqwww",
-			"wwwqqggggggt....jbvvbggggggqqwww",
-			"wwwqq......................qqwww",
-			"www#########22###vvvv########www",
+			".ghwwq.##########v##.q..r......##1##,....g,,qwwwwwwwwwwwq,,,,,##",
+			".hgwwq###########v#####rr##....##..#,#...,,,qppppppppppq,,,#####",
+			"q.#ww.##########vv#####rr####.,,,.##,....,,qwwwwwwwwwwwq,,#.....",
+			"wq.qq.##########vv#####rr####,##,#,L,....,,qwwwwwwwwwwwq,,#...##",
+			"wq.qq.,.#######vvv#####r#####,.#..#.#,,,,,,qwwwwwwwwwwg,,,.....q",
+			"wqhwwq,,,,.,###vv#####rr#####,####.#####,,,qwwwwwwwwwwq,,#g....q",
+			"wqhgw.###,,,,Lbvv#####rr#######.##.#...##,qwwwwwwwwwwwq,,#g,,,,q",
+			"wqgtwq###,,##bb==bR.##rr####,,..##.....#,,qwwwwwwwwwwwq,,#g#,,,q",
+			"wqgwww##,,,.##vv=b,,.rrr####,#.##..#...#,,qwwwwwwwwwwq,,,,..,,##",
+			"wwqtwww#,,,.bbvv=###,rrrrrr#,#.##.....##,qwwwwwwwwwwwq,,#,##,,,q",
+			"wwq.qwq.,,,Tbvvvbb.##rr,rrrr##..#..##.#,,qwwwwwwwwwwwq,,#####,##",
+			"wwq..q....bbbvvv#####r,..,,,,,#.#..#..#,,qwwwwwwwwwwq,,,###,..##",
+			"wwq.##..L,bvbvvv####,r,L....,,,,L.,####,,qwwwwwwwwwwq,,####...##",
+			"wwwq##.t.,bvvvvvb,,#rr..........,.,,,#X,qwwwwwwwwwwwq,,#.....###",
+			"wwwqg....,bvvvvvb.,,rr........#.g...,,,,qwwwwwwwwwwwq,,#.....#,#",
+			"wwwwht...bbvvvvvb..,r,L.......#g.....L,,qwwwwwwwwwwwq,#......L,#",
+			"wwwwq...,bbvvvvvb..rr..........gT.....,qwwwwwwwwwwwq,,#....#..,q",
+			"wwwwq.##,,bvvvvvb..rr..........h.....,,qwwwwwwwwwwwq,,#.##...##q",
+			"wwwwwq##,,bvvvvvb.,r,L....R...mg....L,,qwwwwwwwwwww#,,,........q",
+			"wwwwwq###,bbvvvvb.,r,................,,qwwwwwwwwwww#,,,,,,.##g.q",
+			"wwwwwwq#wq,bvvvvb.,r,..............,,,,qwwwwwwwwwwq.,,####,,,,,q",
+			"wwwwwwq.q,,bvvvvbhrr...............,,,,qwwwwwwwwwwwq,#########,q",
+			"wwwwwwwq#.,bvvvvbbrr...........#####,,qwwwwwwwwwwwh,,#..g.m.####",
+			"wwwwwwwq##,bbvvvvbrr,..tggg###.#####,,qwwwwwwwwwwwg,,##mhh...,##",
+			"wwwwwwww##,,bvvvvbrr,gggghg###.#####,qwwwwwwwwwwwwg,,#..hggR.,#q",
+			"wwwwwwwwq...bvvvvvrr,ggghg.##.ggg##,,qwwwwwwwwwwwwg,,,.##m.g,##q",
+			"wwwwwwwwq.##bbvvvvbr,hghtgm.#,ghggh,,qwwwwwwwwwwwhgg,,.##.##,..q",
+			"wwwwwwwwwq##,bvvvvbrrghggh##g,,,,hg,,qwwwwwwwwwwwghh,,L###.,,.#q",
+			"wwwwwwwwwq.##bbvvvvrrghgtg##,,.,,,,,,qwwwwwwwwwwwghg,,.#.#.,.##q",
+			"wwwwwwwwwwq##,bbvvvrr,.hgggg,,....,,,qwwwwwwwwwwwhgg,,,..#.,##.q",
+			"wwwwwwwwwwq.##,bvvvvrrm.ghgg,L....,,qwwwwwwwwwwwgggh,,,ghg,....q",
+			"wwwwwwwwwwwq##,bvvvvrr....h,,....,,,qwwwwwwwwwwwgggg#,,hg.,##..q",
+			"wwwwwwwwwwwq.##bbvvvvrr....,,...222,qwwwwwwwwwwwghgg#,,..,,.##.q",
 		],
-		"sorties": {"1": ["sainte_blandine", 12, 24], "2": ["pointe", 12, 1]},
+		"sorties": {"1": ["sainte_blandine", 33, 31], "2": ["pointe", 33, 1]},
 		## Alternants sauvages qui se baladent. Cles optionnelles :
 		## "case" (depart fixe, sinon une case libre au hasard), "rayon"
 		## (distance max a sa case de depart, sinon aucune limite) et "gone"
@@ -276,36 +299,43 @@ const ZONES := {
 		"rencontres": [&"thomasu", &"paguera", &"guignome"],
 		"niveau_min": 10,
 		"niveau_max": 13,
-		"depart": Vector2i(12, 1),
+		"depart": Vector2i(33, 1),
 		"plan": [
-			"www#########11###############www",
-			"wwwqqthhhthh..hhhbvvbhthhhtqqwww",
-			"wwwqqhhhhhhh..hhhbvvbhhhhhhqqwww",
-			"wwwqqggggggh..hhhbvvbggggggqqwww",
-			"wwwqqggggggh..hhhbvvbggggggqqwww",
-			"wwwqqgggRggh..hhhbvvbggggggqqwww",
-			"wwwqqggggggh..hhhbvvbggRgggqqwww",
-			"wwwqqggggggh..hhhbvvbggggggqqwww",
-			"wwwqqhthhhhh..hhhbbbbhhhhthqqwww",
-			"wwwqqgtggggg.....bbbb......qqwww",
-			"wwwqqggggggqqqqqqqqqqgtggggqqwww",
-			"wwwqqggggggq########qggggggqqwww",
-			"wwwqqgggggtq########qggggggqqwww",
-			"wwwqqggtgggq########qggggtgqqwww",
-			"wwwqq......q########q......qqwww",
-			"wwwqq......q########q......qqwww",
-			"wwwqq......q########q......qqwww",
-			"wwwqq......LqqqqqqqqL......qqwww",
-			"wwwqq......qqqqqqqqqq......qqwww",
-			"wwwwwwwwwqqqqqqqqqqqqqqwwwwwwwww",
-			"wwwwwwwwwhthhhhhhhhhhthwwwwwwwww",
-			"wwwwwwwwwhgggggggggggghwwwwwwwww",
-			"wwwwwwwwwhgggggggggggghwwwwwwwww",
-			"wwwwwwwwwwwwwwsssswwwwwwwwwwwwww",
-			"wwwwwwwwwwwwwwsXsswwwwwwwwwwwwww",
-			"wwwwwwwwwwwwwwsssswwwwwwwwwwwwww",
+			"wwwwwwwwwwwwq##.bvvvvrr,...,....111,qwwwwwwwwwwwggg##,,,h,,,...#",
+			"wwwwwwwwwwwwq...bbvvvvrr...,.....,,,qwwwwwwwwwwwggg#.,,,,,..,,.#",
+			"wwwwwwwwwwwwwq..,bvvvvbr,,,,....,,,,qwwwwwwwwwwwghgg#.,,,,,##.,q",
+			"wwwwwwwwwwwwwq..,bbvvv#rr,g,,,,,,,,,qwwwwwwwwwwghghm#L,,,##..##q",
+			"qwwwwwwwwwwwwq..#,bvvvv#rrg,,hh,,,,,qwwwwwwwwwwthth#..,,###...,,",
+			",qwwwwwwwwwwwwq##,bb===bbrr,,gg,,,,,qppppppppppgghgg##.,,###,,,,",
+			".qwwwwwwwwwwwwq###,bvvvv#rr,,gg,,,,,qwwwwwwwwwwwggghg.#,,#,,,,##",
+			".qwwwwwwwwwwwwwq#.,bvvvvbbrr,h,,,,,,qwwwwwwwwwwwggRg..#,,,,.,..,",
+			"..qppppppppppppqm.,bbvvvvb,rr,#,,,,,qwwwwwwwwwwwghg##..#,,,..,.,",
+			".#qwwwwwwwwwwwwwqhg,bvvvvbbrr,,,,,,hqwwwwwwwwwwwhgh#....,,,,,##,",
+			".#,qwwwwwwwwwwwwqgm,bbvvvvb.rr,,,,,gqwwwwwwwwwwwhgh.....,,,,###,",
+			".##qwwwwwwwwwwwwq.##,#vvvvb,,rr,,,,,qwwwwwwwwwwwghg###..,,,,,,,,",
+			"h.#,qwwwwwwwwwwwwq##,##vvvbb,rr,,,,,qwwwwwwwwwwwwgg..####,,,,,,,",
+			"gh.#qwwwwwwwwwwwwq##T##vvvvb.,rrrrrrrwwwwwwwwwwwwq,,,####,,,,,hh",
+			"ggg.#wwwwwwwwwwwwwqgg,bvvvvb.,,rrrrrrwwwwwwwwwwwwq,,,,,,,,,,,,hg",
+			"ggg.#qwwwwwwwwwwwwqgg,bbvvvb,,,,,...qwwwwwwwwwwwtg,,,,,,,,,,,,,g",
+			"#hggmqwwwwwwwwwwwwwqg#,bvvvbb,,,T#..gwwwwwwwwwwwh..##,,,##,,,,,h",
+			"h#hh.#qwwwwwwwwwwwwq###bvvvvb,,,,##ghwwwwwwwwwwwth.####.##,,,,,g",
+			"hghgg.qwwwwwwwwwwwww###bvvvvb,,,,##hhwwwwwwwwwwwggg..hmg##.,,,,,",
+			"ghggg#,qwwwwwwwwwwww##,bbvvvb,,,###ggwwwwwwwwwwwgggghgg,##.,,,rr",
+			"ggghgR##wwwwwwwwwwwwq.,,bvvvb,,,###ggwwwwwwwwwwwrrgghgrrrrrrrrrr",
+			".ggghm##qwwwwwwwwwwwwghgbvvvb,,,####gwwwwwwwwwwwwrrrrrrrrrrrrrr,",
+			"#hggh...qwwwwwwwwwwwwwhtbvvvb,,#####gwwwwwwwwwwwwg,,,,,,,,,##rr,",
+			"hghhg.#.,qwwwwwwwwwwwwghbvvbb,,.####hwwwwwwwwwwwwq,##ghg##,##,rr",
+			"hghggg#..qwwwwwwwwwwwwwtbvvb,,,#####hgwwwwwwwwwwwq###hhgh.,,,,rr",
+			",hgggg##.,qwwwwwwwwwwwwgbvvb,,,###h..hwwwwwwwwwwwqgghgghgm,,.,rr",
+			",#mhghh#..qwwwwwwwwwwwwwbvbb,,##gghg.gwwwwwwwwwwwqgghgggg.,,.,rr",
+			",##mhggm#L,qwwwwwwwwwwwwwwbqq,,.#hghggwwwwwwwwwwwghhghgggL,,L.,r",
+			".,#.mggg#h.,qwwwwwwwwwwwwwwwwqq.##ggghwwwwwwwwwwwwhgggghg.,,...r",
+			",,,#.hgg#gh,qwwwwwwwwwwwwwwwwwwq##ggtgwwwwwwwwwwwwgggghghm,,...r",
+			"..,..ggh#ghL,qwwwwwwwwwwwwwwwwwwwqghRghwwwwwwwwwwwghghhgh..,...r",
+			"..,,##hg#.gh,,qwwwwwwwwwwwwwwwwwwwqgg#gwwwwwwwwwwwgghgghg..,....",
+			"..,,##hg#gbbb,qwwwwwwwwwwwwwwwwwwwwqgggwwwwwwwwwwwgghgggghg,...q",
 		],
-		"sorties": {"1": ["darse", 12, 26]},
+		"sorties": {"1": ["darse", 33, 31]},
 		## Alternants sauvages qui se baladent. Cles optionnelles :
 		## "case" (depart fixe, sinon une case libre au hasard), "rayon"
 		## (distance max a sa case de depart, sinon aucune limite) et "gone"
@@ -319,6 +349,26 @@ const ZONES := {
 
 ## Variante de sol a poser sur une case. Le tirage depend des coordonnees,
 ## donc il ne change pas d'une repeinte a l'autre.
+## Rails poses a l'horizontale : la tuile de base est verticale.
+const RAILS_HORIZONTAUX := {
+	"r": Vector2i(7, 6),    # tram
+	"v": Vector2i(0, 7),    # train
+	"=": Vector2i(1, 7),    # passage a niveau
+}
+
+## Sol d'une case dans sa zone : comme sol_de(), mais les rails prennent le sens de
+## leurs voisins (horizontaux si la voie continue a gauche ou a droite seulement).
+static func sol_de_zone(id: StringName, c: String, cellule: Vector2i) -> Array:
+	if RAILS_HORIZONTAUX.has(c):
+		var voie := "r" if c == "r" else "v="
+		var cote := voie.contains(case_a(id, cellule + Vector2i.LEFT)) \
+			or voie.contains(case_a(id, cellule + Vector2i.RIGHT))
+		var dessus := voie.contains(case_a(id, cellule + Vector2i.UP)) \
+			or voie.contains(case_a(id, cellule + Vector2i.DOWN))
+		if cote and not dessus:
+			return [TUILES, RAILS_HORIZONTAUX[c]]
+	return sol_de(c, cellule)
+
 static func sol_de(c: String, cellule: Vector2i) -> Array:
 	if not VARIANTES.has(c):
 		return SOLS.get(c, [0, Vector2i(0, 0)])
