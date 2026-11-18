@@ -1,0 +1,61 @@
+# Export Web automatique + publication sur GitHub Pages.
+#
+# À faire une fois côté dépôt : Settings > Pages > Source = "GitHub Actions".
+# La version de Godot ci-dessous doit être la MÊME que celle utilisée par l'équipe.
+name: Export Web
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+env:
+  GODOT_VERSION: "4.7.2"
+  NOM_PRESET: "Web"
+
+jobs:
+  export:
+    name: Export HTML5
+    runs-on: ubuntu-latest
+    container:
+      image: barichello/godot-ci:4.7.2
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Installer les templates d'export
+        run: |
+          mkdir -p ~/.local/share/godot/export_templates
+          # Selon la version de l'image, les templates sont à l'un ou l'autre endroit.
+          cp -r /root/.local/share/godot/export_templates/* ~/.local/share/godot/export_templates/ 2>/dev/null || true
+          cp -r /root/.local/share/godot/templates/* ~/.local/share/godot/export_templates/ 2>/dev/null || true
+          ls ~/.local/share/godot/export_templates
+
+      - name: Export
+        run: |
+          mkdir -p build/web
+          godot --headless --verbose --export-release "$NOM_PRESET" build/web/index.html
+          ls -la build/web
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+
+  deploy:
+    name: Publier sur Pages
+    needs: export
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

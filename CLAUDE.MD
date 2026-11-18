@@ -38,7 +38,10 @@ Le document de référence est la page de cadrage. En cas de doute sur le périm
 - Les `.tscn` et `.tres` : modifications minimales et ciblées. Pour une nouvelle scène complexe, propose la structure de nœuds et laisse l'équipe la construire dans l'éditeur. Après toute édition d'un `.tscn`, signale qu'il faut l'ouvrir dans l'éditeur pour vérifier.
 
 ### Pixel art
-- Résolution de base : 320×180 (à confirmer), stretch mode `viewport`, scale `integer`.
+- Résolution de base : 320×180, stretch mode `viewport`, scale `integer`.
+- **Vue de dessus en 3/4** (style Pokémon DS), pas vue de dessus à plat. Voir
+  `docs/direction-artistique.md` : Y-sort obligatoire, caméra qui suit le joueur,
+  personnages de 24 à 32 px de haut, origine des sprites aux pieds.
 - Filtre de texture par défaut : `Nearest`. Pas de mipmaps.
 - Tuiles de 16×16 px. Carte construite avec `TileMapLayer` (pas l'ancien nœud `TileMap`, déprécié).
 
@@ -158,7 +161,9 @@ Le cocon n'a pas encore de mini-jeu : il ne sert qu'à la boutique, en attendant
 
 - [x] Figer la version de Godot : **4.7.2 stable** (`project.godot` et la CI sont alignés)
 - [ ] Collecter les consentements (voir `docs/consentement.md`), puis créer les 8 à 12 Gones
-- [ ] Dessiner sprites et tilesets, passer la carte en `TileMapLayer`
+- [ ] Dessiner sprites et tilesets, passer la carte en `TileMapLayer` (avec Y-sort)
+- [ ] Adapter le code à la vue 3/4 : caméra qui suit, tri par profondeur, déplacement animé
+- [ ] Écrire le script de découpage des planches de sprites
 - [ ] Décider le script de conversion des données ouvertes et remplir `assets/maps/SOURCES.md`
 - [ ] Équilibrer stats, niveaux, taux de capture
 - [ ] Dialogues, histoire, objectif final
