@@ -65,14 +65,17 @@ Tout l'habillage passe par un socle commun. Voir `docs/interface.md`.
   à la résolution de la fenêtre pour que les personnages soient nets. Concrètement :
   - `project.godot` : `window/stretch/mode="canvas_items"`. **Ne jamais le remettre en
     `viewport`**, même pour « respecter le pixel-perfect » ou suivre un ancien document.
-  - Les sprites de personnages (`assets/sprites/joueur_*.png`, `assets/sprites/pnj_*.png`)
-    sont fournis **en 4× (~120 px de haut)** et affichés avec **`scale = 0.25`** dans
+  - Les sprites de personnages (`assets/characters/<id>/<id>_sheet.png` et `_frames.tres`)
+    sont fournis **en 4× (~104 px de haut)** et affichés avec **`scale = 0.25`** dans
     `scenes/world/player.tscn` et `scenes/world/pnj.tscn`. **Ne pas les réduire** à
     24-32 px réels, **ne pas retirer le `scale`**, ne pas « corriger » leur taille :
-    ils font déjà 30 à 32 px dans le monde.
+    ils font déjà 26 px dans le monde.
   - L'offset des pieds tient compte de ce `scale` (`pnj.gd`, `player.tscn`) : ne pas le
     recalculer comme si le sprite était à l'échelle 1.
-  - Les tuiles, elles, restent en vrai 16×16, sans `scale`.
+  - Les **tuiles de la carte** suivent le même principe depuis le 18 nov. 2026 : atlas
+    64×64 (`assets/tilesets/placeholder_tuiles_hd.png` + `.tres`), couches `Sol` et
+    `Decor` de `world.tscn` à `scale = 0.25`. La logique reste en cases de 16
+    (`Zones.TAILLE_CASE`). Ne pas retirer ce `scale` ni remettre `lyon.tres`.
   - Si une consigne (ici ou dans `docs/`) semble dire le contraire, c'est qu'elle date
     d'avant ce choix : **demander à l'équipe avant de toucher** à ces réglages.
   - Si l'éditeur Godot est ouvert pendant une modification de `project.godot`, il peut la
@@ -181,6 +184,25 @@ pour les sols et des placeholders pour les batiments.
   l'autre. Les plans sont en texte dans `zones.gd`.
 - `scenes/world/pnj.tscn` — 8 PNJ qui se baladent, deux par zone, sans case imposee :
   la carte leur trouve une place libre au demarrage.
+- **Tuiles HD (placeholder)** : `tools/generer_tuiles_hd.py` dessine en code un atlas
+  64×64 (`assets/tilesets/placeholder_tuiles_hd.*`) : pavés, quais, eau, herbe, rails,
+  façades lyonnaises (fenêtres à volets, portes, vitrines), toits en tuiles, arbres,
+  lampadaires, mobilier, ressources. La table caractère -> tuile est dans `zones.gd`
+  (`SOLS`, `VARIANTES`, `DECORS`, `DECORS_HAUT`, `TUILES_RESSOURCES`) ; les bâtiments
+  `#` s'assemblent seuls (`Zones.decor_batiment` / `haut_batiment` : façade au rang du
+  bas, toit au-dessus, bords à gauche et à droite). Ce sont des **placeholders** : les
+  tuiles définitives restent à produire par l'équipe ; les anciennes (`lyon.tres`,
+  16 px) sont toujours dans le dépôt.
+- **Personnages : tous au même format, celui de PnjThomas.** Chaque personnage a un
+  dossier `assets/characters/<id>/` avec `<id>_sheet.png` (personnage de 104 px, pieds
+  sur le bas de chaque case) et `<id>_frames.tres` (SpriteFrames : `idle_<dir>` et
+  `walk_<dir>` pour 8 directions). Le jeu les joue avec un `AnimatedSprite2D` à
+  `scale = 0.25` : `player.tscn` (joueur Moustache) et `pnj.tscn` (le `.tres` de chaque
+  PNJ est donné dans `zones.gd`, clé `"frames"`, à côté de son `"gone"`). Idle à l'arrêt, walk en marche.
+  **Ajouter ou refaire un personnage** : déposer la planche d'origine dans
+  `tools/planches/`, puis `python3 tools/decouper_planche.py tools/planches/<id>.jpg <id>
+  --fond vert|magenta|transparent` (options `--face-en-premier`, `--unique` : voir l'aide
+  du script ; il demande Pillow, numpy et scipy).
 - `scripts/ui/` + `scenes/ui/composants/` — le socle d'interface : palette,
   thème Godot, jauge animée, badge de type, fiche de combattant, liste à curseur,
   boîte de dialogue qui s'écrit lettre par lettre. `scenes/ui/apercu_ui.tscn` les
@@ -223,16 +245,10 @@ Le cocon n'a pas encore de mini-jeu : il ne sert qu'à la boutique, en attendant
 
 ### Démo de personnages (hors jeu)
 
-Prototype isolé, **non branché au jeu** : `scenes/main.tscn` (+ `scenes/pnj_*.tscn`,
-`scripts/main.gd`, `scripts/pnj.gd`, `assets/characters/`). Quatre PNJ (PnjSeb, PnjThomas, PnjJulian, PnjPaloma) en
-8 directions, découpés depuis des planches fournies par l'équipe (fond vert ou magenta détouré).
-Ses sprites restent en grand format (~176 px) : c'est une démo à part. Les versions du jeu
-sont dans `assets/sprites/` (en 4×, `scale = 0.25`, voir « Pixel art »).
-Reste à faire avant de les brancher au jeu :
-
-- pas encore de suivi de consentement pour les personnes représentées ;
-- touches codées en dur (Maj, Tab) au lieu de l'InputMap ;
-- dossier `assets/characters/` au lieu de `assets/sprites/`.
+`scenes/main.tscn` : les 9 personnages côte à côte (`scenes/joueur_moustache.tscn`,
+`scenes/pnj_*.tscn`, script `scripts/pnj.gd`), en 8 directions, Tab pour passer de l'un
+à l'autre. Elle utilise les mêmes `_frames.tres` que le jeu ; elle n'est pas branchée
+au jeu (touches Maj et Tab codées en dur, tolérées pour cette démo).
 
 ### Reste à faire pour le MVP
 

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b8d7m5yek3b8k"
-path="res://.godot/imported/pnj_theophile.png-28747b73c1a223c6a34a4b96a01ee953.ctex"
+uid="uid://cdf0lk7mljqd8"
+path="res://.godot/imported/pnj_emile.jpg-0f2570ca83b2b85baacf3cc908e06949.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/pnj_theophile.png"
-dest_files=["res://.godot/imported/pnj_theophile.png-28747b73c1a223c6a34a4b96a01ee953.ctex"]
+source_file="res://tools/planches/pnj_emile.jpg"
+dest_files=["res://.godot/imported/pnj_emile.jpg-0f2570ca83b2b85baacf3cc908e06949.ctex"]
 
 [params]
 

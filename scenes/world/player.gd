@@ -5,23 +5,40 @@ extends Node2D
 
 signal deplacement_fini(cellule: Vector2i)
 
-## L'ordre doit correspondre aux lignes de placeholder_joueur.png.
+## L'ordre doit correspondre a NOMS_DIRECTIONS (noms des animations).
 enum Direction { BAS, HAUT, GAUCHE, DROITE }
 
 const DUREE_PAS := 0.14
+## Nom des directions dans les animations idle_<dir> / walk_<dir>.
+const NOMS_DIRECTIONS: Array[String] = ["down", "up", "left", "right"]
+## Delai sans pas avant de passer en idle : evite un clignotement entre deux
+## pas enchaines quand la touche reste enfoncee.
+const DELAI_IDLE := 0.06
 
 var cellule: Vector2i = Vector2i.ZERO
 var direction: Direction = Direction.BAS
 var en_mouvement: bool = false
 
-var _pas: int = 0
 var _tween: Tween
+var _temps_arret: float = 0.0
 
-@onready var _sprite: Sprite2D = %Sprite
+@onready var _sprite: AnimatedSprite2D = %Sprite
 @onready var _camera: Camera2D = %Camera
 
 func _ready() -> void:
+	_caler_pieds()
+	# Un cycle de marche (4 images) couvre deux pas.
+	var fps_marche: float = _sprite.sprite_frames.get_animation_speed(&"walk_down")
+	_sprite.speed_scale = 4.0 / (2.0 * DUREE_PAS) / fps_marche
 	_rafraichir_image()
+
+func _process(delta: float) -> void:
+	if en_mouvement:
+		_temps_arret = 0.0
+		return
+	_temps_arret += delta
+	if _temps_arret >= DELAI_IDLE:
+		_rafraichir_image()
 
 
 ## Position en pixels du centre d'une case.
@@ -44,7 +61,6 @@ func avancer_vers(c: Vector2i, vers: Direction) -> void:
 	direction = vers
 	cellule = c
 	en_mouvement = true
-	_pas = 1 - _pas
 	_rafraichir_image()
 	if _tween != null and _tween.is_valid():
 		_tween.kill()
@@ -62,8 +78,19 @@ func regarder(vers: Direction) -> void:
 		direction = vers
 		_rafraichir_image()
 
+## Joue walk_<dir> en marche, idle_<dir> a l'arret, sans relancer l'animation en cours.
 func _rafraichir_image() -> void:
-	_sprite.frame = int(direction) * _sprite.hframes + _pas
+	var etat := "walk" if en_mouvement else "idle"
+	var nom := "%s_%s" % [etat, NOMS_DIRECTIONS[int(direction)]]
+	if _sprite.animation != nom or not _sprite.is_playing():
+		_sprite.play(nom)
+
+## Les pieds (bas de l'image) tombent sur le bas de la case. L'offset est en
+## pixels de la texture : on tient compte de l'echelle du sprite (0.25).
+func _caler_pieds() -> void:
+	var image := _sprite.sprite_frames.get_frame_texture(&"idle_down", 0)
+	var demi_case: float = Zones.TAILLE_CASE / 2.0 / _sprite.scale.y
+	_sprite.offset = Vector2(0, demi_case - image.get_height() / 2.0)
 
 ## Empeche la camera de montrer le vide autour de la zone.
 func borner_camera(taille_zone: Vector2i) -> void:

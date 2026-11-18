@@ -5,23 +5,19 @@ extends Node2D
 ## (world.gd) qui choisit la case et l'appelle avec avancer_vers() ou regarder().
 ##
 ## Il marche par promenades de quelques pas d'affilee (pas_restants), puis
-## s'arrete un moment. Pendant un pas : foulee, puis pose debout ; deux pas de
-## suite donnent le cycle complet pied gauche / debout / pied droit / debout.
+## s'arrete un moment. Animations : celles de son SpriteFrames, au format de
+## tools/decouper_planche.py (idle_<dir> et walk_<dir>).
 
 signal envie_de_bouger(pnj: Pnj)
 
 const DUREE_PAS := 0.3
 const PAUSE_MIN := 0.8
 const PAUSE_MAX := 2.6
+## Nom des directions dans les animations, dans l'ordre de Joueur.Direction.
+const NOMS_DIRECTIONS: Array[String] = ["down", "up", "left", "right"]
 
-## Colonnes de la planche (hframes = 3).
-const IMAGE_DEBOUT := 0
-const IMAGE_FOULEE_A := 1
-const IMAGE_FOULEE_B := 2
-
-## Planche 3 images (debout, foulee A, foulee B) x 4 directions, dans l'ordre
-## de Joueur.Direction ; pieds sur la derniere ligne de chaque case.
-@export var sprite: Texture2D
+## Animations du personnage (assets/characters/<id>/<id>_frames.tres).
+@export var frames: SpriteFrames
 ## Distance maximale (en cases) a sa case de depart ; negatif = toute la zone.
 @export var rayon: int = -1
 
@@ -32,22 +28,17 @@ var en_mouvement: bool = false
 ## Pas qu'il reste a faire dans la promenade en cours (0 = a l'arret).
 var pas_restants: int = 0
 
-var _foulee_a: bool = false
 var _tween: Tween
 
-@onready var _sprite: Sprite2D = %Sprite
+@onready var _sprite: AnimatedSprite2D = %Sprite
 @onready var _minuteur: Timer = %Minuteur
 
 func _ready() -> void:
-	if sprite != null:
-		_sprite.texture = sprite
-	# Les pieds (derniere ligne de la case) tombent sur le bas de la case de carte.
-	# L'offset est en pixels de la texture : on tient compte de l'echelle du Sprite.
-	var hauteur_image: float = _sprite.texture.get_height() / float(_sprite.vframes)
-	var demi_case: float = Zones.TAILLE_CASE / 2.0 / _sprite.scale.y
-	_sprite.offset = Vector2(0, demi_case - hauteur_image / 2.0)
+	if frames != null:
+		_sprite.sprite_frames = frames
+	_caler_pieds()
 	_minuteur.timeout.connect(_sur_minuteur)
-	_afficher(IMAGE_DEBOUT)
+	_jouer("idle")
 	_relancer_minuteur()
 
 ## Pose le PNJ sans animation ; cette case devient sa case de depart.
@@ -56,7 +47,7 @@ func placer(c: Vector2i) -> void:
 	case_depart = c
 	position = Joueur.centre_de(c)
 
-## Un pas vers une case voisine : foulee pendant la premiere moitie, debout a la fin.
+## Un pas vers une case voisine, en jouant l'animation de marche.
 func avancer_vers(c: Vector2i, vers: Joueur.Direction) -> void:
 	if en_mouvement:
 		return
@@ -64,30 +55,26 @@ func avancer_vers(c: Vector2i, vers: Joueur.Direction) -> void:
 	cellule = c
 	en_mouvement = true
 	pas_restants = maxi(pas_restants - 1, 0)
-	_foulee_a = not _foulee_a
-	_afficher(IMAGE_FOULEE_A if _foulee_a else IMAGE_FOULEE_B)
+	_jouer("walk")
 	if _tween != null and _tween.is_valid():
 		_tween.kill()
-	var arrivee: Vector2 = Joueur.centre_de(c)
 	_tween = create_tween()
-	_tween.tween_property(self, "position", (position + arrivee) / 2.0, DUREE_PAS / 2.0)
-	_tween.tween_callback(_afficher.bind(IMAGE_DEBOUT))
-	_tween.tween_property(self, "position", arrivee, DUREE_PAS / 2.0)
+	_tween.tween_property(self, "position", Joueur.centre_de(c), DUREE_PAS)
 	_tween.finished.connect(_sur_fin_de_pas)
 
 ## Tourner sur place ; met aussi fin a la promenade en cours.
 func regarder(vers: Joueur.Direction) -> void:
 	pas_restants = 0
 	direction = vers
-	_afficher(IMAGE_DEBOUT)
+	_jouer("idle")
 
 func _sur_fin_de_pas() -> void:
 	en_mouvement = false
 	if pas_restants > 0:
-		envie_de_bouger.emit(self)       # on enchaine sans s'arreter
+		envie_de_bouger.emit(self)       # on enchaine sans couper l'animation
 	if not en_mouvement:                 # promenade finie, ou pas suivant bloque
 		pas_restants = 0
-		_afficher(IMAGE_DEBOUT)
+		_jouer("idle")
 		_relancer_minuteur()
 
 func _sur_minuteur() -> void:
@@ -100,5 +87,15 @@ func _sur_minuteur() -> void:
 func _relancer_minuteur() -> void:
 	_minuteur.start(randf_range(PAUSE_MIN, PAUSE_MAX))
 
-func _afficher(image: int) -> void:
-	_sprite.frame = int(direction) * _sprite.hframes + image
+## Joue "idle_<dir>" ou "walk_<dir>" ; ne relance pas une animation deja en cours.
+func _jouer(etat: String) -> void:
+	var nom := "%s_%s" % [etat, NOMS_DIRECTIONS[int(direction)]]
+	if _sprite.animation != nom or not _sprite.is_playing():
+		_sprite.play(nom)
+
+## Les pieds (bas de l'image) tombent sur le bas de la case. L'offset est en
+## pixels de la texture : on tient compte de l'echelle du sprite (0.25).
+func _caler_pieds() -> void:
+	var image := _sprite.sprite_frames.get_frame_texture(&"idle_down", 0)
+	var demi_case: float = Zones.TAILLE_CASE / 2.0 / _sprite.scale.y
+	_sprite.offset = Vector2(0, demi_case - image.get_height() / 2.0)
