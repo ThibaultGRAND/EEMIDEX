@@ -16,7 +16,7 @@ extends RefCounted
 ##   h  herbe courte                  g  herbe haute (rencontres)
 ##   t  arbre (bloquant)              j  buisson (bloquant)
 ##   b  ballast                       v  voie ferree (bloquant)
-##   =  passage a niveau              L  lampadaire (bloquant)
+##   =  passage a niveau              L  lampadaire (traversable)
 ##   n  banc public (bloquant)
 ##   S  soin      B  boutique     M  entrainement
 ##   T  passage sous les voies   R  ressource    X  combat de fin
@@ -28,7 +28,7 @@ const LARGEUR := 32
 const TAILLE_CASE := 16
 
 ## Cases que le joueur ne peut pas traverser.
-const BLOQUANTS := "#wtvjLn"
+const BLOQUANTS := "#wtvjn"
 
 ## Sols simples ou les PNJ ont le droit de se balader (pas d'herbe haute,
 ## de passage sous les voies, de sortie ni de lieu special).
