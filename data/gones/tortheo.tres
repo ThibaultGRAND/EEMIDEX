@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scripts/data/gone_data.gd" id="1_script"]
 [ext_resource type="Resource" path="res://data/moves/tortheo_1.tres" id="2_base"]
 [ext_resource type="Resource" path="res://data/moves/tortheo_2.tres" id="3_signature"]
-[ext_resource type="Texture2D" path="res://assets/sprites/pnj_theophile.png" id="4_sprite"]
+[ext_resource type="SpriteFrames" path="res://assets/characters/pnj_theophile/pnj_theophile_frames.tres" id="4_frames"]
 
 [resource]
 script = ExtResource("1_script")
@@ -11,7 +11,7 @@ id = &"tortheo"
 display_name = "Tortheo"
 description = "Tortheo, alternant marketing de la promo."
 type = &"marketing"
-sprite = ExtResource("4_sprite")
+frames = ExtResource("4_frames")
 couleur = Color(0.95, 0.68, 0.25, 1)
 base_pv = 32
 base_attaque = 14

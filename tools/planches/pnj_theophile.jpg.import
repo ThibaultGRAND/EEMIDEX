@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cnsesf8b46vpp"
-path="res://.godot/imported/pnj_paloma.png-726b4d490708d2ae165f97632be67f69.ctex"
+uid="uid://bhnyka6qs6jgx"
+path="res://.godot/imported/pnj_theophile.jpg-40d563e26a6a622285762bd13067ccd9.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/pnj_paloma.png"
-dest_files=["res://.godot/imported/pnj_paloma.png-726b4d490708d2ae165f97632be67f69.ctex"]
+source_file="res://tools/planches/pnj_theophile.jpg"
+dest_files=["res://.godot/imported/pnj_theophile.jpg-40d563e26a6a622285762bd13067ccd9.ctex"]
 
 [params]
 

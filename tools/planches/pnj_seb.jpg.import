@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://627r7kf6fuvj"
-path="res://.godot/imported/pnj_thomas.png-302cafbe75f7553f9e61851a6ac5148d.ctex"
+uid="uid://byurb83ju5d2o"
+path="res://.godot/imported/pnj_seb.jpg-afb744aca650177b2c0a5b4283dcfc4c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/pnj_thomas.png"
-dest_files=["res://.godot/imported/pnj_thomas.png-302cafbe75f7553f9e61851a6ac5148d.ctex"]
+source_file="res://tools/planches/pnj_seb.jpg"
+dest_files=["res://.godot/imported/pnj_seb.jpg-afb744aca650177b2c0a5b4283dcfc4c.ctex"]
 
 [params]
 

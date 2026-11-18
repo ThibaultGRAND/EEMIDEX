@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://db3bfku8m1g6n"
-path="res://.godot/imported/pnj_seb.png-47d94405e0261dc365f43a5eb86c7fa0.ctex"
+uid="uid://cw1dxploqyg00"
+path="res://.godot/imported/placeholder_tuiles_hd.png-a5d86b2a4a595a56163c469ae5999a2d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/pnj_seb.png"
-dest_files=["res://.godot/imported/pnj_seb.png-47d94405e0261dc365f43a5eb86c7fa0.ctex"]
+source_file="res://assets/tilesets/placeholder_tuiles_hd.png"
+dest_files=["res://.godot/imported/placeholder_tuiles_hd.png-a5d86b2a4a595a56163c469ae5999a2d.ctex"]
 
 [params]
 

@@ -11,7 +11,10 @@ extends Resource
 @export var display_name: String = "Gone"
 @export_multiline var description: String = ""
 @export var type: StringName = &"neutre"
-@export var sprite: Texture2D
+## Animations du personnage, au format de Sebastien
+## (assets/characters/<id>/<id>_frames.tres). Le combat y pioche l'image de
+## face pour l'adversaire et celle de dos pour l'alternant du joueur.
+@export var frames: SpriteFrames
 ## Couleur de repli tant que le sprite n'est pas dessiné.
 @export var couleur: Color = Color(0.9, 0.77, 0.42)
 

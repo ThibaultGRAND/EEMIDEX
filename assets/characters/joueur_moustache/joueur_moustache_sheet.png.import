@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://sp6n8vs7l387"
-path="res://.godot/imported/pnj_guillaume.png-75509fa52adcf040678f18d38ee50954.ctex"
+uid="uid://bgifjr1grf3we"
+path="res://.godot/imported/joueur_moustache_sheet.png-b9ed0d8040b8311d79535cc93afd6d06.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/pnj_guillaume.png"
-dest_files=["res://.godot/imported/pnj_guillaume.png-75509fa52adcf040678f18d38ee50954.ctex"]
+source_file="res://assets/characters/joueur_moustache/joueur_moustache_sheet.png"
+dest_files=["res://.godot/imported/joueur_moustache_sheet.png-b9ed0d8040b8311d79535cc93afd6d06.ctex"]
 
 [params]
 

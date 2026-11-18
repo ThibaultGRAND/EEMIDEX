@@ -3,8 +3,9 @@ extends Control
 ## Le joueur choisit : attaquer, utiliser un objet, changer de Gone ou fuir.
 ## L'ordre du tour dépend de la vitesse.
 
-signal _touche_pressee
-
+## L'écran parle, ou le joueur choisit. Les fonctions de règles posent MESSAGE
+## avant d'enchaîner des `await _dire()` ; l'affichage suit dans _dire() et
+## _afficher_menu().
 enum Mode { MESSAGE, MENU }
 
 const OPTIONS_RACINE := ["Attaquer", "Objet", "Changer", "Fuir"]
@@ -16,7 +17,6 @@ var _mode: Mode = Mode.MESSAGE
 var _contexte: StringName = &"racine"
 var _options: Array = []
 var _index: int = 0
-var _attente_touche: bool = false
 var _fini: bool = false
 ## Bonus temporaires accordés pendant le combat, remis à zéro à la fin.
 var _modificateurs: Array = []
@@ -25,16 +25,17 @@ var _attaques_offertes: Array = []
 ## Ce que rapporte un tour sans attaquer : objet, changement, defense.
 const CAFE_PAR_TOUR_SANS_ATTAQUE := 2
 
-@onready var _ennemi_nom: Label = %EnnemiNom
-@onready var _ennemi_pv: Label = %EnnemiPv
-@onready var _joueur_nom: Label = %JoueurNom
-@onready var _joueur_pv: Label = %JoueurPv
+@onready var _fiche_ennemi: FicheCombattant = %FicheEnnemi
+@onready var _fiche_joueur: FicheCombattant = %FicheJoueur
 @onready var _ennemi_sprite: ColorRect = %EnnemiSprite
 @onready var _joueur_sprite: ColorRect = %JoueurSprite
-@onready var _journal: Label = %Journal
-@onready var _menu: Label = %Menu
+@onready var _boite: BoiteDialogue = %Boite
+@onready var _menu: ListeMenu = %Menu
 
 func _ready() -> void:
+	_menu.choix_valide.connect(_sur_choix)
+	_menu.choix_change.connect(_sur_survol)
+	_menu.annule.connect(_sur_annulation)
 	GameState.assurer_partie()
 	GameState.jouer_musique(&"combat")
 	var fiche: GoneData = GameState.rencontre_en_attente
@@ -60,70 +61,72 @@ func _ready() -> void:
 # Affichage
 # =============================================================================
 func _rafraichir() -> void:
-	_ennemi_nom.text = "%s  Niv.%d" % [_ennemi.nom(), _ennemi.niveau]
-	_ennemi_pv.text = "Motivation %d/%d  %s" % [_ennemi.pv, _ennemi.pv_max(), _barre(_ennemi)]
-	_joueur_nom.text = "%s  Niv.%d" % [_actif.nom(), _actif.niveau]
-	_joueur_pv.text = "Motivation %d/%d  Café %d/%d" % [
-		_actif.pv, _actif.pv_max(), _actif.cafe, _actif.cafe_max()]
+	_fiche_ennemi.definir_combattant(_ennemi.nom(), _ennemi.niveau, _type_de(_ennemi))
+	_fiche_ennemi.definir_motivation(_ennemi.pv, _ennemi.pv_max())
+	_fiche_joueur.definir_combattant(_actif.nom(), _actif.niveau, _type_de(_actif))
+	_fiche_joueur.definir_motivation(_actif.pv, _actif.pv_max())
+	_fiche_joueur.definir_cafe(_actif.cafe, _actif.cafe_max())
 	if _ennemi.data != null:
 		_ennemi_sprite.color = _ennemi.data.couleur
 	if _actif.data != null:
 		_joueur_sprite.color = _actif.data.couleur
 
-func _barre(g: GoneInstance) -> String:
-	var plein := int(round(10.0 * float(g.pv) / float(maxi(1, g.pv_max()))))
-	return "[%s%s]" % ["=".repeat(plein), ".".repeat(10 - plein)]
+func _type_de(g: GoneInstance) -> StringName:
+	return g.data.type if g.data != null else &"neutre"
 
+## Une ligne de texte, puis on attend que le joueur valide. Le menu s'efface
+## pendant ce temps : le clavier appartient à la boîte de dialogue.
 func _dire(texte: String) -> void:
 	_mode = Mode.MESSAGE
-	_journal.text = texte
-	_menu.text = "\nEntrée pour continuer"
-	_attente_touche = true
-	await _touche_pressee
-	_attente_touche = false
+	_menu.visible = false
+	_menu.interactif = false
+	await _boite.afficher(texte)
 
-func _afficher_menu(contexte: StringName, invite: String, options: Array) -> void:
+## Pose une question et la liste des réponses. `colonnes` à 2 pour le menu
+## principal, en grille comme dans un Pokémon.
+func _afficher_menu(contexte: StringName, invite: String, options: Array,
+		colonnes: int = 1) -> void:
 	_contexte = contexte
 	_options = options
 	_index = 0
 	_mode = Mode.MENU
-	_journal.text = invite
-	_rafraichir_menu()
-
-func _rafraichir_menu() -> void:
-	var lignes: Array = []
-	for i in _options.size():
-		lignes.append(("> %s" % _options[i]) if i == _index else ("  %s" % _options[i]))
-	_menu.text = "\n".join(lignes)
+	_boite.afficher_invite(invite)
+	_menu.colonnes = colonnes
+	_menu.definir_options(options)
+	_menu.visible = true
+	_menu.interactif = true
 
 # =============================================================================
 # Entrées
 # =============================================================================
-func _unhandled_input(event: InputEvent) -> void:
+## Le joueur a validé une option. On retrouve l'index choisi : les règles
+## derrière (_valider) n'ont pas changé.
+func _sur_choix(index: int, _id: StringName) -> void:
 	if _fini:
 		return
-	if _attente_touche:
-		if event.is_action_pressed("ui_accept") or event.is_action_pressed("ui_cancel"):
-			_touche_pressee.emit()
+	_index = index
+	_valider()
+
+## Le curseur a bougé. Dans le menu des attaques, la boîte détaille celle qui
+## est sous le curseur.
+func _sur_survol(index: int, _id: StringName) -> void:
+	if _contexte != &"attaques" or index >= _attaques_offertes.size():
 		return
-	if _mode != Mode.MENU:
+	var attaque: MoveData = _attaques_offertes[index]
+	_boite.afficher_invite("%s — %d dégâts, type %s." % [
+		attaque.display_name, attaque.puissance, PaletteUi.libelle_type(attaque.type)])
+
+## Échap dans un sous-menu : retour au menu principal.
+func _sur_annulation() -> void:
+	if _fini or _contexte == &"racine":
 		return
-	if event.is_action_pressed("ui_down"):
-		_index = (_index + 1) % _options.size()
-		_rafraichir_menu()
-	elif event.is_action_pressed("ui_up"):
-		_index = (_index - 1 + _options.size()) % _options.size()
-		_rafraichir_menu()
-	elif event.is_action_pressed("ui_cancel") and _contexte != &"racine":
-		_menu_racine()
-	elif event.is_action_pressed("ui_accept"):
-		_valider()
+	_menu_racine()
 
 # =============================================================================
 # Menus
 # =============================================================================
 func _menu_racine() -> void:
-	_afficher_menu(&"racine", "Que fait %s ?" % _actif.nom(), OPTIONS_RACINE.duplicate())
+	_afficher_menu(&"racine", "Que fait %s ?" % _actif.nom(), OPTIONS_RACINE.duplicate(), 2)
 
 func _valider() -> void:
 	match _contexte:
@@ -153,26 +156,37 @@ func _choisir_action() -> void:
 			var noms: Array = []
 			for m: MoveData in _attaques_offertes:
 				var cout := m.cout_cafe()
-				noms.append("%s  %d dégâts  %s" % [
-					m.display_name, m.puissance,
-					"gratuit" if cout == 0 else "%d café" % cout])
-			noms.append("Retour")
+				noms.append({
+					"id": m.id,
+					"texte": m.display_name,
+					"detail": "gratuit" if cout == 0 else "%d café" % cout,
+				})
+			noms.append({"id": &"retour", "texte": "Retour"})
 			_afficher_menu(&"attaques", "Quelle attaque ?", noms)
 		1:
 			var objets := GameState.objets_possedes()
 			if objets.is_empty():
-				_journal.text = "Le sac est vide."
+				_boite.afficher_invite("Le sac est vide.")
 				return
 			var noms2: Array = []
 			for o in objets:
-				noms2.append("%s x%d" % [o.display_name, GameState.quantite_objet(o.id)])
-			noms2.append("Retour")
+				noms2.append({
+					"id": o.id,
+					"texte": o.display_name,
+					"detail": "x%d" % GameState.quantite_objet(o.id),
+				})
+			noms2.append({"id": &"retour", "texte": "Retour"})
 			_afficher_menu(&"objets", "Quel objet ?", noms2)
 		2:
 			var noms3: Array = []
-			for g in GameState.equipe:
-				noms3.append("%s  PV %d/%d%s" % [g.nom(), g.pv, g.pv_max(), " (KO)" if g.est_ko() else ""])
-			noms3.append("Retour")
+			for g: GoneInstance in GameState.equipe:
+				noms3.append({
+					"id": StringName(g.nom()),
+					"texte": g.nom(),
+					"detail": "KO" if g.est_ko() else "%d/%d" % [g.pv, g.pv_max()],
+					"actif": not g.est_ko() and g != _actif,
+				})
+			noms3.append({"id": &"retour", "texte": "Retour"})
 			_afficher_menu(&"changer", "Envoyer qui ?", noms3)
 		3:
 			_fuir()
@@ -319,10 +333,10 @@ func _tenter_capture(objet: ItemData) -> void:
 func _changer_de_gone(index: int) -> void:
 	var cible: GoneInstance = GameState.equipe[index]
 	if cible == _actif:
-		_journal.text = "%s est déjà au combat." % cible.nom()
+		_boite.afficher_invite("%s est déjà au combat." % cible.nom())
 		return
 	if cible.est_ko():
-		_journal.text = "%s est hors de combat." % cible.nom()
+		_boite.afficher_invite("%s est hors de combat." % cible.nom())
 		return
 	_mode = Mode.MESSAGE
 	_actif = cible

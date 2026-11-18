@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scripts/data/gone_data.gd" id="1_script"]
 [ext_resource type="Resource" path="res://data/moves/e1000_1.tres" id="2_base"]
 [ext_resource type="Resource" path="res://data/moves/e1000_2.tres" id="3_signature"]
-[ext_resource type="Texture2D" path="res://assets/sprites/pnj_emile.png" id="4_sprite"]
+[ext_resource type="SpriteFrames" path="res://assets/characters/pnj_emile/pnj_emile_frames.tres" id="4_frames"]
 
 [resource]
 script = ExtResource("1_script")
@@ -11,7 +11,7 @@ id = &"e1000"
 display_name = "E1000"
 description = "E1000, alternant dev de la promo."
 type = &"dev"
-sprite = ExtResource("4_sprite")
+frames = ExtResource("4_frames")
 couleur = Color(0.35, 0.62, 0.86, 1)
 base_pv = 22
 base_attaque = 11
