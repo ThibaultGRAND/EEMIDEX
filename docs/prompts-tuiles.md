@@ -933,3 +933,67 @@ Ne redessine pas la planche depuis zéro, ne réorganise pas les cases.
 
 Les tuiles de transition viennent en plus, fabriquées par script à partir des sols de
 la planche 1.
+
+---
+
+## Planche personnage — un Gone ou le joueur
+
+Un personnage **ne se dessine pas comme une tuile** : il lui faut ses 4 directions et
+ses images de marche. Une planche par personnage.
+
+### La taille, non negociable
+
+| Usage | Taille d'une image | Pourquoi |
+| --- | --- | --- |
+| Carte | **16 x 24 px** | 1 case de large, 1,5 case de haut |
+| Combat | la meme, affichee x2 | l'agrandissement entier garde les pixels nets |
+
+Un seul dessin sert partout. C'est deux fois moins de travail, et la cohérence est
+gratuite. Ne pas dessiner de planche de combat separee tant que le MVP n'est pas fini.
+
+### Le prompt
+
+```text
+Genere une planche de personnage en pixel art pour un jeu video.
+
+FORMAT
+- Une grille de 3 colonnes sur 4 lignes, soit 12 images, bord a bord, sans trait de
+  separation ni marge.
+- Chaque image fait 16 pixels de large sur 24 de haut, pas un de plus. C'est minuscule :
+  simplifie tout, ne dessine aucun detail plus fin qu'un pixel.
+- Rends l'image en grand, avec des pixels carres parfaitement nets : un pixel du jeu
+  apparait comme un bloc d'au moins 16 sur 16 pixels dans ton image.
+- Fond magenta pur #FF00FF partout autour du personnage.
+
+CONTENU, ligne par ligne
+Ligne 1, personnage vu de FACE : immobile, pas du pied gauche, pas du pied droit.
+Ligne 2, personnage vu de DOS : immobile, pas du pied gauche, pas du pied droit.
+Ligne 3, personnage vu de PROFIL GAUCHE : immobile, pas, autre pas.
+Ligne 4, personnage vu de PROFIL DROIT : immobile, pas, autre pas.
+Les pieds touchent le bas de l'image dans les 12 cases, a la meme hauteur, sinon le
+personnage sautille en jeu.
+
+LE PERSONNAGE
+[DECRIRE : coiffure, couleur de cheveux, lunettes, vetement, couleurs, objet]
+
+STYLE
+- Vue de dessus en 3/4, comme les jeux Pokemon sur Nintendo DS.
+- Lumiere venant du haut a gauche.
+- Contour sombre #2a2420 tout autour de la silhouette.
+- Palette limitee : 3 couleurs par vetement au maximum, ombre comprise.
+- A cette taille, le visage tient en quelques pixels : deux points pour les yeux,
+  un trait pour la bouche. Pas de nez, pas de details.
+
+INTERDIT
+- Aucun texte, aucune legende, aucun numero, aucune signature.
+- Aucun cadre, aucune bordure, aucun damier de transparence.
+- Aucune ombre portee sur le fond magenta.
+```
+
+### Ce qui ne marche pas
+
+- **Dessiner grand puis reduire.** Un personnage de 176 px ramene a 24 devient une
+  bouillie : les traits du visage se melangent, le contour disparait. C'est le cas des
+  trois personnages de la demo 8 directions, qui sont a refaire.
+- **Huit directions.** Quatre suffisent pour un deplacement case par case, et c'est deux
+  fois moins de dessin.
