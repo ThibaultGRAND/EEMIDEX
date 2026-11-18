@@ -2,6 +2,7 @@ extends Control
 ## Écran titre : nouvelle partie ou reprise de la sauvegarde.
 
 const ENTREE_NOUVELLE := "Nouvelle partie"
+const SCENE_INTRO := "res://scenes/ui/intro.tscn"
 const ENTREE_CONTINUER := "Continuer"
 
 var _options: Array[String] = []
@@ -43,5 +44,8 @@ func _valider() -> void:
 			if not GameState.charger():
 				GameState.nouvelle_partie()
 		ENTREE_NOUVELLE:
-			GameState.nouvelle_partie()
+			# Le prologue se charge de nouvelle_partie() : il remet les
+			# contrats et le premier alternant pendant que Gerard parle.
+			get_tree().change_scene_to_file(SCENE_INTRO)
+			return
 	get_tree().change_scene_to_file(GameState.SCENE_MONDE)
