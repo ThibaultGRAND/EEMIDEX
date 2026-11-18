@@ -336,7 +336,7 @@ func _defaite() -> void:
 	await _dire("Toute l'équipe est hors de combat...")
 	GameState.soigner_equipe()
 	GameState.zone_courante = &"presquile"
-	GameState.case_joueur = Vector2i(3, 5)
+	GameState.case_joueur = Zones.zone(&"presquile")["depart"]
 	_quitter("Vous vous réveillez à Bellecour, l'équipe soignée.")
 
 func _quitter(message: String) -> void:
