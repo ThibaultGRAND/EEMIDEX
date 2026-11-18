@@ -20,6 +20,12 @@ const DISTANCE_MIN_PNJ := 5
 ## Le bandeau du bas reste visible ce temps-la (secondes), puis s'efface.
 const DUREE_BANDEAU := 4.0
 const FONDU_BANDEAU := 0.6
+## L'encart du bas (nom de la zone, message) : dans le coin bas gauche, a la
+## taille du texte, jamais plus large que cette part de l'ecran.
+const ENCART_LARGEUR_MAX := 0.6
+const ENCART_LARGEUR_MIN := 60.0
+const ENCART_MARGE := 4.0
+const ENCART_RETRAIT := 3.0
 ## Longueur d'une promenade de PNJ, en pas d'affilee.
 ## Ce que fait un alternant sauvage quand le joueur lui marche dessus.
 ## Les trois chances se completent : le reste, il hesite et ne se passe rien.
@@ -945,7 +951,34 @@ func _message(texte: String) -> void:
 ## Le bandeau du bas (nom de la zone, message) ne cache pas la carte : il apparait
 ## avec un message ou a l'entree d'une zone, puis s'efface au bout de
 ## DUREE_BANDEAU secondes.
+## Place l'encart dans le coin bas gauche, a la taille de son texte : il ne barre
+## plus tout l'ecran et cache le moins possible la carte et le joueur.
+func _disposer_encart() -> void:
+	var ecran := get_viewport_rect().size
+	var police := _label_message.get_theme_font(&"font")
+	var taille := _label_message.get_theme_font_size(&"font_size")
+	var texte_large := maxf(
+		police.get_string_size(_label_zone.text, HORIZONTAL_ALIGNMENT_LEFT, -1, taille).x,
+		police.get_string_size(_label_message.text, HORIZONTAL_ALIGNMENT_LEFT, -1, taille).x)
+	var largeur := clampf(texte_large + ENCART_RETRAIT * 2.0 + 4.0, ENCART_LARGEUR_MIN,
+		ecran.x * ENCART_LARGEUR_MAX)
+	var interieur := largeur - ENCART_RETRAIT * 2.0
+	for label: Label in [_label_zone, _label_message]:
+		label.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
+		label.custom_minimum_size = Vector2(interieur, 0)
+		label.size = Vector2(interieur, 0)
+	_label_message.visible = _label_message.text != ""
+	var haut_zone := _label_zone.get_combined_minimum_size().y
+	var haut_message := _label_message.get_combined_minimum_size().y if _label_message.visible else 0.0
+	var hauteur := haut_zone + haut_message + ENCART_RETRAIT * 2.0
+	_bandeau.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
+	_bandeau.position = Vector2(ENCART_MARGE, ecran.y - ENCART_MARGE - hauteur)
+	_bandeau.size = Vector2(largeur, hauteur)
+	_label_zone.position = _bandeau.position + Vector2(ENCART_RETRAIT, ENCART_RETRAIT)
+	_label_message.position = _label_zone.position + Vector2(0, haut_zone)
+
 func _montrer_bandeau(persistant: bool = false) -> void:
+	_disposer_encart()
 	if _fondu_bandeau != null and _fondu_bandeau.is_valid():
 		_fondu_bandeau.kill()
 	for noeud: CanvasItem in [_bandeau, _label_zone, _label_message]:

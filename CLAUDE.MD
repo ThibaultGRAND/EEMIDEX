@@ -297,9 +297,11 @@ pour les sols et des placeholders pour les batiments.
 - **Mini-carte** toujours visible en haut à droite (`scenes/ui/mini_carte.gd`,
   `MiniCarte`, créée par `world.gd`) : 48 × 30 cases centrées sur le joueur, bandes
   recollées, personnages et repères. Cachée sous la carte du monde et l'inventaire.
-- **Bandeau du bas** (`%Bandeau`, `%Zone`, `%Message`) : il apparaît avec chaque message et
-  à l'entrée d'une zone, puis s'efface après `DUREE_BANDEAU` (4 s), pour ne pas cacher le
-  décor ni les personnages (`world.gd` : `_montrer_bandeau`).
+- **Encart de texte** (`%Bandeau`, `%Zone`, `%Message`) : un encart compact **dans le coin
+  bas gauche**, à la taille de son texte (60 % de l'écran au plus, retour à la ligne
+  au-delà), placé par `world.gd` (`_disposer_encart`) : les ancrages du `.tscn` sont
+  écrasés. Il apparaît avec chaque message et à l'entrée d'une zone, puis s'efface après
+  `DUREE_BANDEAU` (4 s), sauf l'invitation à parler qui reste tant qu'un PNJ est à côté.
 - **Son** : 3 musiques, 11 bruitages et 1 ambiance de zone, tous en `.ogg`, tous
   joues par `GameState` (`jouer_musique`, `jouer_son`, `jouer_ambiance`,
   `demarrer_son_texte`). Menus, dialogues, combat, boutique, pas du joueur,
