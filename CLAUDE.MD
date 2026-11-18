@@ -291,6 +291,12 @@ pour les sols et des placeholders pour les batiments.
   (`ListeMenu`), fiche à droite (portrait, `FicheCombattant`, stade et prochain palier,
   ATT/DEF/VIT avec le bonus gagné aux mini-jeux, capacités résumées : dégâts, effets,
   café). Nœuds construits dans `inventaire.gd` ; `world.gd` passe en `Mode.INVENTAIRE`.
+- **Parler aux PNJ** : un personnage à côté du joueur s'arrête et se tourne vers lui ;
+  le bandeau affiche « Entrée : parler à … » tant qu'il est là, et Entrée lui parle même
+  sans lui faire face (`world.gd` : `_proposer_de_parler`, `_pnj_voisin`).
+- **Mini-carte** toujours visible en haut à droite (`scenes/ui/mini_carte.gd`,
+  `MiniCarte`, créée par `world.gd`) : 48 × 30 cases centrées sur le joueur, bandes
+  recollées, personnages et repères. Cachée sous la carte du monde et l'inventaire.
 - **Bandeau du bas** (`%Bandeau`, `%Zone`, `%Message`) : il apparaît avec chaque message et
   à l'entrée d'une zone, puis s'efface après `DUREE_BANDEAU` (4 s), pour ne pas cacher le
   décor ni les personnages (`world.gd` : `_montrer_bandeau`).

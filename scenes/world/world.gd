@@ -79,6 +79,9 @@ var _interlocuteur: Pnj = null
 @onready var _label_zone: Label = %Zone
 @onready var _label_message: Label = %Message
 var _fondu_bandeau: Tween
+var _mini_carte: MiniCarte
+## Le personnage a cote du joueur a qui on propose de parler (null : personne).
+var _invite: Pnj = null
 @onready var _bandeau: ColorRect = %Bandeau
 @onready var _volet: ColorRect = %Volet
 @onready var _overlay: Label = %Overlay
@@ -97,6 +100,10 @@ func _ready() -> void:
 	_joueur.deplacement_fini.connect(_sur_case_atteinte)
 	_carte.fermee.connect(_sur_carte_fermee)
 	_inventaire.fermee.connect(_sur_carte_fermee)
+	# la mini-carte, sous les autres ecrans du Hud (carte du monde, inventaire)
+	_mini_carte = MiniCarte.new()
+	_bandeau.get_parent().add_child(_mini_carte)
+	_bandeau.get_parent().move_child(_mini_carte, 0)
 	_charger_zone(GameState.zone_courante, GameState.case_joueur)
 	if GameState.dernier_resultat_combat != "":
 		_message(GameState.dernier_resultat_combat)
@@ -191,6 +198,8 @@ func _peindre_zone() -> void:
 # =============================================================================
 func _process(_delta: float) -> void:
 	_voir_le_joueur()
+	_suivre_mini_carte()
+	_proposer_de_parler()
 	# Touche maintenue : on enchaine les pas tant qu'elle est enfoncee.
 	if _mode != Mode.LIBRE or _joueur.en_mouvement:
 		return
@@ -352,6 +361,11 @@ func _sur_envie_pnj(pnj: Pnj) -> void:
 	if _mode != Mode.LIBRE:
 		pnj.regarder(pnj.direction)
 		return
+	# A cote du joueur, il s'arrete et le regarde : on peut lui parler.
+	if _a_cote_du_joueur(pnj):
+		pnj.pas_restants = 0
+		pnj.regarder(_direction_de(_joueur.cellule - pnj.cellule))
+		return
 	var deplacement: Vector2i
 	var vers: Joueur.Direction
 	if pnj.pas_restants > 0:
@@ -462,6 +476,45 @@ func _case_devant() -> Vector2i:
 		if consigne[1] == _joueur.direction:
 			return _joueur.cellule + consigne[0]
 	return _joueur.cellule
+
+## Un personnage arrete sur une case voisine du joueur, celui d'en face d'abord.
+func _pnj_voisin() -> Pnj:
+	var devant := _pnj_sur(_case_devant())
+	if devant != null and not devant.en_mouvement:
+		return devant
+	for pnj: Pnj in _pnjs.get_children():
+		if not pnj.en_mouvement and _a_cote_du_joueur(pnj):
+			return pnj
+	return null
+
+func _a_cote_du_joueur(pnj: Pnj) -> bool:
+	var ecart: Vector2i = (pnj.cellule - _joueur.cellule).abs()
+	return ecart.x + ecart.y == 1
+
+## Quand un personnage est a cote, le bandeau propose de lui parler, et le reste
+## tant qu'il est la.
+func _proposer_de_parler() -> void:
+	var voisin: Pnj = null
+	if _mode == Mode.LIBRE and not _joueur.en_mouvement:
+		voisin = _pnj_voisin()
+	if voisin == _invite:
+		return
+	_invite = voisin
+	if voisin != null:
+		_label_message.text = "Entrée : parler à %s" % _nom_de(voisin)
+		_montrer_bandeau(true)
+	else:
+		_label_message.text = ""
+		_montrer_bandeau()
+
+func _suivre_mini_carte() -> void:
+	_mini_carte.visible = _mode != Mode.CARTE and _mode != Mode.INVENTAIRE
+	if not _mini_carte.visible:
+		return
+	var positions: Array[Vector2i] = []
+	for pnj: Pnj in _pnjs.get_children():
+		positions.append(pnj.cellule)
+	_mini_carte.suivre(zone_id, _joueur.cellule, positions)
 
 func _direction_de(deplacement: Vector2i) -> Joueur.Direction:
 	for consigne: Array in DIRECTIONS.values():
@@ -635,7 +688,12 @@ func _interagir() -> void:
 	# n'a pas son mot a dire. C'est la difference avec la rencontre subie, ou
 	# l'autre decide de se battre, de fuir ou d'ignorer.
 	var alternant := _pnj_sur(_case_devant())
+	if alternant == null:
+		alternant = _pnj_voisin()
 	if alternant != null:
+		# chacun se tourne vers l'autre, puis on parle
+		_joueur.regarder(_direction_de(alternant.cellule - _joueur.cellule))
+		alternant.regarder(_direction_de(_joueur.cellule - alternant.cellule))
 		_parler_a(alternant)
 		return
 	match _case_courante():
@@ -887,11 +945,13 @@ func _message(texte: String) -> void:
 ## Le bandeau du bas (nom de la zone, message) ne cache pas la carte : il apparait
 ## avec un message ou a l'entree d'une zone, puis s'efface au bout de
 ## DUREE_BANDEAU secondes.
-func _montrer_bandeau() -> void:
+func _montrer_bandeau(persistant: bool = false) -> void:
 	if _fondu_bandeau != null and _fondu_bandeau.is_valid():
 		_fondu_bandeau.kill()
 	for noeud: CanvasItem in [_bandeau, _label_zone, _label_message]:
 		noeud.modulate.a = 1.0
+	if persistant:
+		return                # reste affiche jusqu'au prochain appel
 	_fondu_bandeau = create_tween()
 	_fondu_bandeau.tween_interval(DUREE_BANDEAU)
 	_fondu_bandeau.tween_property(_bandeau, "modulate:a", 0.0, FONDU_BANDEAU)
