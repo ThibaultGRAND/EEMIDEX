@@ -36,6 +36,7 @@ const CAFE_PAR_TOUR_SANS_ATTAQUE := 2
 
 func _ready() -> void:
 	GameState.assurer_partie()
+	GameState.jouer_musique(&"combat")
 	var fiche: GoneData = GameState.rencontre_en_attente
 	if fiche == null:
 		var sauvages := GameState.gones_sauvages()

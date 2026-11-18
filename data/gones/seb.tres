@@ -1,8 +1,9 @@
-[gd_resource type="Resource" script_class="GoneData" load_steps=4 format=3]
+[gd_resource type="Resource" script_class="GoneData" load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/data/gone_data.gd" id="1_script"]
 [ext_resource type="Resource" path="res://data/moves/seb_1.tres" id="2_base"]
 [ext_resource type="Resource" path="res://data/moves/seb_2.tres" id="3_signature"]
+[ext_resource type="Texture2D" path="res://assets/sprites/pnj_seb.png" id="4_sprite"]
 
 [resource]
 script = ExtResource("1_script")
@@ -10,6 +11,7 @@ id = &"seb"
 display_name = "Seb"
 description = "Seb, alternant dev de la promo."
 type = &"dev"
+sprite = ExtResource("4_sprite")
 couleur = Color(0.35, 0.62, 0.86, 1)
 base_pv = 26
 base_attaque = 11

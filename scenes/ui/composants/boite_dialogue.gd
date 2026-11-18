@@ -49,6 +49,19 @@ func afficher(contenu: Variant) -> Signal:
 	_page_suivante()
 	return dialogue_termine
 
+## Affiche un texte qui reste à l'écran, sans flèche et sans attendre Entrée :
+## l'invite d'un menu (« Que fait Thigoat ? »). Le clavier va au menu.
+func afficher_invite(texte: String) -> void:
+	_arreter_animations()
+	_pages.clear()
+	_page = -1
+	_fleche.visible = false
+	_texte.text = texte
+	_texte.visible_ratio = 0.0
+	_ecriture = create_tween()
+	_ecriture.tween_property(_texte, "visible_ratio", 1.0,
+		float(texte.length()) / maxf(vitesse, 1.0))
+
 ## Vrai tant qu'il reste du texte à écrire ou une page à valider.
 func est_en_cours() -> bool:
 	return _page >= 0 and _page < _pages.size()

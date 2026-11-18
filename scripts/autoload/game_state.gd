@@ -15,6 +15,20 @@ const SCENE_COMBAT := "res://scenes/battle/battle.tscn"
 const SCENE_RYTHME := "res://scenes/minigames/rythme/rythme.tscn"
 const SCENE_FRAPPE := "res://scenes/minigames/frappe/frappe.tscn"
 
+## Les musiques de fond. Une seule joue a la fois, en boucle, et les scenes
+## demandent celle qu'elles veulent : la carte ne connait pas le combat.
+const MUSIQUES := {
+	&"exploration": "res://assets/audio/exploration.ogg",
+	&"combat": "res://assets/audio/combat.ogg",
+	&"boutique": "res://assets/audio/boutique.ogg",
+}
+## Volume de la musique, en decibels. La musique reste derriere le jeu.
+const VOLUME_MUSIQUE_DB := -12.0
+## Temps du fondu entre deux pistes, en secondes.
+const DUREE_FONDU := 0.5
+## Volume d'une piste qui s'efface. -80 dB, c'est le silence pour Godot.
+const VOLUME_SILENCE_DB := -80.0
+
 ## Les 3 ressources ramassées sur la carte. Chacune alimente un mini-jeu.
 const RESSOURCES := {
 	&"praline": "Praline",
@@ -48,8 +62,88 @@ var pnj_en_combat: StringName = &""
 var gone_a_entrainer: int = 0      # index dans l'équipe
 var dernier_resultat_combat: String = ""
 
+# --- Musique ------------------------------------------------------------------
+var musique_courante: StringName = &""
+var _lecteur_musique: AudioStreamPlayer = null
+var _fondu: Tween = null
+
 func _ready() -> void:
 	_charger_catalogues()
+	_preparer_musique()
+
+# =============================================================================
+# Musique
+# =============================================================================
+func _preparer_musique() -> void:
+	_lecteur_musique = AudioStreamPlayer.new()
+	_lecteur_musique.name = "Musique"
+	_lecteur_musique.volume_db = VOLUME_MUSIQUE_DB
+	# La musique continue pendant les menus et les changements de scene.
+	_lecteur_musique.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(_lecteur_musique)
+
+## Lance une piste de MUSIQUES, en boucle. Redemander celle qui joue deja ne
+## la recommence pas : on peut l'appeler sans y penser dans chaque _ready().
+## Dans un navigateur, le son ne demarre qu'apres la premiere touche du joueur ;
+## c'est pour cela que l'ecran titre attend une entree avant d'appeler ceci.
+func jouer_musique(id: StringName) -> void:
+	if _lecteur_musique == null:
+		return
+	if id == musique_courante and _lecteur_musique.playing:
+		return
+	if not MUSIQUES.has(id):
+		push_warning("Musique inconnue : %s" % id)
+		return
+	var piste: AudioStream = load(MUSIQUES[id])
+	if piste == null:
+		push_warning("Musique introuvable : %s" % MUSIQUES[id])
+		return
+	if piste is AudioStreamOggVorbis:
+		piste.loop = true
+	musique_courante = id
+	if _lecteur_musique.playing:
+		_enchainer(piste)
+	else:
+		_lecteur_musique.stream = piste
+		_lecteur_musique.volume_db = VOLUME_MUSIQUE_DB
+		_lecteur_musique.play()
+
+## Coupe la musique en douceur.
+func arreter_musique() -> void:
+	if _lecteur_musique == null or not _lecteur_musique.playing:
+		return
+	musique_courante = &""
+	_tuer_fondu()
+	_fondu = create_tween()
+	_fondu.tween_property(_lecteur_musique, "volume_db", VOLUME_SILENCE_DB, DUREE_FONDU)
+	_fondu.tween_callback(_lecteur_musique.stop)
+
+## Baisse la piste en cours, met la suivante, puis remonte le volume.
+func _enchainer(piste: AudioStream) -> void:
+	_tuer_fondu()
+	_fondu = create_tween()
+	_fondu.tween_property(_lecteur_musique, "volume_db", VOLUME_SILENCE_DB, DUREE_FONDU)
+	_fondu.tween_callback(_changer_piste.bind(piste))
+	_fondu.tween_property(_lecteur_musique, "volume_db", VOLUME_MUSIQUE_DB, DUREE_FONDU)
+
+func _changer_piste(piste: AudioStream) -> void:
+	_lecteur_musique.stream = piste
+	_lecteur_musique.play()
+
+func _tuer_fondu() -> void:
+	if _fondu != null and _fondu.is_valid():
+		_fondu.kill()
+	_fondu = null
+
+## A la fermeture du jeu, on arrete la piste et on la lache.
+## Godot signale quand meme « resources still in use at exit » : c'est le
+## serveur audio qui garde la lecture en cours jusqu'apres le menage, pas une
+## fuite du jeu. Le message n'apparait qu'en quittant.
+func _exit_tree() -> void:
+	_tuer_fondu()
+	if _lecteur_musique != null:
+		_lecteur_musique.stop()
+		_lecteur_musique.stream = null
 
 # =============================================================================
 # Catalogues

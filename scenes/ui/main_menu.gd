@@ -24,6 +24,10 @@ func _rafraichir() -> void:
 	_menu.text = "\n".join(lignes)
 
 func _unhandled_input(event: InputEvent) -> void:
+	# Un navigateur refuse de jouer un son tant que le joueur n'a rien touche :
+	# la musique demarre donc a la premiere touche, pas dans _ready().
+	if event is InputEventKey or event is InputEventJoypadButton:
+		GameState.jouer_musique(&"exploration")
 	if event.is_action_pressed("ui_down"):
 		_index = (_index + 1) % _options.size()
 		_rafraichir()

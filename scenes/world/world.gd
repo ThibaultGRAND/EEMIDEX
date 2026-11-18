@@ -55,6 +55,7 @@ var _minijeu_choisi: StringName = &""
 
 func _ready() -> void:
 	GameState.assurer_partie()
+	GameState.jouer_musique(&"exploration")
 	_joueur.deplacement_fini.connect(_sur_case_atteinte)
 	_charger_zone(GameState.zone_courante, GameState.case_joueur)
 	if GameState.dernier_resultat_combat != "":
@@ -431,6 +432,8 @@ func _interagir() -> void:
 			_message("Rien à faire ici.")
 
 func _ouvrir_menu(contexte: StringName, titre: String, options: Array) -> void:
+	if contexte == &"boutique":
+		GameState.jouer_musique(&"boutique")
 	_menu_contexte = contexte
 	_menu_titre = titre
 	_menu_options = options
@@ -439,6 +442,8 @@ func _ouvrir_menu(contexte: StringName, titre: String, options: Array) -> void:
 	_rafraichir_overlay()
 
 func _fermer_menu() -> void:
+	if _menu_contexte == &"boutique":
+		GameState.jouer_musique(&"exploration")
 	_mode = Mode.LIBRE
 	_menu_contexte = &""
 	_volet.visible = false
