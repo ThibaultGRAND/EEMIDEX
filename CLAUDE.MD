@@ -149,8 +149,8 @@ Seul le joueur a un vrai sprite ; pas encore de tileset dessiné, aucun son.
   dans `zones.gd` (clé `"pnj"`) : départ au hasard (à 5 cases au moins du joueur) à
   chaque entrée dans la zone, sauf `"case"` fixe ; `"rayon"` optionnel pour les tenir
   près de leur départ. Sprites `assets/sprites/pnj_*.png` (2 foulées × 4 directions,
-  perso de 30 px). Répartition : Presqu'île (Seb, Thibaut), Vieux Lyon (Thomas,
-  Julian), Fourvière (Paloma).
+  perso de 30 px). Répartition : Presqu'île (Seb, Thibaut, Théophile), Vieux Lyon (Thomas,
+  Julian, Emile), Fourvière (Paloma, Guillaume).
   PnjThibaut n'a qu'une image de face : il ne se tourne pas, sa 2ᵉ foulée est la même
   image remontée d'1 px. À remplacer quand sa planche 4 directions existera.
 - `scenes/battle/` — combat 1 contre 1 au tour par tour : attaquer / objet / changer /

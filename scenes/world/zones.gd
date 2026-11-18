@@ -106,6 +106,7 @@ const ZONES := {
 		"pnj": [
 			{"nom": "PnjSeb", "sprite": "res://assets/sprites/pnj_seb.png"},
 			{"nom": "PnjThibaut", "sprite": "res://assets/sprites/pnj_thibaut.png"},
+			{"nom": "PnjTheophile", "sprite": "res://assets/sprites/pnj_theophile.png"},
 		],
 	},
 	&"vieux_lyon": {
@@ -142,6 +143,7 @@ const ZONES := {
 		"pnj": [
 			{"nom": "PnjThomas", "sprite": "res://assets/sprites/pnj_thomas.png"},
 			{"nom": "PnjJulian", "sprite": "res://assets/sprites/pnj_julian.png"},
+			{"nom": "PnjEmile", "sprite": "res://assets/sprites/pnj_emile.png"},
 		],
 	},
 	&"fourviere": {
@@ -177,6 +179,7 @@ const ZONES := {
 		"sorties": {"2": ["vieux_lyon", 1, 9]},
 		"pnj": [
 			{"nom": "PnjPaloma", "sprite": "res://assets/sprites/pnj_paloma.png"},
+			{"nom": "PnjGuillaume", "sprite": "res://assets/sprites/pnj_guillaume.png"},
 		],
 	},
 }
