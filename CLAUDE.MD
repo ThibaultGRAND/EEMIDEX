@@ -46,10 +46,10 @@ Le document de référence est la page de cadrage. En cas de doute sur le périm
   - `project.godot` : `window/stretch/mode="canvas_items"`. **Ne jamais le remettre en
     `viewport`**, même pour « respecter le pixel-perfect » ou suivre un ancien document.
   - Les sprites de personnages (`assets/characters/<id>/<id>_sheet.png` et `_frames.tres`)
-    sont fournis **en 4× (~120 px de haut)** et affichés avec **`scale = 0.25`** dans
+    sont fournis **en 4× (~104 px de haut)** et affichés avec **`scale = 0.25`** dans
     `scenes/world/player.tscn` et `scenes/world/pnj.tscn`. **Ne pas les réduire** à
     24-32 px réels, **ne pas retirer le `scale`**, ne pas « corriger » leur taille :
-    ils font déjà 30 à 32 px dans le monde.
+    ils font déjà 26 px dans le monde.
   - L'offset des pieds tient compte de ce `scale` (`pnj.gd`, `player.tscn`) : ne pas le
     recalculer comme si le sprite était à l'échelle 1.
   - Les **tuiles de la carte** suivent le même principe depuis le 18 nov. 2026 : atlas
@@ -174,7 +174,7 @@ pour les sols et des placeholders pour les batiments.
   tuiles définitives restent à produire par l'équipe ; les anciennes (`lyon.tres`,
   16 px) sont toujours dans le dépôt.
 - **Personnages : tous au même format, celui de PnjThomas.** Chaque personnage a un
-  dossier `assets/characters/<id>/` avec `<id>_sheet.png` (personnage de 120 px, pieds
+  dossier `assets/characters/<id>/` avec `<id>_sheet.png` (personnage de 104 px, pieds
   sur le bas de chaque case) et `<id>_frames.tres` (SpriteFrames : `idle_<dir>` et
   `walk_<dir>` pour 8 directions). Le jeu les joue avec un `AnimatedSprite2D` à
   `scale = 0.25` : `player.tscn` (joueur Moustache) et `pnj.tscn` (le `.tres` de chaque

@@ -15,7 +15,8 @@ animations reprennent cette pose, la marche ajoute un rebond d'1 px.
 
 Sortie, dans assets/characters/<id>/ :
     <id>_sheet.png    toutes les poses dans une grille régulière, pieds sur la
-                      dernière ligne de chaque case, personnage de HAUTEUR px ;
+                      dernière ligne de chaque case, personnage de HAUTEUR px
+                      (104 par défaut, option --hauteur) ;
     <id>_frames.tres  SpriteFrames avec 16 animations : idle_<dir> et walk_<dir>
                       pour les 8 directions (down, down_left, left, up_left, up,
                       up_right, right, down_right).
@@ -36,8 +37,9 @@ from scipy import ndimage
 
 RACINE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-## Hauteur du personnage dans la planche produite (affiché à scale 0.25 en jeu).
-HAUTEUR = 120
+## Hauteur du personnage dans la planche produite (affiché à scale 0.25 en jeu :
+## 104 px de texture = 26 px dans le monde).
+HAUTEUR = 104
 ## Marge vide au-dessus du personnage le plus grand, dans chaque case.
 MARGE_HAUT = 4
 
@@ -165,10 +167,12 @@ def main():
     p.add_argument("--face-en-premier", action="store_true",
                    help="la pose 1 de la ligne 0 est de face : l'immobile « haut » est pris dans la marche de dos")
     p.add_argument("--unique", action="store_true", help="une seule pose de face")
+    p.add_argument("--hauteur", type=int, default=HAUTEUR,
+                   help="hauteur du personnage en pixels de texture (défaut %d)" % HAUTEUR)
     args = p.parse_args()
 
     poses, _ = lire_poses(args.planche, args.fond, args.unique)
-    echelle = HAUTEUR / max(pz["h"] for pz in poses.values())
+    echelle = args.hauteur / max(pz["h"] for pz in poses.values())
     petites = {rc: reduire(pz["rgba"], echelle) for rc, pz in poses.items()}
 
     if args.unique:
@@ -208,7 +212,7 @@ def main():
         anims["walk_" + d] = (marches[d], FPS_MARCHE, True)
     tres = os.path.join(dossier, "%s_frames.tres" % args.id)
     ecrire_frames(tres, "res://assets/characters/%s/%s_sheet.png" % (args.id, args.id), cw, ch, anims)
-    print("%-18s case %dx%d, perso de %d px -> %s" % (args.id, cw, ch, HAUTEUR,
+    print("%-18s case %dx%d, perso de %d px -> %s" % (args.id, cw, ch, args.hauteur,
                                                        os.path.relpath(dossier, RACINE)))
 
 
