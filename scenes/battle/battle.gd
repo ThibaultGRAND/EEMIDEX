@@ -199,10 +199,12 @@ func _executer(attaquant: GoneInstance, cible: GoneInstance, attaque: MoveData) 
 			attaquant.soigner(attaque.soin)
 			await _dire("%s récupère %d PV." % [attaquant.nom(), attaque.soin])
 	elif attaque.puissance > 0:
-		var degats := _degats(attaquant, cible, attaque)
+		var affinite := Affinites.multiplicateur(attaque.type, cible.data.type)
+		var degats := _degats(attaquant, cible, attaque, affinite)
 		cible.subir(degats)
 		_rafraichir()
-		await _dire("%d dégâts." % degats)
+		var commentaire := Affinites.commentaire(affinite)
+		await _dire("%d dégâts.%s" % [degats, "  " + commentaire if commentaire != "" else ""])
 	if attaque.stat_modifiee != &"" and attaque.modificateur != 0:
 		var beneficiaire := attaquant if attaque.cible == MoveData.Cible.SOI else cible
 		_appliquer_modificateur(beneficiaire, attaque.stat_modifiee, attaque.modificateur * 2)
@@ -213,9 +215,10 @@ func _executer(attaquant: GoneInstance, cible: GoneInstance, attaque: MoveData) 
 		])
 	_rafraichir()
 
-func _degats(attaquant: GoneInstance, cible: GoneInstance, attaque: MoveData) -> int:
+func _degats(attaquant: GoneInstance, cible: GoneInstance, attaque: MoveData,
+		affinite: float = Affinites.NORMAL) -> int:
 	var base := float(attaque.puissance) * float(attaquant.attaque()) / float(maxi(1, cible.defense()))
-	return maxi(1, int(base * randf_range(0.85, 1.0)))
+	return maxi(1, int(base * affinite * randf_range(0.85, 1.0)))
 
 func _appliquer_modificateur(sur: GoneInstance, stat: StringName, valeur: int) -> void:
 	sur.appliquer_entrainement(stat, valeur)

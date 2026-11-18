@@ -2,11 +2,11 @@
 # prenom | archetype | nom du pouvoir | ce que fait le pouvoir | type
 #
 # archetype : rapide, costaud, defensif, equilibre
-# Le type sert aux affinites : promo, ville, bouchon, colline, vieux_lyon...
+# type : dev, design, marketing, com, product, data (cycle ferme, docs/histoire.md)
 #
 # Rappel : ce fichier ne vaut pas consentement. Le script ecrit toujours
 # consentement_recu = false, a passer a true fiche par fiche une fois
 # l'accord ecrit recu (docs/consentement.md).
 
-Exemple-Rapide   | rapide    | Sprint de 8h58   | Arrive en cours juste avant la fermeture de la porte. | promo
-Exemple-Costaud  | costaud   | Rendu de projet  | Depose 400 pages sur la table adverse.                | promo
+Exemple-Rapide   | rapide    | Sprint de 8h58   | Arrive en cours juste avant la fermeture de la porte. | dev
+Exemple-Costaud  | costaud   | Rendu de projet  | Depose 400 pages sur la table adverse.                | dev

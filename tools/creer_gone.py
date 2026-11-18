@@ -138,7 +138,7 @@ def main(fichier):
             print("  ligne %d ignoree, il faut au moins 4 champs : %s" % (numero, ligne))
             continue
         prenom, archetype, pouvoir_nom, pouvoir_desc = champs[:4]
-        type_gone = champs[4] if len(champs) > 4 else "promo"
+        type_gone = champs[4] if len(champs) > 4 else "neutre"
         if archetype not in ARCHETYPES:
             print("  ligne %d : archetype inconnu '%s', connus : %s"
                   % (numero, archetype, ", ".join(ARCHETYPES)))
