@@ -6,7 +6,7 @@ extends Node2D
 ## Quand l'equipe aura dessine les vraies tuiles, il suffira de remplacer le PNG
 ## du tileset : les plans et le code ne bougent pas.
 
-enum Mode { LIBRE, MENU, CARTE, DIALOGUE }
+enum Mode { LIBRE, MENU, CARTE, DIALOGUE, INVENTAIRE }
 
 const CHANCE_RENCONTRE := 0.14
 const SCENE_PNJ: PackedScene = preload("res://scenes/world/pnj.tscn")
@@ -75,6 +75,7 @@ var _interlocuteur: Pnj = null
 @onready var _pnjs: Node2D = %Pnjs
 @onready var _trams: Node2D = %Trams
 @onready var _carte: CarteMonde = %CarteMonde
+@onready var _inventaire: Inventaire = %Inventaire
 @onready var _label_zone: Label = %Zone
 @onready var _label_message: Label = %Message
 var _fondu_bandeau: Tween
@@ -95,6 +96,7 @@ func _ready() -> void:
 	add_child(_train)
 	_joueur.deplacement_fini.connect(_sur_case_atteinte)
 	_carte.fermee.connect(_sur_carte_fermee)
+	_inventaire.fermee.connect(_sur_carte_fermee)
 	_charger_zone(GameState.zone_courante, GameState.case_joueur)
 	if GameState.dernier_resultat_combat != "":
 		_message(GameState.dernier_resultat_combat)
@@ -607,8 +609,8 @@ func _lancer_combat_de_fin() -> void:
 # Interaction et menus
 # =============================================================================
 func _unhandled_input(event: InputEvent) -> void:
-	if _mode == Mode.CARTE:
-		return               # la carte du monde gere ses touches
+	if _mode == Mode.CARTE or _mode == Mode.INVENTAIRE:
+		return               # la carte du monde et l'inventaire gerent leurs touches
 	if _mode == Mode.MENU:
 		_input_menu(event)
 		return
@@ -616,7 +618,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		_input_dialogue(event)
 		return
 	if event.is_action_pressed("ui_cancel"):
-		_ouvrir_menu(&"pause", "Menu", ["Équipe", "Carte", "Sauvegarder", "Retour au titre", "Reprendre"])
+		_ouvrir_menu(&"pause", "Menu", ["Inventaire", "Carte", "Sauvegarder", "Retour au titre", "Reprendre"])
 		return
 	if event.is_action_pressed("ui_accept"):
 		_interagir()
@@ -814,8 +816,10 @@ func _sur_carte_fermee() -> void:
 
 func _menu_pause(choix: String) -> void:
 	match choix:
-		"Équipe":
-			_ouvrir_menu(&"equipe", _texte_equipe(), ["Fermer"])
+		"Inventaire":
+			_fermer_menu()
+			_mode = Mode.INVENTAIRE
+			_inventaire.ouvrir()
 		"Carte":
 			_fermer_menu()
 			_mode = Mode.CARTE
@@ -875,25 +879,6 @@ func _lancer_minijeu(index: int) -> void:
 	GameState.gone_a_entrainer = index
 	var scene: String = GameState.SCENE_RYTHME if _minijeu_choisi == &"rythme" else GameState.SCENE_FRAPPE
 	get_tree().change_scene_to_file(scene)
-
-func _texte_equipe() -> String:
-	var lignes: Array = ["Équipe (%d/%d alternants)" % [GameState.equipe.size(), GameState.TAILLE_EQUIPE_MAX]]
-	for g in GameState.equipe:
-		var palier: int = g.prochain_palier()
-		lignes.append("%s  %s  Niv.%d%s  Motivation %d/%d" % [
-			g.nom(), g.nom_du_stade(), g.niveau,
-			"  (évolue au %d)" % palier if palier > 0 else "",
-			g.pv, g.pv_max()])
-		lignes.append("   ATT %d (+%d/%d)  DEF %d  VIT %d (+%d/%d)" % [
-			g.attaque(), g.bonus_de(&"attaque"), GoneInstance.BONUS_MAX,
-			g.defense(), g.vitesse(), g.bonus_de(&"vitesse"), GoneInstance.BONUS_MAX])
-	lignes.append("")
-	var sacs: Array = []
-	for objet in GameState.objets_possedes():
-		sacs.append("%s x%d" % [objet.display_name, GameState.quantite_objet(objet.id)])
-	lignes.append("Note de frais : %d" % GameState.note_de_frais)
-	lignes.append("Sac : " + (", ".join(sacs) if not sacs.is_empty() else "vide"))
-	return "\n".join(lignes)
 
 func _message(texte: String) -> void:
 	_label_message.text = texte

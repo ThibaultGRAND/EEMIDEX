@@ -278,6 +278,11 @@ pour les sols et des placeholders pour les batiments.
   personnage peut apparaître plusieurs fois, n'importe où sur une case libre. Un
   alternant recruté (drapeau `cle`, inchangé : `zone_nom`) ne se balade plus. La fiche est
   posée en métadonnée `fiche` sur le nœud (`world.gd` : `_nom_de`, `_fiche_de`).
+- `scenes/ui/inventaire.tscn` — **inventaire** (menu pause > « Inventaire », remplace
+  l'ancien écran « Équipe » en texte). Onglets Équipe / Sac (← →) : liste à gauche
+  (`ListeMenu`), fiche à droite (portrait, `FicheCombattant`, stade et prochain palier,
+  ATT/DEF/VIT avec le bonus gagné aux mini-jeux, capacités résumées : dégâts, effets,
+  café). Nœuds construits dans `inventaire.gd` ; `world.gd` passe en `Mode.INVENTAIRE`.
 - **Bandeau du bas** (`%Bandeau`, `%Zone`, `%Message`) : il apparaît avec chaque message et
   à l'entrée d'une zone, puis s'efface après `DUREE_BANDEAU` (4 s), pour ne pas cacher le
   décor ni les personnages (`world.gd` : `_montrer_bandeau`).
