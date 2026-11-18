@@ -344,6 +344,18 @@ pour les sols et des placeholders pour les batiments.
   --fond vert|magenta|transparent` (options `--face-en-premier`, `--unique` : voir l'aide
   du script ; il demande Pillow, numpy et scipy).
   Si deux poses se touchent presque, le script réessaie seul avec une marge plus fine.
+  **Planches de combat** (18 nov. 2026) : 7 poses sur les lignes 1 à 3 (marche à gauche,
+  coup de poing / coup de pied / touché à droite). Le script les reconnaît seul et ajoute
+  `combat_poing`, `combat_pied` et `combat_touche` au `_frames.tres` (de profil, tournés
+  vers la droite). `--combat tools/planches/<id>_combat.jpg` garde la marche de la
+  planche principale et ne prend que le combat. Le combat (`battle.gd`, `_jouer_combat`)
+  les joue : l'attaquant frappe (poing ou pied au hasard), la cible encaisse, l'ennemi
+  est retourné en miroir. L'image est calée sur la hauteur du cadre (`_afficher_image`).
+  Faits : Gabriel, Émile, Julian, Mathéo, Paloma (marche d'origine + combat), Thibaut
+  (refait entièrement depuis sa planche de combat). **`pnj_generique_1` à `_5`** : planches
+  reçues sans nom (pull olive, t-shirt marine, pull rayé, polo vert, polo noir sans
+  combat), à renommer quand on saura qui c'est. Leur marche gauche/droite/haut reprend
+  bas-gauche/bas-droite/haut-gauche (la planche de combat n'en a pas).
   **Planches découpées le 18 nov. 2026** : `joueur_moustachette` (branchée dans
   `GameState.HEROS`, choisie au prologue), `pnj_julian` et `pnj_guillaume`
   refaits, et `pnj_celia`, `pnj_gabriel`, `pnj_matheo`. Ces trois derniers ne sont **pas

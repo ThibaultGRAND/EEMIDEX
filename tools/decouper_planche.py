@@ -13,6 +13,20 @@ les planches fournies par l'équipe :
 Une planche « unique » (une seule pose de face) est aussi acceptée : toutes les
 animations reprennent cette pose, la marche ajoute un rebond d'1 px.
 
+Planche « de combat » (reconnue toute seule, 7 poses sur les lignes 1 a 3) :
+
+    ligne 0 : 8 poses immobiles
+    ligne 1 : marche bas-gauche (3) | coup de poing (4)
+    ligne 2 : marche bas-droite (3) | coup de pied (4)
+    ligne 3 : marche bas (3)        | touche, il encaisse (4)
+    ligne 4 : marche haut-gauche (3) | marche haut-droite (3) (+ 1 pose ignoree)
+
+Elle ajoute trois animations au SpriteFrames : combat_poing, combat_pied et
+combat_touche (vues de profil, tournees vers la droite). Elle n'a pas de marche
+gauche, droite ni haut : on reprend bas-gauche, bas-droite et haut-gauche.
+Avec --combat, la marche vient de la planche principale et seul le combat est pris
+dans la planche de combat.
+
 Sortie, dans assets/characters/<id>/ :
     <id>_sheet.png    toutes les poses dans une grille régulière, pieds sur la
                       dernière ligne de chaque case, personnage de HAUTEUR px
@@ -27,6 +41,8 @@ Exemples :
     python3 tools/decouper_planche.py tools/planches/pnj_thomas.jpg pnj_thomas --fond vert
     python3 tools/decouper_planche.py tools/planches/pnj_julian.jpg pnj_julian --fond vert --face-en-premier
     python3 tools/decouper_planche.py tools/planches/pnj_thibaut.png pnj_thibaut --fond magenta --unique
+    python3 tools/decouper_planche.py tools/planches/pnj_emile.jpg pnj_emile --fond magenta \
+        --combat tools/planches/pnj_emile_combat.jpg
 """
 import argparse
 import os
@@ -60,6 +76,24 @@ IMMOBILES = {
     "up": (0, 0), "up_left": (0, 1), "left": (0, 2), "down_left": (0, 3),
     "down": (0, 4), "down_right": (2, 1), "right": (2, 4), "up_right": (0, 7),
 }
+## Planche de combat : marche de remplacement et poses de combat.
+MARCHES_COMBAT = dict(MARCHES)
+MARCHES_COMBAT.update({
+    "left": MARCHES["down_left"],
+    "right": MARCHES["down_right"],
+    "up": MARCHES["up_left"],
+})
+IMMOBILES_COMBAT = {
+    "up": (0, 0), "up_left": (0, 1), "left": (0, 2), "down_left": (0, 3),
+    "down": (0, 4), "down_right": (0, 5), "right": (0, 6), "up_right": (0, 7),
+}
+COMBATS = {
+    "combat_poing": [(1, 3), (1, 4), (1, 5), (1, 6)],
+    "combat_pied": [(2, 3), (2, 4), (2, 5), (2, 6)],
+    "combat_touche": [(3, 3), (3, 4), (3, 5), (3, 6)],
+}
+FPS_COMBAT = 8.0
+CLASSIQUE = [8, 6, 6, 6, 6]
 FPS_IMMOBILE = 5.0
 FPS_MARCHE = 7.0
 
@@ -81,9 +115,15 @@ def lire_poses(chemin, fond, unique):
     """
     for dilatation in (4, 3, 2):
         resultat = _lire_poses(chemin, fond, unique, dilatation)
-        if resultat[1] == [8, 6, 6, 6, 6] or unique:
+        if unique or resultat[1] == CLASSIQUE or est_combat(resultat[1]):
             return resultat
-    raise SystemExit("Planche inattendue : %s poses par ligne au lieu de [8, 6, 6, 6, 6]" % resultat[1])
+    raise SystemExit("Planche inattendue : %s poses par ligne au lieu de %s (ou [8, 7, 7, 7, 6] "
+                     "pour une planche de combat)" % (resultat[1], CLASSIQUE))
+
+
+def est_combat(nb):
+    """Disposition d'une planche de combat : 7 poses sur les lignes 1 a 3."""
+    return len(nb) == 5 and nb[:4] == [8, 7, 7, 7] and nb[4] in (6, 7)
 
 
 def _lire_poses(chemin, fond, unique, dilatation):
@@ -177,13 +217,32 @@ def main():
     p.add_argument("--face-en-premier", action="store_true",
                    help="la pose 1 de la ligne 0 est de face : l'immobile « haut » est pris dans la marche de dos")
     p.add_argument("--unique", action="store_true", help="une seule pose de face")
+    p.add_argument("--combat", help="planche de combat dont on ne prend que les poses de combat")
     p.add_argument("--hauteur", type=int, default=HAUTEUR,
                    help="hauteur du personnage en pixels de texture (défaut %d)" % HAUTEUR)
     args = p.parse_args()
 
-    poses, _ = lire_poses(args.planche, args.fond, args.unique)
-    echelle = args.hauteur / max(pz["h"] for pz in poses.values())
+    poses, nb = lire_poses(args.planche, args.fond, args.unique)
+    combat = not args.unique and est_combat(nb)
+    if combat:
+        # les poses de combat (bras leves, jambe tendue) ne fixent pas l'echelle
+        echelle = args.hauteur / max(pz["h"] for (r, _), pz in poses.items() if r == 0)
+    else:
+        echelle = args.hauteur / max(pz["h"] for pz in poses.values())
     petites = {rc: reduire(pz["rgba"], echelle) for rc, pz in poses.items()}
+    combats = {}
+    if combat:
+        combats = {nom: images for nom, images in COMBATS.items()}
+    elif args.combat:
+        # combat pris dans une autre planche, range sur les lignes 10 et suivantes
+        autres, nb_c = lire_poses(args.combat, args.fond, False)
+        if not est_combat(nb_c):
+            raise SystemExit("--combat : %s n'est pas une planche de combat (%s)" % (args.combat, nb_c))
+        echelle_c = args.hauteur / max(pz["h"] for (r, _), pz in autres.items() if r == 0)
+        for nom, images in COMBATS.items():
+            for r, c in images:
+                petites[(10 + r, c)] = reduire(autres[(r, c)]["rgba"], echelle_c)
+            combats[nom] = [(10 + r, c) for r, c in images]
 
     if args.unique:
         seule = petites[(0, 0)]
@@ -194,14 +253,31 @@ def main():
         immobiles = {d: (0, 0) for d in IMMOBILES}
     else:
         rebond = {}
-        marches = {d: [a, m, b, m] for d, (a, m, b) in MARCHES.items()}
-        immobiles = dict(IMMOBILES)
+        source = MARCHES_COMBAT if combat else MARCHES
+        marches = {d: [a, m, b, m] for d, (a, m, b) in source.items()}
+        immobiles = dict(IMMOBILES_COMBAT if combat else IMMOBILES)
         if args.face_en_premier:
             immobiles["up"] = MARCHES["up"][1]
+    # on ne garde dans la planche que les poses servies par une animation
+    servies = set(immobiles.values()) | {rc for m in marches.values() for rc in m} \
+        | {rc for images in combats.values() for rc in images}
+    petites = {rc: im for rc, im in petites.items() if rc in servies}
+    # les lignes vides (entre la marche et le combat) ne prennent pas de place
+    lignes_utiles = sorted({r for r, _ in petites})
+    rang = {r: i for i, r in enumerate(lignes_utiles)}
+    petites = {(rang[r], c): im for (r, c), im in petites.items()}
+    rebond = {(rang[r], c): v for (r, c), v in rebond.items() if r in rang}
+    def rangee(rc):
+        return (rang[rc[0]], rc[1])
+    immobiles = {d: rangee(rc) for d, rc in immobiles.items()}
+    marches = {d: [rangee(rc) for rc in m] for d, m in marches.items()}
+    combats = {n: [rangee(rc) for rc in m] for n, m in combats.items()}
 
-    largeur_max = max(im.shape[1] for im in petites.values())
+    # Chaque pose est centree sur la tete : la case doit contenir ce qui depasse de
+    # chaque cote (une jambe tendue dans un coup de pied), sinon elle deborde.
+    demi = max(max(centre_tete(im), im.shape[1] - centre_tete(im)) for im in petites.values())
     hauteur_max = max(im.shape[0] for im in petites.values())
-    cw = largeur_max + 8 + (largeur_max % 2)
+    cw = 2 * int(np.ceil(demi)) + 8
     ch = hauteur_max + MARGE_HAUT
     lignes = max(r for r, _ in petites) + 1
     colonnes = max(c for _, c in petites) + 1
@@ -220,10 +296,13 @@ def main():
         anims["idle_" + d] = ([immobiles[d]], FPS_IMMOBILE, True)
     for d in ["down", "down_left", "left", "up_left", "up", "up_right", "right", "down_right"]:
         anims["walk_" + d] = (marches[d], FPS_MARCHE, True)
+    for nom, images in combats.items():
+        anims[nom] = (images, FPS_COMBAT, False)
     tres = os.path.join(dossier, "%s_frames.tres" % args.id)
     ecrire_frames(tres, "res://assets/characters/%s/%s_sheet.png" % (args.id, args.id), cw, ch, anims)
-    print("%-18s case %dx%d, perso de %d px -> %s" % (args.id, cw, ch, args.hauteur,
-                                                       os.path.relpath(dossier, RACINE)))
+    print("%-18s case %dx%d, perso de %d px%s -> %s" % (args.id, cw, ch, args.hauteur,
+                                                         ", combat" if combats else "",
+                                                         os.path.relpath(dossier, RACINE)))
 
 
 if __name__ == "__main__":
