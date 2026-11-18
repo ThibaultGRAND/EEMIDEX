@@ -41,6 +41,10 @@ func definir_options(options: Array) -> void:
 	for brute in options:
 		_options.append(_normaliser(brute))
 	for enfant in _grille.get_children():
+		# remove_child tout de suite : queue_free() seul laisse l'ancienne ligne
+		# dans la grille jusqu'à la fin de la frame, et _rafraichir() compterait
+		# des lignes qui n'ont plus d'option en face.
+		_grille.remove_child(enfant)
 		enfant.queue_free()
 	for option in _options:
 		_grille.add_child(_fabriquer_ligne(option))
@@ -105,7 +109,7 @@ func _fabriquer_ligne(option: Dictionary) -> HBoxContainer:
 	return ligne
 
 func _rafraichir() -> void:
-	for i in _grille.get_child_count():
+	for i in mini(_grille.get_child_count(), _options.size()):
 		var ligne: Node = _grille.get_child(i)
 		var actif: bool = _options[i].get("actif", true)
 		var curseur: Label = ligne.get_node("Curseur")

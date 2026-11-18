@@ -25,6 +25,16 @@ var _attaques_offertes: Array = []
 ## Ce que rapporte un tour sans attaquer : objet, changement, defense.
 const CAFE_PAR_TOUR_SANS_ATTAQUE := 2
 
+## Largeurs du bas de l'écran, en pixels (l'écran fait 320 de large).
+## Le menu principal tient à droite de la boîte ; les sous-menus ont des
+## libellés longs (« Lancer de sauce curry »), ils mordent sur sa largeur ;
+## pendant un message, la boîte prend tout.
+const MENU_X_RACINE := 200.0
+const MENU_X_SOUS_MENU := 120.0
+const BOITE_LARGEUR_RACINE := 192.0
+const BOITE_LARGEUR_SOUS_MENU := 112.0
+const BOITE_LARGEUR_MESSAGE := 308.0
+
 @onready var _fiche_ennemi: FicheCombattant = %FicheEnnemi
 @onready var _fiche_joueur: FicheCombattant = %FicheJoueur
 @onready var _ennemi_sprite: ColorRect = %EnnemiSprite
@@ -95,6 +105,7 @@ func _dire(texte: String) -> void:
 	_mode = Mode.MESSAGE
 	_menu.visible = false
 	_menu.interactif = false
+	_boite.offset_right = _boite.offset_left + BOITE_LARGEUR_MESSAGE
 	await _boite.afficher(texte)
 
 ## Pose une question et la liste des réponses. `colonnes` à 2 pour le menu
@@ -105,6 +116,10 @@ func _afficher_menu(contexte: StringName, invite: String, options: Array,
 	_options = options
 	_index = 0
 	_mode = Mode.MENU
+	var racine := colonnes > 1
+	_menu.offset_left = MENU_X_RACINE if racine else MENU_X_SOUS_MENU
+	_boite.offset_right = _boite.offset_left + (
+		BOITE_LARGEUR_RACINE if racine else BOITE_LARGEUR_SOUS_MENU)
 	_boite.afficher_invite(invite)
 	_menu.colonnes = colonnes
 	_menu.definir_options(options)
@@ -128,8 +143,9 @@ func _sur_survol(index: int, _id: StringName) -> void:
 	if _contexte != &"attaques" or index >= _attaques_offertes.size():
 		return
 	var attaque: MoveData = _attaques_offertes[index]
-	_boite.afficher_invite("%s — %d dégâts, type %s." % [
-		attaque.display_name, attaque.puissance, PaletteUi.libelle_type(attaque.type)])
+	var effet := "%d dégâts" % attaque.puissance if attaque.puissance > 0 else "soutien"
+	_boite.afficher_invite("%s — %s, type %s." % [
+		attaque.display_name, effet, PaletteUi.libelle_type(attaque.type)])
 
 ## Échap dans un sous-menu : retour au menu principal.
 func _sur_annulation() -> void:

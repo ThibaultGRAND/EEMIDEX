@@ -142,16 +142,30 @@ de forces est donc bien plus facile à convaincre : c'est le cœur de la boucle 
 - Équipe pleine (3 alternants) : le recrutement est refusé avant de dépenser le contrat.
 - Recruté, l'alternant retrouve toute sa Motivation et **disparaît de la carte**.
 
-### Les contrats **[à faire]**
+### Les contrats **[en jeu]**
 
 | Contrat | Valeur | Effet sur la chance |
 | --- | --- | --- |
 | Basique | 30 | +15 points |
 | + Tickets Resto | 50 | +25 points |
 | + Télétravail 2j | 80 | +40 points |
-| CDI à la clé | — | réussite garantie, **un seul dans tout le jeu** |
+| CDI à la clé | 400 | plafonné à 95 %, donc quasi garanti — **un seul dans tout le jeu** |
 
-*Seul le Contrat Basique existe en données aujourd'hui.*
+Sur un alternant à 45 de taux de recrutement :
+
+| Contrat | Intact | Épuisé |
+| --- | --- | --- |
+| Basique | 28 % | 60 % |
+| + Tickets Resto | 38 % | 70 % |
+| + Télétravail | 53 % | 85 % |
+| CDI | 95 % | 95 % |
+
+Chaque contrat vaut à peu près un palier d'épuisement : avec un Télétravail, inutile de
+mettre l'alternant à terre. C'est le compromis que le joueur arbitre — user un contrat
+rare, ou passer trois tours de plus à l'affaiblir.
+
+*Les contrats ne sont pas encore vendus en boutique : ils existent en données mais rien
+ne les distribue.*
 
 ---
 

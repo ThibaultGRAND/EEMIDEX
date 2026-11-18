@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/item_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"contrat_tickets_resto"
+display_name = "Contrat + Tickets Resto"
+description = "Le même contrat, avec de quoi déjeuner. Ça change tout."
+genre = 1
+valeur = 50
+utilisable_en_combat = true

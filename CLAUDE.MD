@@ -104,6 +104,31 @@ Tout l'habillage passe par un socle commun. Voir `docs/interface.md`.
 - Sauvegarde uniquement dans `user://` (IndexedDB côté navigateur). Aucun accès à d'autres chemins.
 - Pas d'API spécifiques à un OS (`OS.execute`, système de fichiers local…).
 - Audio : `.ogg`. Le son ne démarre qu'après une première interaction du joueur (règle des navigateurs).
+
+### Musique
+
+- Les trois pistes sont dans `assets/audio/` : `exploration.ogg`, `combat.ogg`,
+  `boutique.ogg` (Ogg Vorbis, qualité 3, 44,1 kHz stéréo ; 6,3 Mo en tout).
+- **Un seul lecteur, dans `GameState`** (`AudioStreamPlayer` créé au démarrage).
+  Une scène ne crée jamais son propre lecteur : elle appelle
+  `GameState.jouer_musique(&"exploration" | &"combat" | &"boutique")` dans son
+  `_ready()`. Redemander la piste en cours ne la recommence pas, et le passage
+  d'une piste à l'autre se fait en fondu (`DUREE_FONDU`).
+- Qui joue quoi : écran titre et carte → exploration, écran de combat → combat,
+  menu de la boutique → boutique (retour à exploration en fermant le menu). Les
+  mini-jeux ne demandent rien : la musique de la carte continue.
+- La boucle est posée au chargement (`piste.loop = true`), pas dans le `.import` :
+  on ne touche pas aux fichiers `.import`.
+- **L'écran titre n'appelle `jouer_musique()` qu'à la première touche**, parce
+  qu'un navigateur refuse le son tant que le joueur n'a rien touché.
+- Volume dans `GameState.VOLUME_MUSIQUE_DB` (-12 dB). La musique reste derrière
+  le jeu : ne pas la remonter sans l'accord de l'équipe.
+- Pour convertir une nouvelle piste (ffmpeg n'est pas installé sur le poste, il a
+  été pris via le paquet Python `imageio-ffmpeg`) :
+  `ffmpeg -i source.mp3 -vn -c:a libvorbis -q:a 3 -ar 44100 -ac 2 assets/audio/piste.ogg`.
+  Un `.wav` brut n'entre pas dans le dépôt : 26 Mo pour 2 min 30, contre 1,9 Mo en Ogg.
+- En quittant le jeu, Godot écrit `resources still in use at exit` quand une
+  musique joue : c'est le serveur audio du moteur, pas une fuite du jeu.
 - Garder le poids du build raisonnable : pas d'assets inutilisés dans le projet.
 
 ### Vérification
@@ -184,6 +209,10 @@ pour les sols et des placeholders pour les batiments.
   l'autre. Les plans sont en texte dans `zones.gd`.
 - `scenes/world/pnj.tscn` — 8 PNJ qui se baladent, deux par zone, sans case imposee :
   la carte leur trouve une place libre au demarrage.
+- **Musique de fond** : 3 pistes `.ogg` dans `assets/audio/`, jouees par le lecteur
+  unique de `GameState` (`jouer_musique()`), avec fondu entre deux pistes.
+  Exploration sur la carte et l'ecran titre, combat a l'ecran de combat, boutique
+  dans le menu du magasin. Voir « Musique » plus haut.
 - **Tuiles HD (placeholder)** : `tools/generer_tuiles_hd.py` dessine en code un atlas
   64×64 (`assets/tilesets/placeholder_tuiles_hd.*`) : pavés, quais, eau, herbe, rails,
   façades lyonnaises (fenêtres à volets, portes, vitrines), toits en tuiles, arbres,
@@ -267,5 +296,9 @@ au jeu (touches Maj et Tab codées en dur, tolérées pour cette démo).
 - [ ] Rebrancher combat, HUD de carte, équipe, sac et boutique sur les composants
       d'interface (voir `docs/interface.md`)
 - [ ] Dialogues, histoire, objectif final
-- [ ] Musique et sons libres de droits (`.ogg`)
+- [x] Musique de fond : 3 pistes en `.ogg` jouées par `GameState` (exploration,
+      combat, boutique)
+- [ ] **Noter la provenance et la licence des 3 musiques** (fournies par l'équipe
+      le 18 nov. 2026) et les mettre dans les crédits du jeu
+- [ ] Bruitages (coup, capture, ramassage, validation de menu) : rien pour l'instant
 - [ ] Vérifier l'export Web en ligne (GitHub Pages ou itch.io)
