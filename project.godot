@@ -8,22 +8,29 @@
 
 config_version=5
 
-[animation]
-
-compatibility/default_parent_skeleton_in_mesh_instance_3d=true
-
 [application]
 
-config/name="EEMIDEX"
-run/main_scene="res://scenes/main.tscn"
-config/features=PackedStringArray("4.7")
+config/name="Gones"
+config/description="Un jeu d'exploration et de combat dans Lyon, où les créatures sont les étudiants de la promo."
+run/main_scene="res://scenes/ui/main_menu.tscn"
+config/features=PackedStringArray("4.7", "GL Compatibility")
+config/icon="res://placeholder_icon.svg"
+
+[autoload]
+
+GameState="*res://scripts/autoload/game_state.gd"
 
 [display]
 
-window/size/viewport_width=1280
-window/size/viewport_height=720
-window/stretch/mode="canvas_items"
+window/size/viewport_width=320
+window/size/viewport_height=180
+window/size/window_width_override=1280
+window/size/window_height_override=720
+window/stretch/mode="viewport"
+window/stretch/scale_mode="integer"
 
 [rendering]
 
 textures/canvas_textures/default_texture_filter=0
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"

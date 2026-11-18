@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="MoveData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/move_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"bousculade"
+display_name = "Bousculade"
+description = "Un coup d'épaule dans la foule de Bellecour."
+type = &"ville"
+cible = 0
+puissance = 12
+precision = 100

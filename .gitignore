@@ -1,1 +1,15 @@
+# Godot 4 — .gitignore officiel
+# Dossier de cache/import généré par l'éditeur
 .godot/
+/android/
+
+# Exports
+/build/
+/export/
+*.translation
+
+# macOS / éditeurs
+.DS_Store
+*.swp
+.idea/
+.vscode/

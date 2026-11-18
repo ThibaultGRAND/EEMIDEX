@@ -1,0 +1,53 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scenes/world/world.gd" id="1_world"]
+
+[node name="World" type="Node2D"]
+script = ExtResource("1_world")
+
+[node name="Hud" type="CanvasLayer" parent="."]
+
+[node name="Bandeau" type="ColorRect" parent="Hud"]
+offset_top = 160.0
+offset_right = 320.0
+offset_bottom = 180.0
+color = Color(0.0627451, 0.0784314, 0.109804, 1)
+
+[node name="Zone" type="Label" parent="Hud"]
+unique_name_in_owner = true
+offset_left = 4.0
+offset_top = 160.0
+offset_right = 316.0
+offset_bottom = 170.0
+theme_override_colors/font_color = Color(0.913725, 0.772549, 0.419608, 1)
+theme_override_font_sizes/font_size = 8
+text = "Presqu'île"
+
+[node name="Message" type="Label" parent="Hud"]
+unique_name_in_owner = true
+offset_left = 4.0
+offset_top = 169.0
+offset_right = 316.0
+offset_bottom = 179.0
+theme_override_colors/font_color = Color(0.784314, 0.823529, 0.866667, 1)
+theme_override_font_sizes/font_size = 8
+text = ""
+
+[node name="Volet" type="ColorRect" parent="Hud"]
+unique_name_in_owner = true
+visible = false
+offset_left = 32.0
+offset_top = 24.0
+offset_right = 288.0
+offset_bottom = 152.0
+color = Color(0.0627451, 0.0784314, 0.109804, 0.933333)
+
+[node name="Overlay" type="Label" parent="Hud"]
+unique_name_in_owner = true
+visible = false
+offset_left = 40.0
+offset_top = 30.0
+offset_right = 280.0
+offset_bottom = 148.0
+theme_override_font_sizes/font_size = 8
+text = ""
