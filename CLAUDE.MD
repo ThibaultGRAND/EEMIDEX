@@ -143,11 +143,16 @@ Seul le joueur a un vrai sprite ; pas encore de tileset dessiné, aucun son.
   `scenes/world/player.tscn` à la place de `placeholder_joueur.png` : 2 foulées × 4
   directions (bas, haut, gauche, droite), cases de 32×36, perso de 32 px de haut. Réduit
   depuis la planche 8 directions fournie par l'équipe.
-- `scenes/world/pnj.tscn` + `pnj.gd` — PNJ qui se baladent case par case autour de leur
-  case de départ (rayon 3), sur les sols listés dans `Zones.SOLS_PNJ`. Le PNJ émet
-  `envie_de_bouger`, `world.gd` choisit la case ; joueur et PNJ se bloquent mutuellement.
-  Placement par zone dans `zones.gd` (clé `"pnj"`) ; sprites `assets/sprites/pnj_*.png`
-  (2 foulées × 4 directions, perso de 30 px). Pour l'instant : 4 PNJ à la Presqu'île.
+- `scenes/world/pnj.tscn` + `pnj.gd` — PNJ qui se baladent case par case dans toute leur
+  zone, sur les sols listés dans `Zones.SOLS_PNJ`. Le PNJ émet `envie_de_bouger`,
+  `world.gd` choisit la case ; joueur et PNJ se bloquent mutuellement. Liste par zone
+  dans `zones.gd` (clé `"pnj"`) : départ au hasard (à 5 cases au moins du joueur) à
+  chaque entrée dans la zone, sauf `"case"` fixe ; `"rayon"` optionnel pour les tenir
+  près de leur départ. Sprites `assets/sprites/pnj_*.png` (2 foulées × 4 directions,
+  perso de 30 px). Répartition : Presqu'île (Seb, Thibaut), Vieux Lyon (Thomas,
+  Julian), Fourvière (Paloma).
+  PnjThibaut n'a qu'une image de face : il ne se tourne pas, sa 2ᵉ foulée est la même
+  image remontée d'1 px. À remplacer quand sa planche 4 directions existera.
 - `scenes/battle/` — combat 1 contre 1 au tour par tour : attaquer / objet / changer /
   fuir, ordre selon la vitesse, capture au Filet à Gone, combat de fin à Fourvière.
 - `scenes/minigames/rythme/` (vitesse) et `scenes/minigames/frappe/` (attaque).

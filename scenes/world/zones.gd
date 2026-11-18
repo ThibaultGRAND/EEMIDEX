@@ -21,7 +21,7 @@ const BLOQUANTS := "#wt"
 
 ## Sols simples ou les PNJ ont le droit de se balader (pas d'herbe haute,
 ## de traboule, de sortie ni de lieu special).
-const SOLS_PNJ := ".,qhsd"
+const SOLS_PNJ := ".,mqhsd"
 
 ## Les deux sources du TileSet assets/tilesets/lyon.tres.
 const IMPORT := 0        # les tuiles dessinees par l'equipe
@@ -100,12 +100,12 @@ const ZONES := {
 			"################################",
 		],
 		"sorties": {"2": ["vieux_lyon", 30, 7]},
-		## PNJ qui se baladent : sprite 2 foulees x 4 directions, case de depart.
+		## PNJ qui se baladent dans toute la zone. Cles optionnelles :
+		## "case" (depart fixe, sinon une case libre au hasard) et "rayon"
+		## (distance max a sa case de depart, sinon aucune limite).
 		"pnj": [
-			{"nom": "PnjSeb", "sprite": "res://assets/sprites/pnj_seb.png", "case": Vector2i(8, 5)},
-			{"nom": "PnjThomas", "sprite": "res://assets/sprites/pnj_thomas.png", "case": Vector2i(22, 9)},
-			{"nom": "PnjJulian", "sprite": "res://assets/sprites/pnj_julian.png", "case": Vector2i(10, 12)},
-			{"nom": "PnjPaloma", "sprite": "res://assets/sprites/pnj_paloma.png", "case": Vector2i(17, 16)},
+			{"nom": "PnjSeb", "sprite": "res://assets/sprites/pnj_seb.png"},
+			{"nom": "PnjThibaut", "sprite": "res://assets/sprites/pnj_thibaut.png"},
 		],
 	},
 	&"vieux_lyon": {
@@ -139,6 +139,10 @@ const ZONES := {
 			"################################",
 		],
 		"sorties": {"1": ["presquile", 1, 9], "3": ["fourviere", 1, 8]},
+		"pnj": [
+			{"nom": "PnjThomas", "sprite": "res://assets/sprites/pnj_thomas.png"},
+			{"nom": "PnjJulian", "sprite": "res://assets/sprites/pnj_julian.png"},
+		],
 	},
 	&"fourviere": {
 		"titre": "Fourvière — la colline",
@@ -171,6 +175,9 @@ const ZONES := {
 			"################################",
 		],
 		"sorties": {"2": ["vieux_lyon", 1, 9]},
+		"pnj": [
+			{"nom": "PnjPaloma", "sprite": "res://assets/sprites/pnj_paloma.png"},
+		],
 	},
 }
 
