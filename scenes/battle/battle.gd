@@ -8,6 +8,10 @@ extends Control
 ## _afficher_menu().
 enum Mode { MESSAGE, MENU }
 
+## Echelle des degats : puissance x Competence / Defense x (ECHELLE + PAR_NIVEAU x
+## niveau de l'attaquant). Reglee au simulateur (docs/regles.md, « Equilibrage »).
+const DEGATS_ECHELLE := 0.4
+const DEGATS_PAR_NIVEAU := 0.02
 const OPTIONS_RACINE := ["Attaquer", "Objet", "Changer", "Fuir"]
 
 var _ennemi: GoneInstance
@@ -368,6 +372,9 @@ func _degats(attaquant: GoneInstance, cible: GoneInstance, attaque: MoveData,
 	if attaque.degats_max > 0:
 		return maxi(1, int(randi_range(attaque.degats_min, attaque.degats_max) * affinite))
 	var base := float(attaque.puissance) * float(attaquant.attaque()) / float(maxi(1, cible.defense()))
+	# Le facteur d'echelle tient un combat a 4-6 tours a tous les niveaux : sans lui,
+	# la plupart des combats se jouaient en un ou deux coups. Voir docs/regles.md.
+	base *= DEGATS_ECHELLE + DEGATS_PAR_NIVEAU * float(attaquant.niveau)
 	return maxi(1, int(base * affinite * randf_range(0.85, 1.0)))
 
 func _appliquer_modificateur(sur: GoneInstance, stat: StringName, valeur: int) -> void:
@@ -481,6 +488,19 @@ func _fuir() -> void:
 # =============================================================================
 # Fin de combat
 # =============================================================================
+## +1 niveau, avec l'evolution s'il franchit un palier.
+func _monter_de_niveau(membre: GoneInstance, texte: String) -> void:
+	var stade_avant := membre.stade()
+	membre.niveau += 1
+	membre.soigner(2)
+	GameState.jouer_son(&"niveau_gagne")
+	await _dire(texte % [membre.nom(), membre.niveau])
+	if membre.stade() > stade_avant:
+		membre.soigner_tout()
+		_rafraichir()
+		GameState.jouer_son(&"niveau_gagne")
+		await _dire("%s finit son année : il devient %s !" % [membre.nom(), membre.nom_du_stade()])
+
 func _victoire() -> void:
 	# La musique de combat s'efface : le jingle de victoire joue seul, et la
 	# carte relancera l'exploration en reprenant la main.
@@ -488,17 +508,13 @@ func _victoire() -> void:
 	GameState.jouer_son(&"victoire")
 	await _dire("%s est hors de combat !" % _ennemi.nom())
 	if _actif.niveau < _ennemi.niveau + GameState.marge_de_niveau():
-		var stade_avant := _actif.stade()
-		_actif.niveau += 1
-		_actif.soigner(2)
-		GameState.jouer_son(&"niveau_gagne")
-		await _dire("%s passe au niveau %d !" % [_actif.nom(), _actif.niveau])
-		if _actif.stade() > stade_avant:
-			_actif.soigner_tout()
-			_rafraichir()
-			GameState.jouer_son(&"niveau_gagne")
-			await _dire("%s finit son année : il devient %s !"
-				% [_actif.nom(), _actif.nom_du_stade()])
+		await _monter_de_niveau(_actif, "%s passe au niveau %d !")
+	# Le reste de l'equipe apprend en regardant : +1 niveau tant qu'il est sous le
+	# niveau de l'adversaire battu. Pour etre pret contre le boss, il faut donc
+	# s'etre frotte aux alternants des zones du sud.
+	for membre: GoneInstance in GameState.equipe:
+		if membre != _actif and not membre.est_ko() and membre.niveau < _ennemi.niveau:
+			await _monter_de_niveau(membre, "%s a suivi le combat : niveau %d !")
 	if GameState.combat_est_boss:
 		GameState.lever_drapeau(&"gardien_battu")
 		for combattant: GoneInstance in GameState.equipe:

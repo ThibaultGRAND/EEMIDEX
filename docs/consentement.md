@@ -57,7 +57,7 @@ main, et nulle part ailleurs.
 | Célia | 18 nov. 2026 | Célia | ☐ | `assets/characters/pnj_celia/`, `tools/planches/pnj_celia.jpg` |
 | Gabriel | 18 nov. 2026 | Paguera | ☐ | `assets/characters/pnj_gabriel/`, `tools/planches/pnj_gabriel.jpg`, `pnj_gabriel_combat.jpg`, `data/gones/paguera.tres` |
 | Mathéo | 18 nov. 2026 | Matiti | ☐ | `assets/characters/pnj_matheo/`, `tools/planches/pnj_matheo.jpg`, `pnj_matheo_combat.jpg`, `data/gones/matiti.tres` |
-| Nael | 18 nov. 2026 | Nael — Directeur pédagogique | ☐ | *(boss, pas encore de sprite)* |
+| Nael | 18 nov. 2026 | Nael — Directeur pédagogique | ☐ | `assets/characters/pnj_nael/`, `tools/planches/pnj_nael.jpg`, `data/gones/nael.tres` |
 | Tristan | 18 nov. 2026 | Tristan — recruteur | ☐ | *(boss, pas encore de sprite)* |
 | *(prénom à compléter)* | 18 nov. 2026 | CeCissoussou | ☐ | *(pas encore de sprite)* |
 

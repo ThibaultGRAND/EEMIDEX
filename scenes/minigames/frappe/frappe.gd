@@ -6,7 +6,7 @@ extends MiniJeu
 ## curseur et la largeur de la zone ; a partir de 4, la zone se deplace.
 
 const STAT := &"attaque"
-const COUPS := 3
+const COUPS := 6
 ## La barre, en proportions de l'ecran.
 const BARRE_X := 0.3
 const BARRE_LARGEUR := 0.62
@@ -108,9 +108,12 @@ func _frapper() -> void:
 	if _coups_restants <= 0:
 		terminer()
 
-## Gain : regle de docs/regles.md, score x difficulte / 4, plafonne a 3.
+## Gain : regle de docs/regles.md, score x difficulte / 4, plafonne a 3. Le score
+## est ramene sur 9 (l'echelle de l'ancienne partie a 3 coups) : jouer plus
+## longtemps ne rapporte pas plus, il faut juste viser juste plus souvent.
 func _calculer_gain() -> Array:
-	var gain := clampi(int(floor(float(_score) * float(difficulte) / 4.0)), 0, 3)
+	var sur_neuf := float(_score) * 9.0 / float(COUPS * 3)
+	var gain := clampi(int(floor(sur_neuf * float(difficulte) / 4.0)), 0, 3)
 	return [STAT, gain, "Score : %d / %d" % [_score, COUPS * 3]]
 
 # =============================================================================

@@ -70,8 +70,8 @@ Cinq types en cycle fermé. Com et Marketing sont le même métier.
 
 | Situation | Multiplicateur de dégâts |
 | --- | --- |
-| L'attaquant bat le type de la cible | **×2** |
-| La cible bat le type de l'attaquant | **×0,5** |
+| L'attaquant bat le type de la cible | **×1,5** |
+| La cible bat le type de l'attaquant | **×0,67** |
 | Tout le reste | ×1 |
 
 `staff` et `neutre` sont hors du cycle : ×1 dans les deux sens. Un boss se bat sur
@@ -93,10 +93,15 @@ Un changement d'alternant ou un objet consomme le tour — l'adversaire frappe e
 
 ```
 dégâts = puissance × Compétence attaquant ÷ Défense cible
+         × (0,40 + 0,02 × niveau de l'attaquant)
          × multiplicateur de type
          × aléa entre 0,85 et 1,00
 minimum 1
 ```
+
+Le facteur `0,40 + 0,02 × niveau` (`DEGATS_ECHELLE`, `DEGATS_PAR_NIVEAU` dans
+`battle.gd`) tient un combat entre 4 et 6 tours à tous les niveaux. Sans lui, la plupart
+des combats se jouaient en un ou deux coups. Voir « Équilibrage » plus bas.
 
 Une attaque qui rate ne fait rien : chaque attaque a une **précision** en pourcentage,
 tirée avant le calcul.
@@ -323,7 +328,7 @@ Les mini-jeux montent **définitivement** une stat de l'alternant entraîné.
 
 | Mini-jeu | Stat | Gain |
 | --- | --- | --- |
-| Frappe chronométrée | Compétence | `score × difficulté ÷ 4`, plafonné à 3 |
+| Frappe chronométrée | Compétence | 6 coups, score ramené sur 9 : `score × difficulté ÷ 4`, plafonné à 3 |
 | Rythme | Vitesse de rendu | 90 % de réussite : `2 + difficulté` · 60 % : `1 + difficulté ÷ 2` · 35 % : 1, plafonné à 5 |
 
 ### Le plafond
@@ -427,3 +432,44 @@ la case exacte.
 Elle se déclenche automatiquement à la fin d'un combat, au changement de zone et à la
 machine à café — et manuellement par le menu. Dans un navigateur, fermer l'onglet ne
 prévient pas : c'est pour ça qu'elle est automatique.
+
+---
+
+## Équilibrage **[en jeu]**
+
+*18 nov. 2026, demande de Sébastien. Réglé avec un simulateur qui rejoue les règles
+ci-dessus (stats, dégâts, précision, critiques, types, café, états, recharges), des
+milliers de combats par réglage.*
+
+**Avant** : un combat durait 2 tours, un tiers se finissait dès le premier coup à
+Sainte-Blandine, l'avantage de type gagnait 99 % du temps, et Nael était imbattable
+(0 à 1 % de victoires avec une équipe de 3 au même niveau).
+
+**Ce qui a changé**
+
+- l'échelle des dégâts (voir « Les dégâts ») ;
+- les types : ×1,5 / ×0,67 au lieu de ×2 / ×0,5 ;
+- Roulian, *Lancer de dés* : 6 à 18 dégâts au lieu de 5 à 45 ;
+- Guignome : attaque 22 (précision 90) au lieu de 30 (100), étourdissement toutes les
+  5 tours au lieu de 3 ;
+- Palou : attaque 24 au lieu de 18, Motivation de base 25 ;
+- Seb : attaque 27 ; Thibouclier : attaque 26 ;
+- Thomasu, Paguera, Thibouclier : Compétence de base 10 au lieu de 8 ;
+- Nael et Tristan : Motivation 130, Compétence 20, Défense 16 (au lieu de 200 / 30 / 20),
+  coups à 34 et 22 (Nael), 32 (Tristan). *Invisibilité* (Tristan) augmente maintenant sa
+  propre Défense, et non celle du joueur.
+
+**Résultats mesurés**
+
+| Mesure | Résultat |
+| --- | --- |
+| Combat sauvage, joueur au niveau moyen de la zone | 51 à 77 % de victoires, 3 à 5 tours |
+| KO dès le premier tour | 0 % |
+| Victoires de chaque alternant contre tous les autres, même niveau | de 39 % (Palou) à 64 % (Guignome) |
+| Nael niv. 12 contre une équipe de 3 au niveau 11 / 13 / 15 | 10 % / 65 % / 100 % |
+
+**Progression vers le boss.** Après une victoire, l'alternant qui a combattu gagne un
+niveau (jusqu'au niveau de l'adversaire + 3, + 4 avec Moustachette). Les autres membres
+de l'équipe encore debout gagnent aussi un niveau tant qu'ils sont sous le niveau de
+l'adversaire battu. Pour avoir une équipe vers le niveau 13 face à Nael (niveau 12), il
+faut donc s'être battu dans les zones du sud, où les alternants vont jusqu'au niveau 13.

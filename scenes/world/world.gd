@@ -17,6 +17,9 @@ const CASES_PAR_TRAM := 40
 const CHANCE_PNJ_REGARDE := 0.3
 ## Un PNJ place au hasard n'apparait pas a moins de cette distance du joueur.
 const DISTANCE_MIN_PNJ := 5
+## Niveau du boss final (Nael). Avec une equipe de 3 au niveau 13, on gagne environ
+## 2 fois sur 3 (simulation, docs/regles.md « Equilibrage »).
+const NIVEAU_BOSS := 12
 ## Le bandeau du bas reste visible ce temps-la (secondes), puis s'efface.
 const DUREE_BANDEAU := 4.0
 const FONDU_BANDEAU := 0.6
@@ -312,7 +315,8 @@ func _indice_case(c: String) -> String:
 		"M":
 			return "Entraînement. Entrée pour lancer un mini-jeu."
 		"X":
-			return "Quelqu'un garde l'entrée de l'EEMI. Entrée pour l'affronter."
+			return "Nael (Niv.%d) garde l'EEMI. Mieux vaut une équipe vers le Niv.%d. Entrée pour l'affronter." \
+				% [NIVEAU_BOSS, NIVEAU_BOSS + 1]
 		_:
 			return ""
 
@@ -660,7 +664,7 @@ func _lancer_combat_de_fin() -> void:
 		_message("Nael est introuvable (data/gones manquant).")
 		return
 	GameState.rencontre_en_attente = gardien
-	GameState.niveau_rencontre = 12
+	GameState.niveau_rencontre = NIVEAU_BOSS
 	GameState.combat_est_boss = true
 	get_tree().change_scene_to_file(GameState.SCENE_COMBAT)
 
