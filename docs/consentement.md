@@ -55,13 +55,12 @@ main, et nulle part ailleurs.
 | Émile | 18 nov. 2026 | Émile | ☐ | `assets/characters/pnj_emile/`, `tools/planches/pnj_emile.jpg` |
 | Guillaume | 18 nov. 2026 | Guillaume | ☐ | `assets/characters/pnj_guillaume/`, `tools/planches/pnj_guillaume.jpg` |
 | Célia | 18 nov. 2026 | Célia | ☐ | `assets/characters/pnj_celia/`, `tools/planches/pnj_celia.jpg` |
-| Gabriel | 18 nov. 2026 | Gabriel | ☐ | `assets/characters/pnj_gabriel/`, `tools/planches/pnj_gabriel.jpg` |
+| Gabriel | 18 nov. 2026 | Paguera | ☐ | `assets/characters/pnj_gabriel/`, `tools/planches/pnj_gabriel.jpg`, `pnj_gabriel_combat.jpg`, `data/gones/paguera.tres` |
 | Mathéo | 18 nov. 2026 | Mathéo | ☐ | `assets/characters/pnj_matheo/`, `tools/planches/pnj_matheo.jpg` |
 | Nael | 18 nov. 2026 | Nael — Directeur pédagogique | ☐ | *(boss, pas encore de sprite)* |
 | Tristan | 18 nov. 2026 | Tristan — recruteur | ☐ | *(boss, pas encore de sprite)* |
 | *(prénom à compléter)* | 18 nov. 2026 | Matiti | ☐ | *(pas encore de sprite)* |
 | *(prénom à compléter)* | 18 nov. 2026 | CeCissoussou | ☐ | *(pas encore de sprite)* |
-| *(prénom à compléter)* | 18 nov. 2026 | Paguera | ☐ | *(pas encore de sprite)* |
 
 Il reste à leur faire **valider le sprite final** avant la mise en ligne, et à conserver
 les accords écrits hors du dépôt.

@@ -377,14 +377,15 @@ static func haut_batiment(id: StringName, cellule_toit: Vector2i) -> Array:
 ## plusieurs fois, dans n'importe quelle zone, sur n'importe quelle case libre.
 const NOMBRE_PNJ := 6
 
-## Personnages qui ne sont attaches a aucune zone ni a aucun Gone : en combat, ils
-## prennent un Gone sauvage au hasard. Tout prenom reel doit etre dans
+## Personnages qui ne sont attaches a aucune zone. Sans cle "gone", ils prennent un
+## Gone sauvage au hasard en combat. Tout prenom reel doit etre dans
 ## docs/consentement.md.
 const FIGURANTS := [
 	{"nom": "Célia", "frames": "res://assets/characters/pnj_celia/pnj_celia_frames.tres"},
-	{"nom": "Gabriel", "frames": "res://assets/characters/pnj_gabriel/pnj_gabriel_frames.tres"},
+	# Gabriel : son Gone s'appelle Paguera
+	{"nom": "Paguera", "frames": "res://assets/characters/pnj_gabriel/pnj_gabriel_frames.tres", "gone": &"paguera"},
 	{"nom": "Mathéo", "frames": "res://assets/characters/pnj_matheo/pnj_matheo_frames.tres"},
-	{"nom": "Alternant", "frames": "res://assets/characters/pnj_generique_1/pnj_generique_1_frames.tres"},
+	{"nom": "Alternante", "frames": "res://assets/characters/pnj_generique_6/pnj_generique_6_frames.tres"},
 	{"nom": "Alternant", "frames": "res://assets/characters/pnj_generique_2/pnj_generique_2_frames.tres"},
 	{"nom": "Alternant", "frames": "res://assets/characters/pnj_generique_3/pnj_generique_3_frames.tres"},
 	{"nom": "Alternant", "frames": "res://assets/characters/pnj_generique_4/pnj_generique_4_frames.tres"},

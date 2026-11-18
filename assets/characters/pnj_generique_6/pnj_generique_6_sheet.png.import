@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cp1sw3ctmg1ff"
-path="res://.godot/imported/pnj_generique_1_sheet.png-9a597940a464747e60b1c8600f5025f7.ctex"
+uid="uid://d2t1p6ilk3e1j"
+path="res://.godot/imported/pnj_generique_6_sheet.png-7b64ceeef5aeb776275f692ed84a3886.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/characters/pnj_generique_1/pnj_generique_1_sheet.png"
-dest_files=["res://.godot/imported/pnj_generique_1_sheet.png-9a597940a464747e60b1c8600f5025f7.ctex"]
+source_file="res://assets/characters/pnj_generique_6/pnj_generique_6_sheet.png"
+dest_files=["res://.godot/imported/pnj_generique_6_sheet.png-7b64ceeef5aeb776275f692ed84a3886.ctex"]
 
 [params]
 
