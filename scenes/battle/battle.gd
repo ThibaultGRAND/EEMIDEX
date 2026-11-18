@@ -63,6 +63,9 @@ func _ready() -> void:
 		_quitter("Votre équipe est hors de combat.")
 		return
 	_rafraichir()
+	# Envoyer quelqu'un au combat a bout de forces, ca se paie aussi.
+	if float(_actif.pv) / float(maxi(1, _actif.pv_max())) < 0.25:
+		GameState.ajuster_bienveillance(-1, "alternant envoyé épuisé")
 	if GameState.combat_est_boss:
 		await _dire("%s vous barre la route !" % _ennemi.nom())
 	else:
@@ -390,6 +393,9 @@ func _tenter_capture(objet: ItemData) -> void:
 		_menu_racine()
 		return
 	GameState.consommer_objet(objet.id)
+	# Un contrat plus genereux que le minimum, ca se remarque.
+	if objet.valeur > 30:
+		GameState.ajuster_bienveillance(2, "contrat généreux")
 	await _dire("Vous tendez un %s..." % objet.display_name)
 	var part_pv := float(_ennemi.pv) / float(maxi(1, _ennemi.pv_max()))
 	var chance := int((_ennemi.data.taux_capture * (1.0 - 0.7 * part_pv) + objet.valeur * 0.5)
@@ -456,6 +462,11 @@ func _victoire() -> void:
 				% [_actif.nom(), _actif.nom_du_stade()])
 	if GameState.combat_est_boss:
 		GameState.lever_drapeau(&"gardien_battu")
+		for combattant: GoneInstance in GameState.equipe:
+			combattant.oublier_les_etats()
+		GameState.sauvegarde_auto()
+		get_tree().change_scene_to_file(GameState.SCENE_FIN)
+		return
 		await _dire("La pointe est à vous. Fin du MVP : merci d'avoir joué.")
 		_quitter("Vous avez battu le gardien du confluent.")
 		return

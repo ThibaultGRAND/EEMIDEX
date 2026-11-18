@@ -363,19 +363,29 @@ La fiche d'équipe annonce le stade et le prochain palier : `Thigoat Chômeur Ni
 
 ---
 
-## 9. La Bienveillance RH **[à faire]**
+## 9. La Bienveillance RH **[en jeu]**
 
-Un compteur caché décide de la fin du jeu.
+Un compteur caché décide de la fin. Il part de **zéro** et n'est jamais montré : c'est
+ce qui l'empêche d'être optimisé. Pour obtenir la bonne fin il faut le faire monter —
+ne rien faire de particulier mène à la fin exploiteuse.
 
 | Geste | Effet |
 | --- | --- |
-| Remotiver l'équipe à la machine à café | **+** |
-| Faire combattre un alternant à 0 de Motivation | **−** |
-| Utiliser un contrat généreux plutôt qu'un Basique | **+** |
-| Répondre « c'est formateur » à un alternant qui se plaint | **−** |
-| Écouter Gérard | **+** |
+| Remotiver l'équipe à la machine à café | **+1** |
+| Tendre un contrat plus généreux qu'un Basique | **+2** |
+| Entrer en combat avec un alternant sous 25 % de Motivation | **−1** |
 
-Positif à la fin : les alternants restent. Négatif : ils passent tous freelance.
+Le compteur est borné entre −20 et +20, et sauvegardé.
+
+**Strictement positif à la fin : les alternants restent.** Zéro ou négatif : ils passent
+tous freelance. Les deux épilogues sont dans `scenes/ui/fin.tscn`, et la victoire sur
+Nael y mène directement au lieu de revenir à la carte.
+
+### Pas encore branché
+
+Deux gestes du document n'ont nulle part où s'accrocher : *répondre « c'est formateur »
+à un alternant qui se plaint* et *écouter Gérard* demandent des dialogues à choix sur la
+carte, qui n'existent pas encore.
 
 ---
 

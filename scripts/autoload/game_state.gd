@@ -14,6 +14,7 @@ const SCENE_MONDE := "res://scenes/world/world.tscn"
 const SCENE_COMBAT := "res://scenes/battle/battle.tscn"
 const SCENE_RYTHME := "res://scenes/minigames/rythme/rythme.tscn"
 const SCENE_FRAPPE := "res://scenes/minigames/frappe/frappe.tscn"
+const SCENE_FIN := "res://scenes/ui/fin.tscn"
 
 ## Les musiques de fond. Une seule joue a la fois, en boucle, et les scenes
 ## demandent celle qu'elles veulent : la carte ne connait pas le combat.
@@ -72,6 +73,11 @@ var inventaire: Dictionary = {}  # item_id (StringName) -> quantité (int)
 var ressources: Dictionary = {}  # ressource_id (StringName) -> quantité (int)
 var drapeaux: Dictionary = {}    # progression : objets ramassés, boss battu...
 var partie_commencee: bool = false
+## La Bienveillance RH : le compteur cache qui decide de la fin.
+## Il part de zero et il faut le faire monter pour obtenir la bonne fin :
+## ne rien faire de particulier mene a la fin exploiteuse. Voir docs/regles.md.
+var bienveillance: int = 0
+
 ## Le patron choisi au prologue.
 var heros: StringName = &"moustache"
 
@@ -227,6 +233,7 @@ func nouvelle_partie() -> void:
 	for id in RESSOURCES:
 		ressources[id] = 0
 	drapeaux.clear()
+	bienveillance = 0
 	zone_courante = &"perrache"
 	case_joueur = Zones.zone(&"perrache")["depart"]
 	partie_commencee = true
@@ -241,6 +248,17 @@ func nouvelle_partie() -> void:
 	equipe_modifiee.emit()
 	inventaire_modifie.emit()
 	ressources_modifiees.emit()
+
+## Fait bouger la Bienveillance. Le detail sert au journal, pas au joueur :
+## le compteur reste cache, c'est ce qui l'empeche d'etre optimise.
+func ajuster_bienveillance(variation: int, raison: String = "") -> void:
+	bienveillance = clampi(bienveillance + variation, -20, 20)
+	if raison != "":
+		print("[bienveillance] %+d (%s) -> %d" % [variation, raison, bienveillance])
+
+## Strictement positif : les alternants restent. Sinon ils passent freelance.
+func fin_bienveillante() -> bool:
+	return bienveillance > 0
 
 ## Le patron qu'on n'a pas choisi : c'est lui le rival.
 func rival() -> StringName:
@@ -386,6 +404,7 @@ func sauvegarder() -> bool:
 		"ressources": res,
 		"drapeaux": dra,
 		"heros": String(heros),
+		"bienveillance": bienveillance,
 		"zone": String(zone_courante),
 		"case_x": case_joueur.x,
 		"case_y": case_joueur.y,
@@ -430,6 +449,7 @@ func charger() -> bool:
 		drapeaux[StringName(id)] = bool(donnees["drapeaux"][id])
 
 	heros = StringName(donnees.get("heros", "moustache"))
+	bienveillance = int(donnees.get("bienveillance", 0))
 	zone_courante = StringName(donnees.get("zone", "perrache"))
 	case_joueur = Vector2i(int(donnees.get("case_x", 12)), int(donnees.get("case_y", 10)))
 	partie_commencee = true

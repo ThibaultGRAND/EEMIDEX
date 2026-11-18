@@ -433,6 +433,7 @@ func _interagir() -> void:
 	match _case_courante():
 		"S":
 			GameState.soigner_equipe()
+			GameState.ajuster_bienveillance(1, "machine à café")
 			GameState.sauvegarde_auto()
 			_message("La machine à café a fait son office. Équipe au complet.")
 		"B":
