@@ -50,6 +50,10 @@ Tout l'habillage passe par un socle commun. Voir `docs/interface.md`.
 - Un composant ne décide rien : il émet un signal, l'écran agit.
 - Les cadres sont des `StyleBoxFlat` dessinées en code, sans asset. Les cadres
   9-slice de l'équipe les remplaceront dans le thème, sans toucher aux écrans.
+  Même principe pour le décor de combat (`scenes/battle/fond_combat.gd`) : il
+  est tracé dans `_draw()`, ce n'est pas un asset généré.
+- **En combat, la fiche du joueur est en haut à gauche et celle de l'adversaire
+  en bas à droite** (choix de Thibault, 18 nov. 2026). Ne pas y revenir.
 - `scenes/ui/apercu_ui.tscn` montre tous les composants d'un coup (F6). C'est un
   écran de travail, il n'est pas branché au jeu.
 
@@ -105,10 +109,27 @@ Tout l'habillage passe par un socle commun. Voir `docs/interface.md`.
 - Pas d'API spécifiques à un OS (`OS.execute`, système de fichiers local…).
 - Audio : `.ogg`. Le son ne démarre qu'après une première interaction du joueur (règle des navigateurs).
 
-### Musique
+### Son
 
-- Les trois pistes sont dans `assets/audio/` : `exploration.ogg`, `combat.ogg`,
-  `boutique.ogg` (Ogg Vorbis, qualité 3, 44,1 kHz stéréo ; 6,3 Mo en tout).
+Tout l'audio est dans `assets/audio/`, **en `.ogg` uniquement** (Ogg Vorbis
+qualité 3, 44,1 kHz ; 8,2 Mo en tout), et **tout passe par `GameState`**. Une
+scène ne crée jamais son propre lecteur : elle demande un son, et c'est tout.
+
+| Appel | Pour quoi |
+| --- | --- |
+| `GameState.jouer_musique(&"...")` | musique de fond, en boucle, une seule à la fois |
+| `GameState.jouer_son(&"...", volume_db)` | un bruitage, jusqu'à 6 en même temps |
+| `GameState.jouer_ambiance(&"...")` | le fond sonore d'une zone, en boucle |
+| `GameState.arreter_ambiance()` | en quittant la zone, l'écran titre, le combat |
+| `GameState.demarrer_son_texte()` / `arreter_son_texte()` | la machine à écrire de la boîte de dialogue |
+
+Les trois tables (`MUSIQUES`, `SONS`, `BOUCLES`) sont en haut de
+`game_state.gd` : **ajouter un son, c'est ajouter une ligne et un `.ogg`**,
+jamais un lecteur.
+
+#### Musique
+
+- Les trois pistes : `exploration.ogg`, `combat.ogg`, `boutique.ogg`.
 - **Un seul lecteur, dans `GameState`** (`AudioStreamPlayer` créé au démarrage).
   Une scène ne crée jamais son propre lecteur : elle appelle
   `GameState.jouer_musique(&"exploration" | &"combat" | &"boutique")` dans son
@@ -129,6 +150,44 @@ Tout l'habillage passe par un socle commun. Voir `docs/interface.md`.
   Un `.wav` brut n'entre pas dans le dépôt : 26 Mo pour 2 min 30, contre 1,9 Mo en Ogg.
 - En quittant le jeu, Godot écrit `resources still in use at exit` quand une
   musique joue : c'est le serveur audio du moteur, pas une fuite du jeu.
+
+#### Bruitages
+
+Onze bruitages, joués par six lecteurs tournants (`LECTEURS_SONS`) : ils se
+chevauchent sans se couper, et au-delà de six le plus ancien laisse sa place.
+
+| Son | Quand |
+| --- | --- |
+| `clic` | le curseur bouge dans un menu, une note réussie au Rythme |
+| `dialogue_suivant` | une page de dialogue tournée, un choix validé, un menu fermé |
+| `attaque` | un coup qui touche, en combat comme à la Frappe |
+| `victoire` / `defaite` | fin de combat (la musique s'efface avant) |
+| `niveau_gagne` | montée de niveau, évolution, recrutement, machine à café, gain d'entraînement |
+| `achat` | achat à la boutique, ramassage d'une note de frais |
+| `entree_boutique` | ouverture du menu de la boutique |
+| `entree_lieu` | changement de zone, passage d'une traboule |
+| `marche` | un pas du joueur (à -16 dB : il revient à chaque case) |
+| `train_en_gare` | le TGV du prologue, puis de temps en temps à Perrache |
+
+- Les sons de menu et de dialogue sont **dans les composants**
+  (`liste_menu.gd`, `boite_dialogue.gd`) : tout écran qui les utilise sonne
+  juste sans rien brancher. Les menus écrits à la main (carte, écran titre)
+  appellent `jouer_son()` eux-mêmes.
+- Un bruitage est rogné de ses silences avant d'entrer dans le dépôt, sinon il
+  répond en retard :
+  `ffmpeg -i source.mp3 -af "silenceremove=start_periods=1:start_threshold=-50dB,areverse,silenceremove=start_periods=1:start_threshold=-50dB,areverse" -c:a libvorbis -q:a 3 -ar 44100 assets/audio/nom.ogg`
+
+#### Ambiance de zone
+
+- L'ambiance est une **donnée de zone** : la clé `"ambiance"` dans `zones.gd`
+  (seule Perrache en a une, `ambiance_gare`). Une zone sans cette clé est
+  silencieuse. Ne pas écrire une liste de zones dans `world.gd`.
+- Le train de Perrache repart sur un `Timer` relancé entre
+  `TRAIN_ATTENTE_MIN` et `TRAIN_ATTENTE_MAX` (25 à 70 s), et seulement dans une
+  zone qui déclare une ambiance.
+- Le combat et l'écran titre coupent l'ambiance ; la carte la repose en
+  chargeant la zone. **Un `Timer` hors de l'arbre refuse de démarrer** : garder
+  le `is_inside_tree()` de `_poser_ambiance()` et `_sur_train()`.
 - Garder le poids du build raisonnable : pas d'assets inutilisés dans le projet.
 
 ### Vérification
@@ -209,10 +268,10 @@ pour les sols et des placeholders pour les batiments.
   l'autre. Les plans sont en texte dans `zones.gd`.
 - `scenes/world/pnj.tscn` — 8 PNJ qui se baladent, deux par zone, sans case imposee :
   la carte leur trouve une place libre au demarrage.
-- **Musique de fond** : 3 pistes `.ogg` dans `assets/audio/`, jouees par le lecteur
-  unique de `GameState` (`jouer_musique()`), avec fondu entre deux pistes.
-  Exploration sur la carte et l'ecran titre, combat a l'ecran de combat, boutique
-  dans le menu du magasin. Voir « Musique » plus haut.
+- **Son** : 3 musiques, 11 bruitages et 1 ambiance de zone, tous en `.ogg`, tous
+  joues par `GameState` (`jouer_musique`, `jouer_son`, `jouer_ambiance`,
+  `demarrer_son_texte`). Menus, dialogues, combat, boutique, pas du joueur,
+  changements de zone, prologue et epilogue sont sonorises. Voir « Son » plus haut.
 - **Tuiles HD (placeholder)** : `tools/generer_tuiles_hd.py` dessine en code un atlas
   64×64 (`assets/tilesets/placeholder_tuiles_hd.*`) : pavés, quais, eau, herbe, rails,
   façades lyonnaises (fenêtres à volets, portes, vitrines), toits en tuiles, arbres,
@@ -235,7 +294,7 @@ pour les sols et des placeholders pour les batiments.
 - `scripts/ui/` + `scenes/ui/composants/` — le socle d'interface : palette,
   thème Godot, jauge animée, badge de type, fiche de combattant, liste à curseur,
   boîte de dialogue qui s'écrit lettre par lettre. `scenes/ui/apercu_ui.tscn` les
-  montre tous. **Les écrans existants ne sont pas encore rebranchés dessus.**
+  montre tous. **L'écran de combat s'en sert ; la carte et ses menus, pas encore.**
 - `scenes/battle/`, `scenes/minigames/`, `scenes/ui/` — combat au tour par tour,
   Rythme et Frappe chronometree, ecran titre. Toute l'interface est en **ancrages
   proportionnels** : elle suit la resolution sans retouche.
@@ -257,11 +316,19 @@ pour les sols et des placeholders pour les batiments.
 | Nom des créatures | Gones |
 | Quels 2 mini-jeux | Rythme (vitesse) et Frappe chronométrée (attaque) |
 | Version de Godot | **4.7.2 stable** (installée le 18 nov. 2026, à confirmer avec l’équipe) |
-| Ressources | praline (Presqu'île), cocon (Vieux Lyon), quenelle (Fourvière) |
+| Monnaie | **Note de Frais**, unique (les 3 ressources sont supprimees, 18 nov. 2026) |
 | Histoire et objectif final | non écrits : le MVP s'arrête au gardien de Fourvière |
 
-Le cocon n'a pas encore de mini-jeu : il ne sert qu'à la boutique, en attendant une
-éventuelle décision sur un troisième mini-jeu (esquive, pour la défense).
+Un troisieme mini-jeu (esquive, pour la defense) reste une eventualite : a decider
+en equipe, pas a coder d'avance.
+
+**Economie (18 nov. 2026)** : une seule monnaie, la **Note de Frais**. On demarre a
+120, un objet ramasse au sol en rapporte 25 (`GameState.GAIN_RAMASSAGE`). La
+boutique vend le dictionnaire `GameState.BOUTIQUE` (objet -> prix) : ajouter un
+article, c'est ajouter une ligne, l'ecran de la carte se met a jour tout seul. La
+difficulte des mini-jeux ne depend plus de ce qu'on possede mais du **stade de
+l'alternant entraine** (Chomeur 1, Stagiaire 2, Alternant 3). Details dans
+`docs/regles.md`, section 6.
 
 ### Écarts assumés aux règles ci-dessus
 
@@ -293,12 +360,19 @@ au jeu (touches Maj et Tab codées en dur, tolérées pour cette démo).
 - [ ] Écrire le script de découpage des planches de sprites
 - [ ] Décider le script de conversion des données ouvertes et remplir `assets/maps/SOURCES.md`
 - [ ] Équilibrer stats, niveaux, taux de capture
-- [ ] Rebrancher combat, HUD de carte, équipe, sac et boutique sur les composants
-      d'interface (voir `docs/interface.md`)
-- [ ] Dialogues, histoire, objectif final
+- [x] Rebrancher **l'écran de combat** sur les composants d'interface
+- [ ] Rebrancher le HUD de la carte, l'équipe, le sac et la boutique sur les
+      composants d'interface (voir `docs/interface.md`)
+- [x] Dialogues a choix sur la carte (`scenes/world/dialogues.gd`) : aborder un
+      alternant ouvre un dialogue, la reponse joue sur la Bienveillance RH, puis le
+      joueur choisit de lui proposer un contrat ou de le laisser
+- [ ] Histoire et objectif final : Gerard n'est pas sur la carte (ni case ni sprite)
 - [x] Musique de fond : 3 pistes en `.ogg` jouées par `GameState` (exploration,
       combat, boutique)
-- [ ] **Noter la provenance et la licence des 3 musiques** (fournies par l'équipe
-      le 18 nov. 2026) et les mettre dans les crédits du jeu
-- [ ] Bruitages (coup, capture, ramassage, validation de menu) : rien pour l'instant
+- [ ] **Noter la provenance et la licence des 16 fichiers audio** (fournis par
+      l'équipe le 18 nov. 2026) et les mettre dans les crédits du jeu
+- [x] Bruitages : 11 sons branchés (menus, dialogues, combat, boutique, pas,
+      zones) plus l'ambiance de la gare de Perrache
+- [ ] Régler les volumes à l'oreille en jouant (`VOLUME_SONS_DB`,
+      `VOLUME_AMBIANCE_DB`, `VOLUME_TEXTE_DB`, `VOLUME_PAS_DB` dans `world.gd`)
 - [ ] Vérifier l'export Web en ligne (GitHub Pages ou itch.io)

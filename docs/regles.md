@@ -260,15 +260,25 @@ Là, c'est lui qui décide.
 Et **12 %** du temps, un alternant qui arrive sur une case voisine du joueur
 l'attaque de lui-même. La rencontre n'est pas un menu.
 
+### Aborder un alternant **[en jeu]**
+
+Entrée face à un alternant ouvre un **dialogue** : il dit ce qu'il a sur le cœur, le
+patron répond, puis choisit entre *lui proposer un contrat* (le combat commence) et
+*le laisser travailler*. C'est la rencontre voulue, par opposition à la rencontre
+subie, où c'est l'alternant qui décide de se battre, de fuir ou d'ignorer.
+
+Les textes sont dans `scenes/world/dialogues.gd`, pas dans le code de la carte :
+ajouter un alternant bavard, c'est ajouter une ligne à `PLAINTES`.
+
 ### Les lieux **[en jeu]**
 
 | Case | Effet |
 | --- | --- |
 | Machine à café | remotive toute l'équipe, gratuitement, et sauvegarde |
-| Boutique | échange de ressources contre des objets |
+| Boutique | achète des objets contre de la Note de Frais |
 | Borne d'entraînement | lance un mini-jeu |
 | Voûte | téléporte à l'autre bout du passage |
-| Objet au sol | ramassé une seule fois, définitivement |
+| Objet au sol | ramassé une seule fois : +25 de Note de Frais |
 | Sortie de zone | change de zone, et sauvegarde |
 
 ### Les zones **[en jeu]**
@@ -278,19 +288,30 @@ alternants sauvages montent à mesure qu'on descend le quartier.
 
 ---
 
-## 6. L'économie **[en jeu, à refondre]**
+## 6. L'économie **[en jeu]**
 
-Trois ressources se ramassent sur la carte, deux par gisement. Elles servent à la
-boutique et débloquent les niveaux de difficulté des mini-jeux.
+La monnaie est unique : la **Note de Frais**. On commence la partie avec **120**.
+Un objet ramassé au sol en rapporte **25**, une seule fois par gisement.
 
-| Ressource | Quantité possédée | Difficulté débloquée |
+La boutique vend le catalogue de `GameState.BOUTIQUE`, au prix affiché à côté de
+chaque ligne :
+
+| Objet | Prix | Effet |
 | --- | --- | --- |
-| — | 0 à 2 | niveau 1 |
-| — | 3 à 7 | niveau 2 |
-| — | 8 et plus | niveau 3 |
+| Contrat Basique | 30 | recrute un alternant épuisé |
+| Contrat + Tickets Resto | 70 | recrute mieux |
+| Contrat + Télétravail 2j | 140 | recrute beaucoup mieux |
+| Barre de céréales | 25 | rend 25 de Motivation |
+| Panier garni | 55 | rend 60 de Motivation |
 
-*Le document d'histoire prévoit une monnaie unique, la **Note de Frais**. Les trois
-ressources actuelles sont un héritage de la version précédente du jeu : à remplacer.*
+Le **CDI à la clé** ne se vend pas : c'est l'objet unique de la fin.
+
+Ajouter un article à la boutique, c'est ajouter une ligne à `BOUTIQUE` : un
+article dont la fiche `.tres` manque est simplement sauté, l'écran ne casse pas.
+
+La difficulté des mini-jeux ne dépend plus de ce qu'on possède, mais du **stade de
+l'alternant entraîné** : Chômeur → niveau 1, Stagiaire → niveau 2, Alternant →
+niveau 3.
 
 ---
 
@@ -372,6 +393,8 @@ ne rien faire de particulier mène à la fin exploiteuse.
 | Geste | Effet |
 | --- | --- |
 | Remotiver l'équipe à la machine à café | **+1** |
+| Écouter un alternant qui se plaint, jusqu'au bout | **+1** |
+| Lui répondre « c'est formateur » | **−1** |
 | Tendre un contrat plus généreux qu'un Basique | **+2** |
 | Entrer en combat avec un alternant sous 25 % de Motivation | **−1** |
 
@@ -381,18 +404,22 @@ Le compteur est borné entre −20 et +20, et sauvegardé.
 tous freelance. Les deux épilogues sont dans `scenes/ui/fin.tscn`, et la victoire sur
 Nael y mène directement au lieu de revenir à la carte.
 
+Les deux gestes liés aux alternants passent par les **dialogues de la carte** : on
+aborde un alternant avec Entrée, il se plaint, et le patron choisit sa réponse. La
+plainte et son choix **ne reviennent pas** une fois l'alternant abordé (drapeau
+`parle_<id>`) : sans ça, la Bienveillance se farmerait en boucle sur le même PNJ.
+
 ### Pas encore branché
 
-Deux gestes du document n'ont nulle part où s'accrocher : *répondre « c'est formateur »
-à un alternant qui se plaint* et *écouter Gérard* demandent des dialogues à choix sur la
-carte, qui n'existent pas encore.
+*Écouter Gérard* attend que Gérard existe sur la carte : il n'a ni case ni sprite, et
+réutiliser la planche d'un étudiant pour lui poserait un problème de consentement.
 
 ---
 
 ## 10. La sauvegarde **[en jeu]**
 
 Une seule sauvegarde, dans `user://`, en JSON. Elle garde l'équipe avec niveaux,
-Motivation et bonus, le sac, les ressources, les drapeaux de progression, la zone et
+Motivation et bonus, le sac, la Note de Frais, les drapeaux de progression, la zone et
 la case exacte.
 
 Elle se déclenche automatiquement à la fin d'un combat, au changement de zone et à la
